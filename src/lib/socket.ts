@@ -30,11 +30,11 @@ export const searchTicker = async (searchTerm: string) => {
 }
 
 export const AddTickerToMyList = (item: SearchTickerItem) => {
-    socket.emit('mystocks-add-request', item);    
+    socket.emit('mystocks-add-request', item);
 }
 
 export const RemoveItemFromMyList = (item: SearchTickerItem) => {
-    socket.emit('mystocks-remove-request', item);    
+    socket.emit('mystocks-remove-request', item);
 }
 
 // export const LoadMyTickerList = () => {
@@ -50,11 +50,35 @@ export const RemoveItemFromMyList = (item: SearchTickerItem) => {
 export const useMyStockList = () => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>([]);
     useEffect(() => {
-        socket.emit('mystocks-list-request');        
+        socket.emit('mystocks-list-request');
         socket.on(`mystocks-list-response`, setMyTickers);
         return () => {
             socket.off('mystocks-list-response', setMyTickers);
         }
     }, []);
     return mytickers;
+}
+
+type OptionsData = {
+    options: Map<string, {
+        c: Map<number, {
+            a: number,
+            b: number,
+            l: number,
+            v: number
+        }>
+    }>
+}
+
+export const useOptionTracker = (item: SearchTickerItem) => {
+    const [od, setOd] = useState<OptionsData>();
+    useEffect(() => {
+        socket.emit('options-subscribe-request', item);
+        socket.on(`options-subscribe-response`, setOd);
+        return () => {
+            socket.emit('options-unsubscribe-request', item);
+            socket.off('options-subscribe-response', setOd);
+        }
+    }, []);
+    return od;
 }
