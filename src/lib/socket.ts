@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import ky from 'ky';
 
 const URL = `https://tidy-spider-52.deno.dev`
 // const URL = `https://studious-telegram-4qq55vqj74hqgwp-8000.app.github.dev`
@@ -72,7 +73,6 @@ type OptionsData = {
 }
 
 type StockPriceData = {
-    item: SearchTickerItem,
     quoteSummary: {
         price: {
             regularMarketPrice: number
@@ -97,17 +97,27 @@ export const useOptionTracker = (item: SearchTickerItem) => {
 
 export const useStockPrice = (item: SearchTickerItem) => {
     const [od, setOd] = useState<StockPriceData>();
+    const fn = async () => {
+        const data = await ky(`/api/symbols/${item.symbol}/summary`).json<StockPriceData>();
+        setOd(data);
+    }
     useEffect(() => {
-        socket.emit('stock-price-subscribe-request', item);
-        socket.on(`stock-price-subscribe-response`, (r: StockPriceData) => {
-            if (r.item.symbol === item.symbol) {
-                setOd(r);
-            }
-        });
+        fn();
+        const i = setInterval(fn, 30000);
         return () => {
-            socket.emit('stock-price-unsubscribe-request', item);
-            socket.off('stock-price-subscribe-response', setOd);
+            clearInterval(i);
         }
-    }, []);
+
+        // socket.emit('stock-price-subscribe-request', item);
+        // socket.on(`stock-price-subscribe-response`, (r: StockPriceData) => {
+        //     if (r.item.symbol === item.symbol) {
+        //         setOd(r);
+        //     }
+        // });
+        // return () => {
+        //     socket.emit('stock-price-unsubscribe-request', item);
+        //     socket.off('stock-price-subscribe-response', setOd);
+        // }
+    }, [item.symbol]);
     return od;
 }
