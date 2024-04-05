@@ -25,11 +25,13 @@ export const MyStockList = () => {
             width: 150,
             getActions: ({ id, row }) => {
                 return [<GridActionsCellItem
+                    key='Remove'
                     icon={<DeleteIcon />}
                     label="Remove from my list"
                     onClick={() => RemoveItemFromMyList(row)}
                 />, 
                 <GridActionsCellItem
+                key='ViewOptionsData'
                 icon={<InfoIcon />}
                 label="View options data"
                 onClick={() => {
