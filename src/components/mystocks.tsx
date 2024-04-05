@@ -7,6 +7,7 @@ import { DataGrid, GridActionsCellItem, GridColDef, useGridApiRef } from '@mui/x
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import { useState } from 'react';
 import { StockOptionsView } from './stock-options-view';
+import { StockTickerView } from './stock-ticker';
 
 export const MyStockList = () => {
     const mytickers = useMyStockList();
@@ -15,6 +16,9 @@ export const MyStockList = () => {
     const columns: GridColDef<SearchTickerItem>[] = [
         { field: 'symbol', headerName: 'Ticker', width: 150 },
         { field: 'name', headerName: 'Name', flex: 1 },
+        { field: 'price', headerName: 'Price', flex: 1, renderCell:(p)=>{
+          return <StockTickerView item={p.row}></StockTickerView>
+        }},
         {
             field: 'actions',
             type: 'actions',

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const URL = `https://tidy-spider-52.deno.dev`
+// const URL = `https://studious-telegram-4qq55vqj74hqgwp-8000.app.github.dev`
 
 export const socket = io(URL, {
     reconnectionDelayMax: 10000,
@@ -70,6 +71,16 @@ type OptionsData = {
     }>
 }
 
+type StockPriceData = {
+    item: SearchTickerItem,
+    quoteSummary: {
+        price: {
+            regularMarketPrice: number
+        }
+
+    }
+}
+
 export const useOptionTracker = (item: SearchTickerItem) => {
     const [od, setOd] = useState<OptionsData>();
     useEffect(() => {
@@ -78,6 +89,24 @@ export const useOptionTracker = (item: SearchTickerItem) => {
         return () => {
             socket.emit('options-unsubscribe-request', item);
             socket.off('options-subscribe-response', setOd);
+        }
+    }, []);
+    return od;
+}
+
+
+export const useStockPrice = (item: SearchTickerItem) => {
+    const [od, setOd] = useState<StockPriceData>();
+    useEffect(() => {
+        socket.emit('stock-price-subscribe-request', item);
+        socket.on(`stock-price-subscribe-response`, (r: StockPriceData) => {
+            if (r.item.symbol === item.symbol) {
+                setOd(r);
+            }
+        });
+        return () => {
+            socket.emit('stock-price-unsubscribe-request', item);
+            socket.off('stock-price-subscribe-response', setOd);
         }
     }, []);
     return od;

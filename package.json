@@ -23,7 +23,8 @@
     "react-dom": "^18",
     "react-router-dom": "^6.22.3",
     "socket.io-client": "^4.7.5",
-    "sort-by": "^1.2.0"
+    "sort-by": "^1.2.0",
+    "yahoo-finance2": "^2.11.0"
   },
   "devDependencies": {
     "@types/node": "^20",
