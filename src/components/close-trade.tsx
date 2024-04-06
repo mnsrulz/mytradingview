@@ -20,11 +20,13 @@ import { Trade } from '@prisma/client';
 export const CloseTradeDialog = (props: ITickerProps) => {
     const { onClose, open, tradeId } = props;
     const [trade, setTrade] = useState<Trade | null>(null);
-    if (!open) return <div></div>
-
+    
     useEffect(() => {
+        
         ky(`/api/trades/${tradeId}`).json<Trade>().then(j=> setTrade(j));
     }, [tradeId]);
+    
+if (!open) return <div></div>
 
     if(!trade) return <div>...loading</div>;
 
