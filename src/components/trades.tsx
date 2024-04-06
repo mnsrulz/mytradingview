@@ -37,8 +37,8 @@ const mapTradeToView = (trade: Trade) => {
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format;
-const percentageFormatter = (v) => v && Number(v).toLocaleString(undefined, { style: 'percent', minimumFractionDigits: 2 });;
-const dateFormatter = (v) => v && dayjs(v).format('DD/MM/YYYY')
+const percentageFormatter = (v: number) => v && Number(v).toLocaleString(undefined, { style: 'percent', minimumFractionDigits: 2 });;
+const dateFormatter = (v: string) => v && dayjs(v).format('DD/MM/YYYY')
 
 export const TradeList = () => {
     const [trades, setTrades] = useState<ITradeView[]>([]);
