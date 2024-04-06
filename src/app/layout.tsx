@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import TabsRouter from "./routes";
 import { CssBaseline } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +23,7 @@ export default function RootLayout({
       <body className={inter.className} style={{padding: 12 }}>
         <CssBaseline />
         <TabsRouter />
-        {children}
+          {children}
       </body>
     </html>
   );
