@@ -18,6 +18,7 @@ model Trade {
   transactionEndDate     DateTime?  @db.Date
   strikePrice Decimal
   contractPrice Decimal
+  contractPriceAtClose Decimal?
   contractType String
   contractExpiry DateTime  @db.Date
   approxStockPriceAtPurchase Decimal?
