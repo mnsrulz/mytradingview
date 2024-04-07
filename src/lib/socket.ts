@@ -72,8 +72,15 @@ export const useMyStockList = () => {
 }
 
 type OptionsData = {
+    currentPrice: number,
     options: Record<string, {
         c: Record<string, {
+            a: number,
+            b: number,
+            l: number,
+            v: number
+        }>,
+        p: Record<string, {
             a: number,
             b: number,
             l: number,

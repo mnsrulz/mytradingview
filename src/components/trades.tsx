@@ -15,10 +15,10 @@ import { red, green } from '@mui/material/colors';
 import { getColor } from "@/lib/color";
 import { ConditionalFormattingBox } from "./conditional-formatting";
 import { ITradeView, useTrades } from "@/lib/useTrades";
+import { percentageFormatter } from "@/lib/formatters";
 
 const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', }).format;
 const fixedCurrencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format;
-const percentageFormatter = (v: number) => v && Number(v).toLocaleString(undefined, { style: 'percent', minimumFractionDigits: 2 }) || '';
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 
 export const TradeList = () => {

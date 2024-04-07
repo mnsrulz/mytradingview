@@ -2,8 +2,11 @@
 import * as React from 'react';
 import { useOptionTracker } from '../lib/socket';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Slider, Stack } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs } from '@mui/material';
 import { useState } from 'react';
+import dayjs from 'dayjs';
+import { percentageFormatter } from '@/lib/formatters';
+import { ConditionalFormattingBox } from './conditional-formatting';
 
 interface ITickerProps {
     symbol: string
@@ -41,11 +44,18 @@ const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
         />
     </Stack>
 }
+type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE'
+type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN'
 
 const numberFormatter = (v: string) => v && Number(v);
+const todaysDate = dayjs();
 export const StockOptionsView = (props: ITickerProps) => {
     const { data, isLoading } = useOptionTracker(props.symbol);
-    const [sps, setsps] = useState<NumberRange>({ start: 0, end: Number.MAX_VALUE });
+    const [strikePriceRange, setStrikePriceRange] = useState<NumberRange>({ start: 0, end: Number.MAX_VALUE });
+    const [putCallTabValue, setPutCallTabValue] = useState<'PUT' | 'CALL'>('PUT');
+    const [priceMode, setPriceMode] = useState<PriceModeType>('LAST_PRICE');
+    const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
+
     if (isLoading) return <div>loading...</div>;
     const allDates = data && Array.from(Object.keys(data.options));
     const allStrikePrices = allDates && Array.from(new Set(allDates.flatMap(d => Object.keys(data.options[d].c))))//.map(Number).sort(function (a, b) { return a - b; });
@@ -58,11 +68,15 @@ export const StockOptionsView = (props: ITickerProps) => {
     const workingStrikePrices = allStrikePrices.map(s => ({
         strikePrice: s,
         value: Number(s)
-    })).filter(n => n.value >= sps.start && n.value <= sps.end);
+    })).filter(n => n.value >= strikePriceRange.start && n.value <= strikePriceRange.end);
 
     workingStrikePrices.sort(function (a, b) { return a.value - b.value; }).forEach(s => {
+
         columns.push({
-            field: s.strikePrice, width: 10, headerName: `${parseFloat(s.strikePrice)}`, valueFormatter: numberFormatter, type: 'number'
+            field: s.strikePrice,
+            width: 10, headerName: `${parseFloat(s.strikePrice)}`,
+            valueFormatter: valueMode == 'PRICE' ? numberFormatter : percentageFormatter, type: 'number',
+            renderCell: valueMode == 'PRICE' ? undefined : (p) => <ConditionalFormattingBox value={p.value * 1000} formattedValue={p.formattedValue} />
         })
     })
 
@@ -70,54 +84,109 @@ export const StockOptionsView = (props: ITickerProps) => {
         const o: any = {
             id: d
         }
+        const numberofdays = dayjs(d).diff(todaysDate, 'days') + 1;
         workingStrikePrices.forEach(s => {
-            o[s.strikePrice] = data.options[d].c[s.strikePrice]?.l;
+            const po = putCallTabValue == 'CALL' ? data.options[d].c[s.strikePrice] : data.options[d].p[s.strikePrice];
+            const price = (() => {
+                switch (priceMode) {
+                    case 'LAST_PRICE':
+                        return po?.l;
+                    case 'ASK_PRICE':
+                        return po?.a;
+                    default:
+                        return po?.b;
+                }
+            })();
+
+            o[s.strikePrice] = price && (() => {
+                switch (valueMode) {
+                    case 'TOTAL_RETURN':
+                        return (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice))) / s.value;
+                    case 'ANNUAL_RETURN':
+                        const sellCost = (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice)));
+                        const risk = s.value;
+                        return (sellCost / risk) * (365 / numberofdays);
+                    default:
+                        return price
+                }
+            })();
         });
         return o;
     });
 
-    return <div>
-        Symbol: {props.symbol}
-        <StrikePriceSlider allStrikePricesValues={allStrikePricesValues} onChange={setsps} />
-        <DataGrid rows={traderows}
-            disableColumnMenu={true}
-            disableColumnFilter={true}
-            disableColumnSorting={true}
-            columns={columns}
-            density="compact"
-            // disableRowSelectionOnClick
-            columnHeaderHeight={32}
-            rowHeight={32}
-            hideFooter={true}
-            showColumnVerticalBorder={true}
-            showCellVerticalBorder={true}
-            sx={{
-                [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-                    outline: 'none',
-                },
-                [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
-                {
-                    outline: 'none',
-                },
-                [`& .${gridClasses.columnHeader}`]:
-                {
-                    fontSize: '0.7rem',
-                    fontWeight: 500
-                },
-                [`& .${gridClasses.cell}`]:
-                {
-                    fontSize: '0.7rem',
-                    padding: 0
-                },
-            }}
-        // style={{
-        //     // fontSize: '12px'
-        // }}
-        // apiRef={apiRef} 
-        />
+    return <Paper>
+        Symbol: {props.symbol} - {data.currentPrice}
+        {/* <FormControl sx={{ m: 1 }} variant="standard">
+            <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
+            <BootstrapInput id="demo-customized-textbox" />
+        </FormControl> */}
+        <StrikePriceSlider allStrikePricesValues={allStrikePricesValues} onChange={setStrikePriceRange} />
+        <FormControl sx={{ m: 1 }} variant="standard">
+            <InputLabel>Price Mode</InputLabel>
+            <Select value={priceMode} onChange={(e, v) => setPriceMode(e.target.value as PriceModeType)}            >
+                <MenuItem value="LAST_PRICE">LAST_PRICE</MenuItem>
+                <MenuItem value="BID_PRICE">BID_PRICE</MenuItem>
+                <MenuItem value="ASK_PRICE">ASK_PRICE</MenuItem>
+            </Select>
+        </FormControl>
+        <FormControl sx={{ m: 1 }} variant="standard">
+            <InputLabel>Value Mode</InputLabel>
+            <Select value={valueMode} onChange={(e, v) => setValueMode(e.target.value as ValueModeType)}            >
+                <MenuItem value="PRICE">PRICE</MenuItem>
+                <MenuItem value="ANNUAL_RETURN">ANNUAL_RETURN</MenuItem>
+                <MenuItem value="TOTAL_RETURN">TOTAL_RETURN</MenuItem>
+            </Select>
+        </FormControl>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={putCallTabValue} onChange={(e, v) => setPutCallTabValue(v)} variant="fullWidth" indicatorColor="secondary"
+                textColor="secondary">
+                <Tab label="PUT" value={'PUT'} />
+                <Tab label="CALL" value='CALL' />
+            </Tabs>
+        </Box>
+        {
+            putCallTabValue == 'PUT' ?
+                <DataGrid rows={traderows}
+                    disableColumnMenu={true}
+                    disableColumnFilter={true}
+                    disableColumnSorting={true}
+                    columns={columns}
+                    density="compact"
+                    // disableRowSelectionOnClick
+                    columnHeaderHeight={32}
+                    rowHeight={32}
+                    hideFooter={true}
+                    showColumnVerticalBorder={true}
+                    showCellVerticalBorder={true}
+                    sx={{
+                        [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                            outline: 'none',
+                        },
+                        [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
+                        {
+                            outline: 'none',
+                        },
+                        [`& .${gridClasses.columnHeader}`]:
+                        {
+                            fontSize: '0.7rem',
+                            fontWeight: 500
+                        },
+                        [`& .${gridClasses.cell}`]:
+                        {
+                            fontSize: '0.7rem',
+                            padding: 0
+                        },
+                    }}
+                // style={{
+                //     // fontSize: '12px'
+                // }}
+                // apiRef={apiRef} 
+                />
+                : <div>UNDER DEVELOPMENT... CHECK AFTER FEW DAYS!!!</div>
+        }
         {/* <DataGrid rows={d1}
             columns={columns}
             sx={{ display: 'grid' }}
             getRowId={(r) => `${r.symbol} - ${r.name}`} /> */}
-    </div>
+    </Paper>
 }
