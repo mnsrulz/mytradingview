@@ -48,7 +48,7 @@ export const MyStockList = (props: ITickerProps) => {
           key='ViewOptionsData'
           icon={<InfoIcon />}
           label="View options data"
-          to={"/options/analyze/AMD"}
+          to={"/options/analyze/" + row.symbol}
         />,
         // <GridActionsCellItem
         //   key='ViewOptionsData'
