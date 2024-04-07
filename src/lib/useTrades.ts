@@ -1,5 +1,6 @@
 'use client';
 import { Trade } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import dayjs from "dayjs";
 import ky from "ky";
 import { useCallback, useEffect, useState } from "react";
@@ -15,9 +16,11 @@ export interface ITradeView extends Trade {
     actualProfitPerDay: number
     buyCost: number,
     sellCost: number,
-    isClosed: boolean
+    isClosed: boolean,
+    contractCurrentPrice?: number
 }
-const mapTradeToView = (trade: Trade) => {
+
+const mapTradeToView = (trade: Trade): ITradeView => {
     const sellCost = trade.contractType == 'PUT_SELL' ? (Number(trade.contractPrice) * 100 * trade.numberOfContracts) : 0;
     const buyCost = (trade.contractType == 'PUT_SELL' && trade.contractPriceAtClose) ? (Number(trade.contractPriceAtClose) * 100 * trade.numberOfContracts) : NaN;
     const maximumRisk = trade.contractType == 'PUT_SELL' ? (Number(trade.strikePrice) * 100 * trade.numberOfContracts) : 0;
@@ -27,7 +30,7 @@ const mapTradeToView = (trade: Trade) => {
     const averageProfitPerDay = trade.contractType == 'PUT_SELL' ? maximumProfit / (tradeDays) : 0;
     const isClosed = trade.transactionEndDate ? true : false;
     const actualProfit = (trade.contractType == 'PUT_SELL' && isClosed) ? (sellCost - buyCost) : NaN;
-    const maxReturn = trade.approxStockPriceAtPurchase ? maximumProfit / (Number(trade.approxStockPriceAtPurchase) * trade.numberOfContracts * 100) : 0;
+    const maxReturn = trade.strikePrice ? maximumProfit / (Number(trade.strikePrice) * trade.numberOfContracts * 100) : 0;
     const maxAnnualizedReturn = (sellCost / maximumRisk) * (365 / tradeDays);
     const actualAnnualizedReturn = (actualProfit / maximumRisk) * (365 / actualTradeDays);
     const actualProfitPerDay = (actualProfit / actualTradeDays);
@@ -43,8 +46,8 @@ const mapTradeToView = (trade: Trade) => {
         actualProfitPerDay,
         isClosed,
         maxReturn,
-        actualProfit
-    } as ITradeView
+        actualProfit,
+    }
 }
 
 export const useTrades = () => {

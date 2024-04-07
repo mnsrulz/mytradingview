@@ -112,8 +112,7 @@ export const TradeList = () => {
             }
         }
     ];
-    const handleCloseCloseTrade = (reason: CloseTradeCloseDialogReason) => {
-        debugger;
+    const handleCloseCloseTrade = (reason: CloseTradeCloseDialogReason) => {        
         if(currentTrade) {
             const closedTradeId = currentTrade.id;
             setOpenCloseTrade(false);

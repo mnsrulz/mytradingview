@@ -10,10 +10,12 @@ import { StockOptionsView } from './stock-options-view';
 import { StockTickerView } from './stock-ticker';
 import AddTradeIcon from '@mui/icons-material/Add';
 import { AddTradeDialog } from './add-trade';
+import Link from 'next/link';
+import { GridLinkAction } from './GridLinkAction';
 
 
 interface ITickerProps {
-  mytickers:  SearchTickerItem[]
+  mytickers: SearchTickerItem[]
   removFromWatchlist: (value: SearchTickerItem) => void
 }
 
@@ -42,22 +44,42 @@ export const MyStockList = (props: ITickerProps) => {
           label="Remove from my list"
           onClick={() => removFromWatchlist(row)}
         />,
-        <GridActionsCellItem
+        <GridLinkAction
           key='ViewOptionsData'
           icon={<InfoIcon />}
           label="View options data"
-          onClick={() => {
-            setCurrentStock(row);
-            setOpen(true);
-          }} />,
+          to={"/options/analyze/AMD"}
+        />,
+        // <GridActionsCellItem
+        //   key='ViewOptionsData'
+        //   icon={<InfoIcon />}
+        //   label="View options data"
+        //   // component={Link}
+        //   component={() => {
+        //     const dlink = `/options/analyze/${row.symbol}`;
+        //     return <Link href={dlink}>Dashboard</Link>
+        //   }
+        //   }
+        // // to={"/options/analyze/" + row.symbol}
+        // // onClick={() => {
+        // //   setCurrentStock(row);
+        // //   setOpen(true);
+        // // }} 
+        // />,
         <GridActionsCellItem
           key='AddTrade'
           icon={<AddTradeIcon />}
           label="Add trade"
+
+          // LinkComponent={() => {
+          //   const dlink = `/options/analyze/${row.symbol}`;
+          //   return <Link href={dlink}>Dashboard</Link>
+          // }}
           onClick={() => {
             setCurrentStock(row);
             setOpenAddTrade(true);
-          }} />
+          }}
+        />
         ]
       }
     }
@@ -80,7 +102,7 @@ export const MyStockList = (props: ITickerProps) => {
       getRowId={(r) => `${r.symbol} - ${r.name}`} />
     {/* <DataGrid sx={{display: 'grid'}} rows={rows} columns={columns} autoHeight={false} disableVirtualization  /> */}
 
-    <Dialog
+    {/* <Dialog
       open={open}
       onClose={handleClose}
       // scroll={scroll}
@@ -101,7 +123,7 @@ export const MyStockList = (props: ITickerProps) => {
         <Button onClick={handleClose}>Cancel</Button>
         <Button onClick={handleClose}>Subscribe</Button>
       </DialogActions>
-    </Dialog>
+    </Dialog> */}
 
     <AddTradeDialog onClose={handleCloseAddTrade}
       open={openAddTrade}

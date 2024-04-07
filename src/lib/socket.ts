@@ -72,8 +72,8 @@ export const useMyStockList = () => {
 }
 
 type OptionsData = {
-    options: Map<string, {
-        c: Map<number, {
+    options: Record<string, {
+        c: Record<string, {
             a: number,
             b: number,
             l: number,
@@ -91,17 +91,20 @@ type StockPriceData = {
     }
 }
 
-export const useOptionTracker = (item: SearchTickerItem) => {
-    const [od, setOd] = useState<OptionsData>();
+export const useOptionTracker = (symbol: string) => {
+    const [data, setOd] = useState<OptionsData>();
+    const [isLoading, setIsLoading] = useState(false);
     useEffect(() => {
-        socket.emit('options-subscribe-request', item);
-        socket.on(`options-subscribe-response`, setOd);
-        return () => {
-            socket.emit('options-unsubscribe-request', item);
-            socket.off('options-subscribe-response', setOd);
-        }
+        setIsLoading(true);
+        ky(`/api/symbols/${symbol}/options/analyze`).json<OptionsData>().then(r => setOd(r)).finally(()=> setIsLoading(false));
+        // socket.emit('options-subscribe-request', item);
+        // socket.on(`options-subscribe-response`, setOd);
+        // return () => {
+        //     socket.emit('options-unsubscribe-request', item);
+        //     socket.off('options-subscribe-response', setOd);
+        // }
     }, []);
-    return od;
+    return { data, isLoading };
 }
 
 
