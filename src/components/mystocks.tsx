@@ -11,8 +11,16 @@ import { StockTickerView } from './stock-ticker';
 import AddTradeIcon from '@mui/icons-material/Add';
 import { AddTradeDialog } from './add-trade';
 
-export const MyStockList = () => {
-  const mytickers = useMyStockList();
+
+interface ITickerProps {
+  mytickers:  SearchTickerItem[]
+  removFromWatchlist: (value: SearchTickerItem) => void
+}
+
+export const MyStockList = (props: ITickerProps) => {
+  const { mytickers, removFromWatchlist } = props;
+
+
   const apiRef = useGridApiRef();
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const columns: GridColDef<SearchTickerItem>[] = [
@@ -32,7 +40,7 @@ export const MyStockList = () => {
           key='Remove'
           icon={<DeleteIcon />}
           label="Remove from my list"
-          onClick={() => RemoveItemFromMyList(row)}
+          onClick={() => removFromWatchlist(row)}
         />,
         <GridActionsCellItem
           key='ViewOptionsData'

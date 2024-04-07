@@ -20,15 +20,14 @@ import { Trade } from '@prisma/client';
 export const CloseTradeDialog = (props: ITickerProps) => {
     const { onClose, open, tradeId } = props;
     const [trade, setTrade] = useState<Trade | null>(null);
-    
-    useEffect(() => {
-        
-        ky(`/api/trades/${tradeId}`).json<Trade>().then(j=> setTrade(j));
-    }, [tradeId]);
-    
-if (!open) return <div></div>
 
-    if(!trade) return <div>...loading</div>;
+    useEffect(() => {
+        ky(`/api/trades/${tradeId}`).json<Trade>().then(j => setTrade(j));
+    }, [tradeId]);
+
+    if (!open) return <div></div>
+
+    if (!trade) return <div>...loading</div>;
 
     const handleSubmit = async (data: any) => {
         await ky.post(`/api/trades/${tradeId}/close`, {
@@ -73,7 +72,7 @@ if (!open) return <div></div>
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={()=>onClose('cancel')}>Cancel</Button>
+                <Button onClick={() => onClose('cancel')}>Cancel</Button>
                 <Button type={'submit'}>Close</Button>
             </DialogActions>
         </FormContainer>

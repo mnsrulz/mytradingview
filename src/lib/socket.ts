@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import ky from 'ky';
 
@@ -52,13 +52,23 @@ export const RemoveItemFromMyList = (item: SearchTickerItem) => {
 export const useMyStockList = () => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>([]);
     useEffect(() => {
-        socket.emit('mystocks-list-request');
-        socket.on(`mystocks-list-response`, setMyTickers);
-        return () => {
-            socket.off('mystocks-list-response', setMyTickers);
-        }
+        ky(`/api/watchlist`).json<{ items: SearchTickerItem[] }>().then(r => setMyTickers(r.items));
+        // socket.emit('mystocks-list-request');
+        // socket.on(`mystocks-list-response`, setMyTickers);
+        // return () => {
+        //     socket.off('mystocks-list-response', setMyTickers);
+        // }
     }, []);
-    return mytickers;
+
+    const addToWatchlist = useCallback((item: SearchTickerItem) => {
+        ky.post(`/api/watchlist`, { json: item }).json().then(r => setMyTickers((ii) => [...ii.filter(x => x.symbol != item.symbol), item]));
+    }, []);
+
+    const removeFromWatchlist = useCallback((item: SearchTickerItem) => {
+        ky.delete(`/api/watchlist`, { json: item }).json().then(r => setMyTickers(mytickers.filter(i => i.symbol != item.symbol)));
+    }, []);
+
+    return { mytickers, addToWatchlist, removeFromWatchlist };
 }
 
 type OptionsData = {

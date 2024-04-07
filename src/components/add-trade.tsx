@@ -2,6 +2,8 @@
 import { SearchTickerItem } from '@/lib/socket';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment } from '@mui/material';
 import { DatePickerElement, FormContainer, SelectElement, SliderElement, TextFieldElement, TextareaAutosizeElement } from 'react-hook-form-mui';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 interface ITickerProps {
     //onChange: (value: SearchTickerItem) => void,
@@ -53,8 +55,10 @@ import dayjs, { Dayjs } from 'dayjs';
 import ky from 'ky';
 export const AddTradeDialog = (props: ITickerProps) => {
     const { onClose, open, ticker } = props;
-    if (!open || !ticker) return <div></div>
+    const theme = useTheme();
+    const matches = useMediaQuery(theme.breakpoints.down('sm'));
 
+    if (!open || !ticker) return <div></div>
     const handleSubmit = async (data: any) => {
         await ky.post('/api/trades', {
             json: data
@@ -78,7 +82,8 @@ export const AddTradeDialog = (props: ITickerProps) => {
 
     return <Dialog
         open={open}
-        maxWidth={'md'}
+        // maxWidth={'md'}
+        fullScreen={matches}
         fullWidth={true}
         onClose={onCloseRequest}>
         <FormContainer onSuccess={handleSubmit} defaultValues={dv}>

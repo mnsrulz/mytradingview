@@ -10,6 +10,11 @@ datasource db {
   //directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
+model Watchlist {
+  symbol String @unique
+  name String
+}
+
 model Trade {
   id        String     @default(cuid()) @id
   symbol String
