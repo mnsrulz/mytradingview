@@ -47,7 +47,7 @@ export const useTrades = () => {
 
     useEffect(() => {
         loadTrades();
-        const interval = setInterval(() => loadTrades(), 5000);
+        const interval = setInterval(() => loadTrades(), 60000);    //load every one minute??
         return () => {
             clearInterval(interval);
         }
