@@ -14,8 +14,9 @@ import { Box, FormControlLabel, Switch, Typography } from "@mui/material";
 import { red, green } from '@mui/material/colors';
 import { getColor } from "@/lib/color";
 import { ConditionalFormattingBox } from "./conditional-formatting";
-import { ITradeView, useTrades } from "@/lib/useTrades";
+import { useTrades } from "@/lib/useTrades";
 import { percentageFormatter } from "@/lib/formatters";
+import { ITradeView } from "@/lib/types";
 
 const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', }).format;
 const fixedCurrencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format;

@@ -1,39 +1,30 @@
 'use client';
 import { Trade } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
 import dayjs from "dayjs";
 import ky from "ky";
 import { useCallback, useEffect, useState } from "react";
-
-export interface ITradeView extends Trade {
-    averageProfitPerDay: number
-    maximumProfit: number
-    maximumRisk: number
-    maxReturn: number
-    maxAnnualizedReturn: number
-    actualProfit: number
-    actualAnnualizedReturn: number
-    actualProfitPerDay: number
-    buyCost: number,
-    sellCost: number,
-    isClosed: boolean,
-    contractCurrentPrice?: number
-}
+import { ITradeView } from "./types";
 
 const mapTradeToView = (trade: Trade): ITradeView => {
     const sellCost = trade.contractType == 'PUT_SELL' ? (Number(trade.contractPrice) * 100 * trade.numberOfContracts) : 0;
     const buyCost = (trade.contractType == 'PUT_SELL' && trade.contractPriceAtClose) ? (Number(trade.contractPriceAtClose) * 100 * trade.numberOfContracts) : NaN;
     const maximumRisk = trade.contractType == 'PUT_SELL' ? (Number(trade.strikePrice) * 100 * trade.numberOfContracts) : 0;
     const maximumProfit = trade.contractType == 'PUT_SELL' ? (Number(trade.contractPrice) * 100 * trade.numberOfContracts) : 0;
-    const tradeDays = dayjs(trade.contractExpiry).diff(trade.transactionStartDate, 'days') + 1;
-    const actualTradeDays = trade.transactionEndDate ? (dayjs(trade.transactionEndDate).diff(trade.transactionStartDate, 'days') + 1) : NaN;
-    const averageProfitPerDay = trade.contractType == 'PUT_SELL' ? maximumProfit / (tradeDays) : 0;
     const isClosed = trade.transactionEndDate ? true : false;
-    const actualProfit = (trade.contractType == 'PUT_SELL' && isClosed) ? (sellCost - buyCost) : NaN;
+
+    // const tradeDaysAsOfToday = dayjs(trade.contractExpiry).diff(dayjs(), 'days') + 1;
+    const estimatedBuyCost = (trade.contractType == 'PUT_SELL' && trade.lastContractPrice) ? (Number(trade.lastContractPrice) * 100 * trade.numberOfContracts) : NaN;
+    // const estimatedProfitAsOfToday = (trade.contractType == 'PUT_SELL' && !isClosed) ? (sellCost - buyCost) : NaN;
+
+    const tradeDays = dayjs(trade.contractExpiry).diff(trade.transactionStartDate, 'days') + 1;
+    const actualTradeDays = dayjs(trade.transactionEndDate || dayjs()).diff(trade.transactionStartDate, 'days') + 1;
+    const averageProfitPerDay = trade.contractType == 'PUT_SELL' ? maximumProfit / (tradeDays) : 0;
+    const actualProfit = (trade.contractType == 'PUT_SELL') ? (sellCost - (isClosed ? buyCost : estimatedBuyCost)) : NaN;
     const maxReturn = trade.strikePrice ? maximumProfit / (Number(trade.strikePrice) * trade.numberOfContracts * 100) : 0;
     const maxAnnualizedReturn = (sellCost / maximumRisk) * (365 / tradeDays);
     const actualAnnualizedReturn = (actualProfit / maximumRisk) * (365 / actualTradeDays);
     const actualProfitPerDay = (actualProfit / actualTradeDays);
+
     return {
         ...trade,
         sellCost,
@@ -46,7 +37,7 @@ const mapTradeToView = (trade: Trade): ITradeView => {
         actualProfitPerDay,
         isClosed,
         maxReturn,
-        actualProfit,
+        actualProfit
     }
 }
 
@@ -56,6 +47,10 @@ export const useTrades = () => {
 
     useEffect(() => {
         loadTrades();
+        const interval = setInterval(() => loadTrades(), 5000);
+        return () => {
+            clearInterval(interval);
+        }
     }, []);
 
     const deleteTrade = useCallback(async (deleteTradeId: string) => {
@@ -73,3 +68,4 @@ export const useTrades = () => {
     }, [trades]);
     return { trades, deleteTrade, reloadTrade };
 };
+

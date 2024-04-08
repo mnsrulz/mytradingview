@@ -1,9 +1,10 @@
+import { getOptionPrice } from "@/lib/optionPriceHelper";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 // export const runtime = 'edge'; //This specifies the runtime environment that the middleware function will be executed in.
 
-export async function GET(request: NextRequest, p: { params: { symbol: string } }) {    
-    const resp = await prisma.trade.findMany();
+export async function GET(request: NextRequest, p: { params: { symbol: string } }) {
+    const resp = await prisma.trade.findMany();    
     return NextResponse.json({
         items: resp
     });
