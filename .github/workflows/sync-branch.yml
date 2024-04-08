@@ -17,9 +17,9 @@ jobs:
           node-version: 12
       - name: Opening pull request
         id: pull
-        uses: tretuna/sync-branches@main
+        uses: tretuna/sync-branches@1.4.0
         with:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FROM_BRANCH: "main"
           TO_BRANCH: "stage"
-          PULL_REQUEST_AUTO_MERGE_METHOD: "merge"
+          #PULL_REQUEST_AUTO_MERGE_METHOD: "merge"
