@@ -46,7 +46,7 @@ const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
 */
 
     return <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-        <span>Strike Price Range: {strikePriceRange[0]} - {strikePriceRange[1]}</span>
+        <div>Strike Price Range: {strikePriceRange[0]} - {strikePriceRange[1]}</div>
 
         <Slider
             getAriaLabel={() => 'Temperature range'}
