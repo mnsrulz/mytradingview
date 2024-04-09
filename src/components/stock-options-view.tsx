@@ -13,7 +13,7 @@ interface ITickerProps {
 }
 
 type NumberRange = { start: number, end: number }
-type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChange: (v: NumberRange) => void }
+type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChange: (v: NumberRange) => void, currentPrice: number }
 
 const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
     const { allStrikePricesValues, onChange } = props;
@@ -29,17 +29,35 @@ const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
         });
     };
 
+    //todoo
+    // function calculateValue(value: number) {
+    //     return 2 ** value;
+    // }
+
+/*
+
+                    144
+
+        0                       200
+          20 70   120   160 180  
+
+
+
+*/
+
     return <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-        <span>Strike Price Range:</span>
+        <span>Strike Price Range: {strikePriceRange[0]} - {strikePriceRange[1]}</span>
+
         <Slider
             getAriaLabel={() => 'Temperature range'}
             value={strikePriceRange}
             onChange={handleChange}
-            valueLabelDisplay="on"
+            //valueLabelDisplay="on"
             min={minStrikePrice}
             max={maxStrikePrice}
             marks={strikePriceMarks}
             step={null}
+            // scale={calculateValue}
         //getAriaValueText={valuetext}
         />
     </Stack>
@@ -71,7 +89,6 @@ export const StockOptionsView = (props: ITickerProps) => {
     })).filter(n => n.value >= strikePriceRange.start && n.value <= strikePriceRange.end);
 
     workingStrikePrices.sort(function (a, b) { return a.value - b.value; }).forEach(s => {
-
         columns.push({
             field: s.strikePrice,
             width: 10, headerName: `${parseFloat(s.strikePrice)}`,
@@ -101,11 +118,25 @@ export const StockOptionsView = (props: ITickerProps) => {
             o[s.strikePrice] = price && (() => {
                 switch (valueMode) {
                     case 'TOTAL_RETURN':
-                        return (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice))) / s.value;
+                        /*
+                        135
+                            138 --> 1.10
+
+                        */
+                        if (putCallTabValue == 'PUT') {
+                            return (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice))) / s.value;
+                        } else {
+                            return (price / data.currentPrice);
+                        }
                     case 'ANNUAL_RETURN':
-                        const sellCost = (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice)));
-                        const risk = s.value;
-                        return (sellCost / risk) * (365 / numberofdays);
+                        if (putCallTabValue == 'PUT') {
+                            const sellCost = (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice)));
+                            const risk = s.value;
+                            return (sellCost / risk) * (365 / numberofdays);
+                        } else {
+                            const sellCost = (data.currentPrice < s.value ? price : (price - (data.currentPrice - s.value)));
+                            return (sellCost / data.currentPrice) * (365 / numberofdays);
+                        }
                     default:
                         return price
                 }
@@ -120,7 +151,7 @@ export const StockOptionsView = (props: ITickerProps) => {
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
             <BootstrapInput id="demo-customized-textbox" />
         </FormControl> */}
-        <StrikePriceSlider allStrikePricesValues={allStrikePricesValues} onChange={setStrikePriceRange} />
+        <StrikePriceSlider currentPrice={data.currentPrice} allStrikePricesValues={allStrikePricesValues} onChange={setStrikePriceRange} />
         <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel>Price Mode</InputLabel>
             <Select value={priceMode} onChange={(e, v) => setPriceMode(e.target.value as PriceModeType)}            >
@@ -145,44 +176,42 @@ export const StockOptionsView = (props: ITickerProps) => {
             </Tabs>
         </Box>
         {
-            putCallTabValue == 'PUT' ?
-                <DataGrid rows={traderows}
-                    disableColumnMenu={true}
-                    disableColumnFilter={true}
-                    disableColumnSorting={true}
-                    columns={columns}
-                    density="compact"
-                    // disableRowSelectionOnClick
-                    columnHeaderHeight={32}
-                    rowHeight={32}
-                    hideFooter={true}
-                    showColumnVerticalBorder={true}
-                    showCellVerticalBorder={true}
-                    sx={{
-                        [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-                            outline: 'none',
-                        },
-                        [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
-                        {
-                            outline: 'none',
-                        },
-                        [`& .${gridClasses.columnHeader}`]:
-                        {
-                            fontSize: '0.7rem',
-                            fontWeight: 500
-                        },
-                        [`& .${gridClasses.cell}`]:
-                        {
-                            fontSize: '0.7rem',
-                            padding: 0
-                        },
-                    }}
-                // style={{
-                //     // fontSize: '12px'
-                // }}
-                // apiRef={apiRef} 
-                />
-                : <div>UNDER DEVELOPMENT... CHECK AFTER FEW DAYS!!!</div>
+            <DataGrid rows={traderows}
+                disableColumnMenu={true}
+                disableColumnFilter={true}
+                disableColumnSorting={true}
+                columns={columns}
+                density="compact"
+                // disableRowSelectionOnClick
+                columnHeaderHeight={32}
+                rowHeight={32}
+                hideFooter={true}
+                showColumnVerticalBorder={true}
+                showCellVerticalBorder={true}
+                sx={{
+                    [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                        outline: 'none',
+                    },
+                    [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
+                    {
+                        outline: 'none',
+                    },
+                    [`& .${gridClasses.columnHeader}`]:
+                    {
+                        fontSize: '0.7rem',
+                        fontWeight: 500
+                    },
+                    [`& .${gridClasses.cell}`]:
+                    {
+                        fontSize: '0.7rem',
+                        padding: 0
+                    },
+                }}
+            // style={{
+            //     // fontSize: '12px'
+            // }}
+            // apiRef={apiRef} 
+            />
         }
         {/* <DataGrid rows={d1}
             columns={columns}

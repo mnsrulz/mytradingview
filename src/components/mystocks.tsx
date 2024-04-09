@@ -1,16 +1,13 @@
 'use client';
 import * as React from 'react';
-import { RemoveItemFromMyList, SearchTickerItem, useMyStockList } from '../lib/socket';
+import { SearchTickerItem } from '../lib/socket';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
 import { DataGrid, GridActionsCellItem, GridColDef, useGridApiRef } from '@mui/x-data-grid';
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import { useState } from 'react';
-import { StockOptionsView } from './stock-options-view';
 import { StockTickerView } from './stock-ticker';
 import AddTradeIcon from '@mui/icons-material/Add';
 import { AddTradeDialog } from './add-trade';
-import Link from 'next/link';
 import { GridLinkAction } from './GridLinkAction';
 
 
