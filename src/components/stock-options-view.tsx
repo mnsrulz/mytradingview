@@ -49,7 +49,7 @@ const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
         <div>Strike Price Range: {strikePriceRange[0]} - {strikePriceRange[1]}</div>
 
         <Slider
-            getAriaLabel={() => 'Temperature range'}
+            getAriaLabel={() => 'Strike price'}
             value={strikePriceRange}
             onChange={handleChange}
             //valueLabelDisplay="on"

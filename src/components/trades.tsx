@@ -1,18 +1,13 @@
 'use client';
-import { GridColDef, GridActionsCellItem, DataGrid, useGridApiRef, gridClasses, GridCellParams } from "@mui/x-data-grid";
-import { Trade } from "@prisma/client";
-import ky from "ky";
-import { useState, useEffect } from "react";
+import { GridColDef, GridActionsCellItem, DataGrid, useGridApiRef, gridClasses } from "@mui/x-data-grid";
+import { useState } from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import dayjs from 'dayjs';
 import { CloseTradeCloseDialogReason, CloseTradeDialog } from "./close-trade";
 import { ConfirmDialog } from "./confirm-dialog";
-import { useShowCloseTrades } from "@/lib/hooks";
-import { Box, FormControlLabel, Switch, Typography } from "@mui/material";
+import { FormControlLabel, Switch } from "@mui/material";
 
-import { red, green } from '@mui/material/colors';
-import { getColor } from "@/lib/color";
 import { ConditionalFormattingBox } from "./conditional-formatting";
 import { useTrades } from "@/lib/useTrades";
 import { percentageFormatter } from "@/lib/formatters";
@@ -21,6 +16,14 @@ import { ITradeView } from "@/lib/types";
 const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', }).format;
 const fixedCurrencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format;
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
+const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
+
+const TickerName = (p: { trade: ITradeView }) => {
+    const { trade } = p;
+
+    return <div>{trade.symbol} {trade.strikePrice as unknown as string} {shortDateFormatter(trade.contractExpiry as unknown as string)} x {trade.numberOfContracts}</div>
+
+}
 
 export const TradeList = () => {
     const { trades, deleteTrade, reloadTrade } = useTrades();
@@ -43,15 +46,18 @@ export const TradeList = () => {
     }
 
     const columns: GridColDef<ITradeView>[] = [
-        { field: 'transactionStartDate', width: 90, headerName: 'Start', valueFormatter: dateFormatter },
-        { field: 'transactionEndDate', width: 90, headerName: 'End', valueFormatter: dateFormatter },
-        { field: 'contractExpiry', width: 90, headerName: 'Expiry', valueFormatter: dateFormatter },
-        { field: 'contractType', width: 90, headerName: 'Type', },
-        { field: 'symbol', width: 60, headerName: 'Ticker', },
+        { field: 'Ticker', minWidth: 150, flex: 1, headerName: 'Contract', renderCell: (p) => <TickerName trade={p.row} /> },
+        // { field: 'transactionStartDate', width: 90, headerName: 'Start', valueFormatter: dateFormatter },
+        // { field: 'transactionEndDate', width: 90, headerName: 'End', valueFormatter: dateFormatter },
+        // { field: 'contractExpiry', width: 90, headerName: 'Expiry', valueFormatter: dateFormatter },
+        { field: 'contractType', width: 70, headerName: 'Type', },
+        // { field: 'symbol', width: 60, headerName: 'Ticker', },
+
         // { field: 'isClosed', headerName: 'Cleared', type: 'boolean' },
-        { field: 'strikePrice', width: 90, headerName: 'Strike Price', type: 'number', valueFormatter: currencyFormatter },
-        { field: 'numberOfContracts', width: 60, sortable: false, filterable: false, hideable: false, headerName: 'Size', type: 'number' },
+        // { field: 'strikePrice', width: 90, headerName: 'Strike Price', type: 'number', valueFormatter: currencyFormatter },
+        // { field: 'numberOfContracts', width: 60, sortable: false, filterable: false, hideable: false, headerName: 'Size', type: 'number' },
         { field: 'contractPrice', width: 60, headerName: 'Price', type: 'number', valueFormatter: currencyFormatter },
+        { field: 'lastContractPrice', width: 60, headerName: 'Price', type: 'number', valueFormatter: currencyFormatter },
         { field: 'buyCost', width: 70, headerName: 'Buy Cost', type: 'number', valueFormatter: fixedCurrencyFormatter },
         { field: 'sellCost', width: 70, headerName: 'Sell Cost', type: 'number', valueFormatter: fixedCurrencyFormatter },
         {
@@ -75,11 +81,10 @@ export const TradeList = () => {
             renderCell: (p) => <ConditionalFormattingBox value={p.value} formattedValue={p.formattedValue} />
         },
         {
-            field: 'maxReturn', width: 120, headerName: 'Max Profit%', type: 'number', valueFormatter: percentageFormatter,
+            field: 'maxReturn', width: 120, headerName: 'Max Profit%', type: 'number',
             renderCell: (p) => {
-                return <span>
-                    {percentageFormatter(p.row.maxReturn)}/{percentageFormatter(p.row.maxAnnualizedReturn)}
-                </span>
+                const fmValue = percentageFormatter(p.row.maxReturn) + '/' + percentageFormatter(p.row.maxAnnualizedReturn);
+                return <ConditionalFormattingBox value={p.row.maxAnnualizedReturn * 1000} formattedValue={fmValue} />
             }
         },
         // { field: 'maxAnnualizedReturn', headerName: 'Max Annualized%', type: 'number', valueFormatter: percentageFormatter },
@@ -113,8 +118,8 @@ export const TradeList = () => {
             }
         }
     ];
-    const handleCloseCloseTrade = (reason: CloseTradeCloseDialogReason) => {        
-        if(currentTrade) {
+    const handleCloseCloseTrade = (reason: CloseTradeCloseDialogReason) => {
+        if (currentTrade) {
             const closedTradeId = currentTrade.id;
             setOpenCloseTrade(false);
             setCurrentTrade(null);
