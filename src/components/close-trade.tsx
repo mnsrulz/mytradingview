@@ -1,5 +1,5 @@
 'use client';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment, Typography, Grid } from '@mui/material';
 import { DatePickerElement, FormContainer, TextFieldElement, TextareaAutosizeElement } from 'react-hook-form-mui';
 
 export type CloseTradeCloseDialogReason = 'cancel' | 'close'
@@ -20,6 +20,7 @@ import { Trade } from '@prisma/client';
 export const CloseTradeDialog = (props: ITickerProps) => {
     const { onClose, open, tradeId } = props;
     const [trade, setTrade] = useState<Trade | null>(null);
+    const [p1, setp1 ] = useState(0);
 
     useEffect(() => {
         ky(`/api/trades/${tradeId}`).json<Trade>().then(j => setTrade(j));
@@ -47,7 +48,8 @@ export const CloseTradeDialog = (props: ITickerProps) => {
         contractPriceAtOpen: trade.contractPrice,
         tradeId: tradeId,
         notes: trade.notes,
-        transactionEndDate: dayjs()
+        transactionEndDate: dayjs(),
+        transactionStartDate: dayjs(trade.transactionStartDate).format('MM/DD/YYYY')
     }
 
     return <Dialog
@@ -60,10 +62,23 @@ export const CloseTradeDialog = (props: ITickerProps) => {
             <DialogContent dividers={true}>
                 <Stack spacing={2}  >
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <TextFieldElement name={'tradeId'} label={'Trade Id'} required disabled />
-                        <TextFieldElement name={'symbol'} label={'Symbol'} required disabled />
-                        <TextFieldElement name={'contractPriceAtOpen'} label={'Contract Price at Open'} disabled required
-                            InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+                        {/* <Typography variant='h6'>{dv.symbol} ${dv.contractPriceAtOpen as unknown as string} - Purchased on {dv.transactionStartDate}</Typography> */}
+                        <Grid container >
+                            <Grid item xs={3}>
+                                <TextFieldElement name={'tradeId'} label={'Trade Id'} required disabled />
+                            </Grid>
+                            <Grid item xs={3}>
+                                <TextFieldElement name={'symbol'} label={'Symbol'} required disabled />
+                            </Grid>
+                            <Grid item xs={3}>
+                                <TextFieldElement name={'contractPriceAtOpen'} label={'Contract Price at Open'} disabled required
+                                    InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+                            </Grid>
+                            <Grid item xs={3}>
+                                <TextFieldElement name={'transactionStartDate'} label={'Purchase date'} disabled />
+                            </Grid>
+                        </Grid>
+
                         <DatePickerElement label="Transaction End Date" name="transactionEndDate" required disableFuture={true} disablePast={false} />
                         <TextFieldElement name={'contractPriceAtClose'} label={'Contract Price at close'} required
                             InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
