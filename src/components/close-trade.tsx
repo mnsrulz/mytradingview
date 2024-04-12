@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 import { Trade } from '@prisma/client';
 import { ITradeView } from '@/lib/types';
 import { mapTradeToView } from '@/lib/useTrades';
-import { currencyFormatter, percentageFormatter } from '@/lib/formatters';
+import { currencyFormatter, fixedCurrencyFormatter, percentageFormatter } from '@/lib/formatters';
 import { TickerName } from './TickerName';
 
 
@@ -36,12 +36,12 @@ const SubComp = (props: { t: Trade }) => {
             <Stack>
                 <Grid container>
                     <Grid item xs={12}><TickerName trade={t1} /></Grid>
-                    <Grid item xs={6}>Max Profit: {t1.maximumProfit}</Grid>
+                    <Grid item xs={6}>Max Profit: {fixedCurrencyFormatter(t1.maximumProfit)}</Grid>
                     <Grid item xs={6}>Expected Profit per day: {currencyFormatter(t1.averageProfitPerDay)}</Grid>
                     <Grid item xs={12}>Expected TotalReturn/Annual Return: {percentageFormatter(t1.maxReturn)}/{percentageFormatter(t1.maxAnnualizedReturn)}</Grid>
-                    <Grid>Estimated Profit: {currencyFormatter(t1.actualProfit)}</Grid>
+                    <Grid>Estimated Profit: {fixedCurrencyFormatter(t1.actualProfit)}</Grid>
                     <Grid item xs={12}>Estimated Annualized Returns: {percentageFormatter(t1.actualAnnualizedReturn)}</Grid>
-                    <Grid>Estimated profit per day: {currencyFormatter(t1.actualProfitPerDay)}</Grid>
+                    <Grid>Estimated profit per day: {fixedCurrencyFormatter(t1.actualProfitPerDay)}</Grid>
                 </Grid>
             </Stack>
         </>
