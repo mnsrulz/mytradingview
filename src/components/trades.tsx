@@ -10,20 +10,12 @@ import { FormControlLabel, Switch } from "@mui/material";
 
 import { ConditionalFormattingBox } from "./conditional-formatting";
 import { useTrades } from "@/lib/useTrades";
-import { percentageFormatter } from "@/lib/formatters";
+import { currencyFormatter, fixedCurrencyFormatter, percentageFormatter } from "@/lib/formatters";
 import { ITradeView } from "@/lib/types";
+import { TickerName } from "./TickerName";
 
-const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', }).format;
-const fixedCurrencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format;
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
-const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
-
-const TickerName = (p: { trade: ITradeView }) => {
-    const { trade } = p;
-
-    return <div>{trade.symbol} {trade.strikePrice as unknown as string} {shortDateFormatter(trade.contractExpiry as unknown as string)} x {trade.numberOfContracts}</div>
-
-}
+export const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 
 export const TradeList = () => {
     const { trades, deleteTrade, reloadTrade } = useTrades();

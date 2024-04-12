@@ -1,9 +1,7 @@
 'use client';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment, Typography, Grid } from '@mui/material';
-import { DatePickerElement, FormContainer, TextFieldElement, TextareaAutosizeElement } from 'react-hook-form-mui';
-
-export type CloseTradeCloseDialogReason = 'cancel' | 'close'
-
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment, Typography, Grid, useMediaQuery, useTheme } from '@mui/material';
+import { DatePickerElement, FormContainer, TextFieldElement, TextareaAutosizeElement, useWatch } from 'react-hook-form-mui';
+export type CloseTradeCloseDialogReason = 'cancel' | 'close';
 interface ITickerProps {
     tradeId: string,
     open: boolean,
@@ -17,10 +15,41 @@ import dayjs from 'dayjs';
 import ky from 'ky';
 import { useEffect, useState } from 'react';
 import { Trade } from '@prisma/client';
+import { ITradeView } from '@/lib/types';
+import { mapTradeToView } from '@/lib/useTrades';
+import { currencyFormatter, percentageFormatter } from '@/lib/formatters';
+import { TickerName } from './TickerName';
+
+
+const SubComp = (props: { t: Trade }) => {
+    const [contractPriceAtClose] = useWatch({
+        name: ['contractPriceAtClose'],
+    });
+
+    const t1 = mapTradeToView({ ...props.t, lastContractPrice: contractPriceAtClose });
+    return (
+        <>
+            <Stack>
+                <Grid container>
+                    <Grid item xs={12}><TickerName trade={t1} /></Grid>
+                    <Grid item xs={6}>Max Profit: {t1.maximumProfit}</Grid>
+                    <Grid item xs={6}>Expected Profit per day: {currencyFormatter(t1.averageProfitPerDay)}</Grid>
+                    <Grid item xs={12}>Expected TotalReturn/Annual Return: {percentageFormatter(t1.maxReturn)}/{percentageFormatter(t1.maxAnnualizedReturn)}</Grid>
+                    <Grid>Estimated Profit: {currencyFormatter(t1.actualProfit)}</Grid>
+                    <Grid item xs={12}>Estimated Annualized Returns: {percentageFormatter(t1.actualAnnualizedReturn)}</Grid>
+                    <Grid>Estimated profit per day: {currencyFormatter(t1.actualProfitPerDay)}</Grid>
+                </Grid>
+            </Stack>
+        </>
+    )
+}
+
 export const CloseTradeDialog = (props: ITickerProps) => {
     const { onClose, open, tradeId } = props;
     const [trade, setTrade] = useState<Trade | null>(null);
-    const [p1, setp1 ] = useState(0);
+    const [p1, setp1] = useState(0);
+    const theme = useTheme();
+    const matches = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
         ky(`/api/trades/${tradeId}`).json<Trade>().then(j => setTrade(j));
@@ -49,41 +78,47 @@ export const CloseTradeDialog = (props: ITickerProps) => {
         tradeId: tradeId,
         notes: trade.notes,
         transactionEndDate: dayjs(),
-        transactionStartDate: dayjs(trade.transactionStartDate).format('MM/DD/YYYY')
+        contractExpiry: dayjs(trade.contractExpiry).format('MM/DD/YYYY'),
+        transactionStartDate: dayjs(trade.transactionStartDate).format('MM/DD/YYYY'),
+        contractPriceAtClose: trade.lastContractPrice
     }
 
     return <Dialog
         open={open}
-        maxWidth={'md'}
+        // maxWidth={'md'}
+        fullScreen={matches}
         fullWidth={true}
         onClose={onCloseRequest}>
         <FormContainer onSuccess={handleSubmit} defaultValues={dv}>
             <DialogTitle id="scroll-dialog-title">Close trade</DialogTitle>
             <DialogContent dividers={true}>
-                <Stack spacing={2}  >
+                <Stack rowGap={3}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         {/* <Typography variant='h6'>{dv.symbol} ${dv.contractPriceAtOpen as unknown as string} - Purchased on {dv.transactionStartDate}</Typography> */}
-                        <Grid container >
-                            <Grid item xs={3}>
-                                <TextFieldElement name={'tradeId'} label={'Trade Id'} required disabled />
+                        <SubComp t={trade} />
+                        {/* <Grid container spacing={2}>
+                            <Grid item xs={6} >
+                                <TextFieldElement fullWidth name={'tradeId'} label={'Trade Id'} required disabled />
                             </Grid>
-                            <Grid item xs={3}>
-                                <TextFieldElement name={'symbol'} label={'Symbol'} required disabled />
-                            </Grid>
-                            <Grid item xs={3}>
-                                <TextFieldElement name={'contractPriceAtOpen'} label={'Contract Price at Open'} disabled required
-                                    InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
-                            </Grid>
-                            <Grid item xs={3}>
-                                <TextFieldElement name={'transactionStartDate'} label={'Purchase date'} disabled />
+                            <Grid item xs={6}>
+                                <TextFieldElement fullWidth name={'symbol'} label={'Symbol'} required disabled />
                             </Grid>
                         </Grid>
-
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                                <TextFieldElement fullWidth name={'contractPriceAtOpen'} label={'Contract Price at Open'} disabled required
+                                    InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextFieldElement fullWidth name={'transactionStartDate'} label={'Purchase date'} disabled />
+                            </Grid>
+                        </Grid> */}
                         <DatePickerElement label="Transaction End Date" name="transactionEndDate" required disableFuture={true} disablePast={false} />
                         <TextFieldElement name={'contractPriceAtClose'} label={'Contract Price at close'} required
                             InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
                         <TextareaAutosizeElement label="Notes" name="notes" rows={5} />
                     </LocalizationProvider>
+
                 </Stack>
             </DialogContent>
             <DialogActions>
