@@ -7,7 +7,7 @@ import { ITradeView } from "./types";
 
 const SellContracts = ['PUT_SELL', 'CALL_SELL'];
 
-export const mapTradeToView = (trade: Trade): ITradeView => {
+export const mapTradeToView = (trade: Trade): ITradeView => {    
     const isSellContract = SellContracts.includes(trade.contractType);
     const sellCost = isSellContract ? (Number(trade.contractPrice) * 100 * trade.numberOfContracts) : 0;
     const buyCost = (isSellContract && trade.contractPriceAtClose) ? (Number(trade.contractPriceAtClose) * 100 * trade.numberOfContracts) : NaN;

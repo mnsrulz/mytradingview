@@ -25,8 +25,12 @@ const SubComp = (props: { t: Trade }) => {
     const [contractPriceAtClose] = useWatch({
         name: ['contractPriceAtClose'],
     });
+    
+    const [transactionEndDate] = useWatch({
+        name: ['transactionEndDate'],
+    });
 
-    const t1 = mapTradeToView({ ...props.t, lastContractPrice: contractPriceAtClose });
+    const t1 = mapTradeToView({ ...props.t, contractPriceAtClose, transactionEndDate });
     return (
         <>
             <Stack>
@@ -113,7 +117,7 @@ export const CloseTradeDialog = (props: ITickerProps) => {
                                 <TextFieldElement fullWidth name={'transactionStartDate'} label={'Purchase date'} disabled />
                             </Grid>
                         </Grid> */}
-                        <DatePickerElement label="Transaction End Date" name="transactionEndDate" required disableFuture={true} disablePast={false} />
+                        <DatePickerElement label="Transaction End Date" name="transactionEndDate" required disableFuture={false} disablePast={false} />
                         <TextFieldElement name={'contractPriceAtClose'} label={'Contract Price at close'} required
                             InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
                         <TextareaAutosizeElement label="Notes" name="notes" rows={5} />
