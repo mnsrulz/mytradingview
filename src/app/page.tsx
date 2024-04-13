@@ -1,8 +1,8 @@
 'use client';
-import { Autocomplete, Button, ButtonGroup, Grid, TextField } from '@mui/material';
+import { Grid } from '@mui/material';
 import * as React from 'react';
 import { TickerSearch } from '../components/ticker-search';
-import { AddTickerToMyList, SearchTickerItem, useMyStockList } from '@/lib/socket';
+import { useMyStockList } from '@/lib/socket';
 import { MyStockList } from '@/components/mystocks';
 
 export default function Page() {
