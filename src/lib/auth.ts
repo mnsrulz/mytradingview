@@ -10,6 +10,7 @@ export const authOptions = {
     // pages: {
     //     //signIn: '/login'
     // },
+    trustHost: true,
     callbacks: {
         authorized({ auth, request }) {
             const isLoggedIn = isAuthenticated(request) || !!auth?.user;
