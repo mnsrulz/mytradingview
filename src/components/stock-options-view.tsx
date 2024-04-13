@@ -1,8 +1,8 @@
 
 import * as React from 'react';
-import { useOptionTracker } from '../lib/socket';
+import { NumberRange, useOptionTracker } from '../lib/socket';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs } from '@mui/material';
+import { Box, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
@@ -12,55 +12,42 @@ interface ITickerProps {
     symbol: string
 }
 
-type NumberRange = { start: number, end: number }
-type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChange: (v: NumberRange) => void, currentPrice: number }
+
+type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChange: (v: NumberRange) => void, currentPrice: number, strikePriceRange: NumberRange }
 
 const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
-    const { allStrikePricesValues, onChange } = props;
+    const { allStrikePricesValues, onChange, strikePriceRange } = props;
+    const t = [strikePriceRange.start, strikePriceRange.end];
     const [minStrikePrice, maxStrikePrice] = [Math.min.apply(null, allStrikePricesValues), Math.max.apply(null, allStrikePricesValues)];
+    // const [minStrikePrice, maxStrikePrice] = [currentPrice - thresholdValue, currentPrice + thresholdValue];
     const strikePriceMarks = allStrikePricesValues.map(m => ({ value: m }));
-    const [strikePriceRange, setStrikePriceRange] = useState([minStrikePrice, maxStrikePrice]);
     const handleChange = (e: Event, v: number | number[]) => {
         const value = v as number[];
-        setStrikePriceRange(value);
         onChange({
             start: value[0],
             end: value[1]
         });
     };
 
-    //todoo
-    // function calculateValue(value: number) {
-    //     return 2 ** value;
-    // }
-
-/*
-
-                    144
-
-        0                       200
-          20 70   120   160 180  
-
-
-
-*/
-
-    return <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-        <div>Strike Price Range: {strikePriceRange[0]} - {strikePriceRange[1]}</div>
-
-        <Slider
-            getAriaLabel={() => 'Strike price'}
-            value={strikePriceRange}
-            onChange={handleChange}
-            //valueLabelDisplay="on"
-            min={minStrikePrice}
-            max={maxStrikePrice}
-            marks={strikePriceMarks}
-            step={null}
+    return <div>
+        <div>Strike Price Range: {t[0]} - {t[1]}</div>
+        <Stack direction="row" sx={{ m: 1 }} alignItems="center">
+            <Grid item>
+            </Grid>
+            <Slider
+                getAriaLabel={() => 'Strike price'}
+                value={t}
+                onChange={handleChange}
+                valueLabelDisplay="auto"
+                min={minStrikePrice}
+                max={maxStrikePrice}
+                marks={strikePriceMarks}
+                step={null}
             // scale={calculateValue}
-        //getAriaValueText={valuetext}
-        />
-    </Stack>
+            //getAriaValueText={valuetext}
+            />
+        </Stack>
+    </div>
 }
 type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE'
 type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN'
@@ -68,8 +55,8 @@ type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN'
 const numberFormatter = (v: string) => v && Number(v);
 const todaysDate = dayjs();
 export const StockOptionsView = (props: ITickerProps) => {
-    const { data, isLoading } = useOptionTracker(props.symbol);
-    const [strikePriceRange, setStrikePriceRange] = useState<NumberRange>({ start: 0, end: Number.MAX_VALUE });
+    const { data, isLoading, strikePriceRange, setStrikePriceRange } = useOptionTracker(props.symbol);
+
     const [putCallTabValue, setPutCallTabValue] = useState<'PUT' | 'CALL'>('PUT');
     const [priceMode, setPriceMode] = useState<PriceModeType>('LAST_PRICE');
     const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
@@ -151,7 +138,11 @@ export const StockOptionsView = (props: ITickerProps) => {
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
             <BootstrapInput id="demo-customized-textbox" />
         </FormControl> */}
-        <StrikePriceSlider currentPrice={data.currentPrice} allStrikePricesValues={allStrikePricesValues} onChange={setStrikePriceRange} />
+        <StrikePriceSlider currentPrice={data.currentPrice}
+            allStrikePricesValues={allStrikePricesValues}
+            onChange={setStrikePriceRange}
+            strikePriceRange={strikePriceRange}
+        />
         <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel>Price Mode</InputLabel>
             <Select value={priceMode} onChange={(e, v) => setPriceMode(e.target.value as PriceModeType)}            >

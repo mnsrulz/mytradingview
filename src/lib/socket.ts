@@ -116,12 +116,25 @@ type StockPriceData = {
     }
 }
 
+export type NumberRange = { start: number, end: number }
+
 export const useOptionTracker = (symbol: string) => {
     const [data, setOd] = useState<OptionsData>();
     const [isLoading, setIsLoading] = useState(false);
+    const [strikePriceRange, setStrikePriceRange] = useState<NumberRange>({ start: 0, end: Number.MAX_VALUE });
+
     useEffect(() => {
         setIsLoading(true);
-        ky(`/api/symbols/${symbol}/options/analyze`).json<OptionsData>().then(r => setOd(r)).finally(() => setIsLoading(false));
+        ky(`/api/symbols/${symbol}/options/analyze`).json<OptionsData>().then(r => {
+            setOd(r);
+            const { currentPrice } = r;
+            const thresholdValue = currentPrice * 0.1;
+            debugger;
+            setStrikePriceRange({
+                start: Math.round(currentPrice - thresholdValue),
+                end: Math.round(currentPrice + thresholdValue)
+            });
+        }).finally(() => setIsLoading(false));
         // socket.emit('options-subscribe-request', item);
         // socket.on(`options-subscribe-response`, setOd);
         // return () => {
@@ -129,7 +142,7 @@ export const useOptionTracker = (symbol: string) => {
         //     socket.off('options-subscribe-response', setOd);
         // }
     }, []);
-    return { data, isLoading };
+    return { data, isLoading, strikePriceRange, setStrikePriceRange };
 }
 
 
