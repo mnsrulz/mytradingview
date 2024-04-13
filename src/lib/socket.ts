@@ -20,15 +20,33 @@ export type SearchTickerResult = { items: SearchTickerItem[] };
 export type SearchTickerItem = { symbol: string, name: string }
 export type AddTickerToMyListResult = { success: boolean }
 export const searchTicker = async (searchTerm: string) => {
-    return new Promise<SearchTickerResult>((res, rej) => {
-        socket.emit('stock-list-request', {
+    const { items } = await ky('/api/symbols/search', {
+        searchParams: {
             q: searchTerm
-        });
+        }
+    }).json<{
+        items: {
+            quotes: {
+                symbol: string,
+                longname: string,
+                isYahooFinance: boolean
+            }[]
+        }
+    }>();
 
-        socket.once(`stock-list-response`, (args: SearchTickerResult) => {
-            res(args);
-        });
-    });
+    return items.quotes.filter(f => f.isYahooFinance).map(r => ({
+        symbol: r.symbol,
+        name: r.longname
+    }));
+    // return new Promise<SearchTickerResult>((res, rej) => {
+    //     socket.emit('stock-list-request', {
+    //         q: searchTerm
+    //     });
+
+    //     socket.once(`stock-list-response`, (args: SearchTickerResult) => {
+    //         res(args);
+    //     });
+    // });
 }
 
 export const AddTickerToMyList = (item: SearchTickerItem) => {
@@ -103,7 +121,7 @@ export const useOptionTracker = (symbol: string) => {
     const [isLoading, setIsLoading] = useState(false);
     useEffect(() => {
         setIsLoading(true);
-        ky(`/api/symbols/${symbol}/options/analyze`).json<OptionsData>().then(r => setOd(r)).finally(()=> setIsLoading(false));
+        ky(`/api/symbols/${symbol}/options/analyze`).json<OptionsData>().then(r => setOd(r)).finally(() => setIsLoading(false));
         // socket.emit('options-subscribe-request', item);
         // socket.on(`options-subscribe-response`, setOd);
         // return () => {

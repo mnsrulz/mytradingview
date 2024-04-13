@@ -8,7 +8,7 @@ interface ITickerProps {
 }
 
 export const TickerSearch = (props: ITickerProps) => {
-    const [options, setOptions] = useState<any>([]);
+    const [options, setOptions] = useState<SearchTickerItem[]>([]);
     const onInputChange = (ev: any, value: any, reason: any) => {
         if (value) {
             getData(value);
@@ -23,7 +23,7 @@ export const TickerSearch = (props: ITickerProps) => {
       
     const getData = async (searchTerm: string) => {
         const result = await searchTicker(searchTerm);
-        setOptions(result.items);
+        setOptions(result);
     };
 
     return <Autocomplete filterOptions={(x) => x}
@@ -47,6 +47,6 @@ export const TickerSearch = (props: ITickerProps) => {
         )}
         options={options}
         getOptionLabel={(option: SearchTickerItem) => `${option.symbol} - ${option.name}`}
-        fullWidth
+        fullWidth        
     />
 }
