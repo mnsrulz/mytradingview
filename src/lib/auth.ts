@@ -1,4 +1,3 @@
-import { request } from 'http';
 import NextAuth, { NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { NextRequest } from 'next/server';
@@ -43,17 +42,7 @@ const authenticate = (user: string | undefined, pass: string | undefined) => {
 }
 
 function isAuthenticated(req: NextRequest) {
-    return req.headers?.get('authorization') === credentials.base64;    
-    // const authheader = req.headers?.get('authorization');
-    // if (authheader) {
-    //     const [user, pass] = Buffer.from(authheader.split(' ')[1], 'base64').toString().split(':');
-    //     if (authenticate(user, pass)) {
-    //         return true;
-    //     } else {
-    //         return false;
-    //     }
-    // }
-    // return false;
+    return req.headers?.get('authorization')?.split(' ')[1] === credentials.base64;
 }
 
 const credentials = {
