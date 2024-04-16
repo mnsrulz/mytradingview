@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import ky from 'ky';
+import { StockPriceData } from './types';
 
 const URL = `https://tidy-spider-52.deno.dev`
 // const URL = `https://studious-telegram-4qq55vqj74hqgwp-8000.app.github.dev`
@@ -105,15 +106,6 @@ type OptionsData = {
             v: number
         }>
     }>
-}
-
-type StockPriceData = {
-    quoteSummary: {
-        price: {
-            regularMarketPrice: number
-        }
-
-    }
 }
 
 export type NumberRange = { start: number, end: number }

@@ -14,3 +14,11 @@ export interface ITradeView extends Trade {
     isClosed: boolean,
     contractCurrentPrice?: number
 }
+
+export type StockPriceData = {
+    quoteSummary: {
+        price: {
+            regularMarketPrice: number
+        }
+    }
+}

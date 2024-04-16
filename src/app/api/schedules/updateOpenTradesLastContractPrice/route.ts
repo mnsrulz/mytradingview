@@ -16,7 +16,7 @@ export async function POST(request: Request) {
             strike: m.strikePrice.toNumber(),
             type: m.contractType.startsWith('CALL') ? 'CALLS' : 'PUTS'
         })
-        const lastContractPrice = optionPrice?.lastPrice;
+        const lastContractPrice = optionPrice?.l;
         if (lastContractPrice) {
             await prisma.trade.update({
                 where: {

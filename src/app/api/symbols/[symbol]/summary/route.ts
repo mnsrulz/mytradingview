@@ -1,11 +1,17 @@
+import { StockPriceData } from "@/lib/types";
+import ky from "ky";
 import { NextResponse } from "next/server";
-import yf from 'yahoo-finance2';
-
-// export const runtime = 'edge'; //This specifies the runtime environment that the middleware function will be executed in.
+//export const runtime = 'edge'; //This specifies the runtime environment that the middleware function will be executed in.
 
 export async function GET(request: Request, p: { params: { symbol: string } }) {
-    const resp = await yf.quoteSummary(p.params.symbol);
+    const priceresp = await ky(`https://www.optionsprofitcalculator.com/ajax/getStockPrice?stock=${p.params.symbol}&reqId=${new Date().getTime()}`, {
+        retry: {
+            limit: 3
+        }
+    }).json<{ price: { last: number | undefined } }>();
     return NextResponse.json({
-        quoteSummary: resp
-    });
+        quoteSummary: {
+            price: { regularMarketPrice: priceresp.price.last as number }
+        }
+    } as StockPriceData);
 }
