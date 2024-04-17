@@ -32,3 +32,15 @@ export async function POST(request: Request) {
     }
     return NextResponse.json(inputJson);
 }
+
+//may be better to expose as a separte endoint??
+export async function DELETE(request: Request) {
+    const inputJson: AddToWatchlistRequest = await request.json();
+    const { symbol } = inputJson;
+    await prisma.watchlist.delete({
+        where: {
+            symbol
+        }
+    });
+    return NextResponse.json(inputJson);
+}

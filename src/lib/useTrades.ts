@@ -7,7 +7,7 @@ import { ITradeView } from "./types";
 
 const SellContracts = ['PUT_SELL', 'CALL_SELL'];
 
-export const mapTradeToView = (trade: Trade): ITradeView => {    
+export const mapTradeToView = (trade: Trade): ITradeView => {
     const isSellContract = SellContracts.includes(trade.contractType);
     const sellCost = isSellContract ? (Number(trade.contractPrice) * 100 * trade.numberOfContracts) : 0;
     const buyCost = (isSellContract && trade.contractPriceAtClose) ? (Number(trade.contractPriceAtClose) * 100 * trade.numberOfContracts) : NaN;
@@ -27,6 +27,7 @@ export const mapTradeToView = (trade: Trade): ITradeView => {
     const maxAnnualizedReturn = (sellCost / maximumRisk) * (365 / tradeDays);
     const actualAnnualizedReturn = (actualProfit / maximumRisk) * (365 / actualTradeDays);
     const actualProfitPerDay = (actualProfit / actualTradeDays);
+    const remainingProfitPerDay = actualProfit > 0 ? ((maximumProfit - actualProfit) / (tradeDays - actualTradeDays)) : NaN;
 
     return {
         ...trade,
@@ -40,7 +41,8 @@ export const mapTradeToView = (trade: Trade): ITradeView => {
         actualProfitPerDay,
         isClosed,
         maxReturn,
-        actualProfit
+        actualProfit,
+        remainingProfitPerDay
     }
 }
 

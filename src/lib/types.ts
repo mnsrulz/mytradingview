@@ -9,6 +9,7 @@ export interface ITradeView extends Trade {
     actualProfit: number
     actualAnnualizedReturn: number
     actualProfitPerDay: number
+    remainingProfitPerDay: number
     buyCost: number,
     sellCost: number,
     isClosed: boolean,

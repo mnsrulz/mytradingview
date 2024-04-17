@@ -84,7 +84,7 @@ export const useMyStockList = () => {
     }, []);
 
     const removeFromWatchlist = useCallback((item: SearchTickerItem) => {
-        ky.delete(`/api/watchlist`, { json: item }).json().then(r => setMyTickers(mytickers.filter(i => i.symbol != item.symbol)));
+        ky.delete(`/api/watchlist`, { json: item }).json().then(r => setMyTickers((ii) => ii.filter(i => i.symbol != item.symbol)));
     }, []);
 
     return { mytickers, addToWatchlist, removeFromWatchlist };

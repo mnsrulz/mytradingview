@@ -49,7 +49,7 @@ export const TradeList = () => {
         // { field: 'strikePrice', width: 90, headerName: 'Strike Price', type: 'number', valueFormatter: currencyFormatter },
         // { field: 'numberOfContracts', width: 60, sortable: false, filterable: false, hideable: false, headerName: 'Size', type: 'number' },
         { field: 'contractPrice', width: 60, headerName: 'Price', type: 'number', valueFormatter: currencyFormatter },
-        { field: 'lastContractPrice', width: 60, headerName: 'Price', type: 'number', valueFormatter: currencyFormatter },
+        { field: 'lastContractPrice', width: 80, headerName: 'Last Price', type: 'number', valueFormatter: currencyFormatter },
         { field: 'buyCost', width: 70, headerName: 'Buy Cost', type: 'number', valueFormatter: fixedCurrencyFormatter },
         { field: 'sellCost', width: 70, headerName: 'Sell Cost', type: 'number', valueFormatter: fixedCurrencyFormatter },
         {
@@ -62,6 +62,10 @@ export const TradeList = () => {
         },
         {
             field: 'actualProfitPerDay', width: 70, headerName: 'PnL/day', type: 'number', valueFormatter: currencyFormatter,
+            renderCell: (p) => <ConditionalFormattingBox value={p.value * 10} formattedValue={p.formattedValue} />
+        },
+        {
+            field: 'remainingProfitPerDay', width: 70, headerName: 'Remaining PnL/day', type: 'number', valueFormatter: currencyFormatter,
             renderCell: (p) => <ConditionalFormattingBox value={p.value * 10} formattedValue={p.formattedValue} />
         },
         {
