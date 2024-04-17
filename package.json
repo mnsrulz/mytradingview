@@ -21,6 +21,7 @@
     "@mui/x-date-pickers": "^6.19.9",
     "@prisma/client": "^5.12.1",
     "dayjs": "^1.11.10",
+    "human-format": "^1.2.0",
     "ky": "^1.2.3",
     "localforage": "^1.10.0",
     "lodash.debounce": "^4.0.8",

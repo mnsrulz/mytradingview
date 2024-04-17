@@ -6,23 +6,27 @@ import CloseIcon from '@mui/icons-material/Close';
 import dayjs from 'dayjs';
 import { CloseTradeCloseDialogReason, CloseTradeDialog } from "./close-trade";
 import { ConfirmDialog } from "./confirm-dialog";
-import { FormControlLabel, Switch } from "@mui/material";
+import { Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Switch, Typography } from "@mui/material";
 
 import { ConditionalFormattingBox } from "./conditional-formatting";
 import { useTrades } from "@/lib/useTrades";
 import { currencyFormatter, fixedCurrencyFormatter, percentageFormatter } from "@/lib/formatters";
 import { ITradeView } from "@/lib/types";
 import { TickerName } from "./TickerName";
+import humanFormat from "human-format";
 
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 export const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 
 export const TradeList = () => {
-    const { trades, deleteTrade, reloadTrade } = useTrades();
+    const { trades, deleteTrade, reloadTrade, isLoading } = useTrades();
     const [showCloseTrades, toggleShowCloseTrades] = useState(false);//useShowCloseTrades();
     const traderows = showCloseTrades ? trades : trades.filter(x => !x.isClosed);
     const [currentTrade, setCurrentTrade] = useState<ITradeView | null>(null);
     const apiRef = useGridApiRef();
+    const totalRisk = trades.filter(t => !t.transactionEndDate).map(t => t.maximumRisk).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
+    const potentialProfit = trades.filter(t => !t.transactionEndDate).map(t => t.maximumProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
+    const openTradesGainAndLoss = trades.filter(t => !t.transactionEndDate).map(t => t.actualProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
 
     const [openCloseTrade, setOpenCloseTrade] = useState(false);
     const [isDeleteTradeOpen, setisDeleteTradeOpen] = useState(false);
@@ -127,7 +131,37 @@ export const TradeList = () => {
         deleteTrade(deleteTradeId);
     }
 
-    return <div>
+    return isLoading ? <LinearProgress /> : <div>
+        <Card>
+            <CardContent>
+                <Grid container >
+                    <Grid item xs={4} md={3}>
+                        <Typography color="text.secondary" gutterBottom>
+                            Risk
+                        </Typography>
+                        <Typography variant="h5">
+                            {humanFormat(totalRisk)}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={4} md={3}>
+                        <Typography color="text.secondary" gutterBottom>
+                            Max Profit
+                        </Typography>
+                        <Typography variant="h5">
+                            {humanFormat(potentialProfit)}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={4} md={3}>
+                        <Typography color="text.secondary" gutterBottom>
+                            PnL
+                        </Typography>
+                        <Typography variant="h5">
+                            {humanFormat(openTradesGainAndLoss)}
+                        </Typography>
+                    </Grid>
+                </Grid>
+            </CardContent>
+        </Card>
         <FormControlLabel control={<Switch checked={showCloseTrades} onChange={(e, v) => toggleShowCloseTrades(v)} />} label="Show closed trades?" />
         <DataGrid rows={traderows}
             disableColumnMenu={true}

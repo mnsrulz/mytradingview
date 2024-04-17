@@ -48,7 +48,8 @@ export const mapTradeToView = (trade: Trade): ITradeView => {
 
 export const useTrades = () => {
     const [trades, setTrades] = useState<ITradeView[]>([]);
-    const loadTrades = () => ky('/api/trades').json<{ items: Trade[] }>().then(r => setTrades(r.items.map(mapTradeToView)));
+    const [isLoading, setIsLoading] = useState(true);
+    const loadTrades = () => ky('/api/trades').json<{ items: Trade[] }>().then(r => setTrades(r.items.map(mapTradeToView))).finally(() => setIsLoading(false));
 
     useEffect(() => {
         loadTrades();
@@ -71,5 +72,5 @@ export const useTrades = () => {
             });
         }
     }, [trades]);
-    return { trades, deleteTrade, reloadTrade };
+    return { trades, deleteTrade, reloadTrade, isLoading };
 };
