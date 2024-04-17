@@ -175,9 +175,14 @@ export default function TabsRouter() {
                                 }}
                             >
                                 {pages.map((page) => (
-                                    <MenuItem key={page.title} onClick={handleCloseNavMenu} LinkComponent={Link} href={page.href}>
+                                    <MenuItem key={page.title} onClick={handleCloseNavMenu}>
+                                        <Button LinkComponent={Link} href={page.href}>
+                                            <Typography textAlign="center">{page.title}</Typography>
+                                        </Button>
+                                        {/* <Link role="menuitem" href={page.href}>
+                                        </Link> */}
                                         {/* {page.title} */}
-                                        <Typography textAlign="center">{page.title}</Typography>
+
                                         {/* <Button
                                             key={page.title}
                                             onClick={handleCloseNavMenu}
@@ -189,7 +194,7 @@ export default function TabsRouter() {
                                 ))}
                             </Menu>
                         </Box>
-                        <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
+                        {/* <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
                         <Typography
                             variant="h5"
                             noWrap
@@ -207,7 +212,7 @@ export default function TabsRouter() {
                             }}
                         >
                             LOGO
-                        </Typography>
+                        </Typography> */}
                         <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                             {pages.map((page) => (
                                 <Button
