@@ -1,22 +1,16 @@
 import ky from "ky";
-
-type OptionsData = Record<string, { "l": 0.01, }>;
-
+type OptionsData = Record<string, { "l": number, "a": number }>;
 type optionPriceType = { symbol: string, strike: number, expirationDate: Date, type: 'CALLS' | 'PUTS' }
 export const getOptionPrice = async (args: optionPriceType) => {
     const { expirationDate, strike, symbol, type } = args;
-
-    const resp = await ky(`https://www.optionsprofitcalculator.com/ajax/getOptions?stock=${args.symbol}&reqId=1`).json<{
+    const resp = await ky(`https://www.optionsprofitcalculator.com/ajax/getOptions?stock=${symbol}&reqId=1`).json<{
         options: Record<string, {
             c: OptionsData,
             p: OptionsData
         }>
     }>();
-
-    // console.log(resp);    
+    
     const expiry = expirationDate.toISOString().substring(0, 10);
-    console.log(expiry);
-
     const existingOption = resp.options[expiry];
     const pp = (() => {
         switch (type) {

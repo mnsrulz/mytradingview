@@ -49,7 +49,7 @@ const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
         </Stack>
     </div>
 }
-type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE'
+type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE' | 'AVG_PRICE'
 type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN'
 
 const numberFormatter = (v: string) => v && Number(v);
@@ -58,7 +58,7 @@ export const StockOptionsView = (props: ITickerProps) => {
     const { data, isLoading, strikePriceRange, setStrikePriceRange } = useOptionTracker(props.symbol);
 
     const [putCallTabValue, setPutCallTabValue] = useState<'PUT' | 'CALL'>('PUT');
-    const [priceMode, setPriceMode] = useState<PriceModeType>('LAST_PRICE');
+    const [priceMode, setPriceMode] = useState<PriceModeType>('AVG_PRICE');
     const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
 
     if (isLoading) return <div>loading...</div>;
@@ -97,6 +97,8 @@ export const StockOptionsView = (props: ITickerProps) => {
                         return po?.l;
                     case 'ASK_PRICE':
                         return po?.a;
+                    case 'AVG_PRICE':
+                        return (po?.a - po?.b)/2;
                     default:
                         return po?.b;
                 }
