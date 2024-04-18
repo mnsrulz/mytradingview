@@ -26,7 +26,7 @@ export const TradeList = () => {
     const apiRef = useGridApiRef();
     const totalRisk = trades.filter(t => !t.transactionEndDate).map(t => t.maximumRisk).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
     const potentialProfit = trades.filter(t => !t.transactionEndDate).map(t => t.maximumProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
-    const openTradesGainAndLoss = trades.filter(t => !t.transactionEndDate).map(t => t.actualProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
+    const openTradesGainAndLoss = trades.filter(t => !t.transactionEndDate && t.actualProfit).map(t => t.actualProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
 
     const [openCloseTrade, setOpenCloseTrade] = useState(false);
     const [isDeleteTradeOpen, setisDeleteTradeOpen] = useState(false);
