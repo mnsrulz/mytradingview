@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { NumberRange, useOptionTracker } from '../lib/socket';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs } from '@mui/material';
+import { Box, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs, LinearProgress } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
@@ -61,7 +61,7 @@ export const StockOptionsView = (props: ITickerProps) => {
     const [priceMode, setPriceMode] = useState<PriceModeType>('AVG_PRICE');
     const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
 
-    if (isLoading) return <div>loading...</div>;
+    if (isLoading) return <LinearProgress /> ;
     const allDates = data && Array.from(Object.keys(data.options));
     const allStrikePrices = allDates && Array.from(new Set(allDates.flatMap(d => Object.keys(data.options[d].c))))//.map(Number).sort(function (a, b) { return a - b; });
     if (!allDates || !allStrikePrices) return <div>no option data found!!!</div>;

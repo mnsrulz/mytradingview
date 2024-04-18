@@ -112,7 +112,7 @@ export type NumberRange = { start: number, end: number }
 
 export const useOptionTracker = (symbol: string) => {
     const [data, setOd] = useState<OptionsData>();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [strikePriceRange, setStrikePriceRange] = useState<NumberRange>({ start: 0, end: Number.MAX_VALUE });
 
     useEffect(() => {
