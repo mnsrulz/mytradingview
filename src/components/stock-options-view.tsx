@@ -98,7 +98,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                     case 'ASK_PRICE':
                         return po?.a;
                     case 'AVG_PRICE':
-                        return (po?.a - po?.b)/2;
+                        return (po?.a + po?.b) ? (po?.a + po?.b)/2 : null;
                     default:
                         return po?.b;
                 }
@@ -127,7 +127,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                             return (sellCost / data.currentPrice) * (365 / numberofdays);
                         }
                     default:
-                        return price
+                        return price?.toFixed(2);
                 }
             })();
         });
@@ -151,6 +151,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                 <MenuItem value="LAST_PRICE">LAST_PRICE</MenuItem>
                 <MenuItem value="BID_PRICE">BID_PRICE</MenuItem>
                 <MenuItem value="ASK_PRICE">ASK_PRICE</MenuItem>
+                <MenuItem value="AVG_PRICE">AVG_PRICE</MenuItem>
             </Select>
         </FormControl>
         <FormControl sx={{ m: 1 }} variant="standard">
