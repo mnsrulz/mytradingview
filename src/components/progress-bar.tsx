@@ -47,38 +47,29 @@ export const ProgressBar = React.memo(function ProgressBar(props: ProgressBarPro
     const { value, formattedValue } = props;
     const valueInPercent = value * 100;
     let color = getColor(valueInPercent * 10);
-
-    return (
-        <Element>
-            {/* <ConditionalFormattingBox
+    if (!Number.isNaN(value)) {
+        return (
+            <Element>
+                {/* <ConditionalFormattingBox
                 value={value}
                 formattedValue={formattedValue}
                 maxWidth={valueInPercent}
             /> */}
-            {/* <Center></Center> */}
-            <Value>{formattedValue} ({valueInPercent.toFixed()}%)</Value>
-            <Bar sx={{
-                backgroundColor: color,
-                width: "100%",
-                maxWidth: `${Math.abs(valueInPercent)}%`,
-                height: "100%",
-                padding: "2px"
-            }}>
-                {/* {formattedValue} */}
-            </Bar>
-            {/* <Bar
-        className={clsx({
-          low: valueInPercent < 30,
-          medium: valueInPercent >= 30 && valueInPercent <= 70,
-          high: valueInPercent > 70,
-        })}
-        style={{ maxWidth: `${valueInPercent}%` }}
-      /> */}
-        </Element>
-    );
+                {/* <Center></Center> */}
+                <Value>{formattedValue} ({valueInPercent.toFixed()}%)</Value>
+                <Bar sx={{
+                    backgroundColor: color,
+                    width: "100%",
+                    maxWidth: `${Math.abs(valueInPercent)}%`,
+                    height: "100%",
+                    padding: "2px"
+                }}>
+                    {/* {formattedValue} */}
+                </Bar>                
+            </Element>
+        );
+    }
 });
-
-
 
 // export function renderProgress(params: GridRenderCellParams<any, number, any>) {
 //   if (params.value == null) {
