@@ -6,7 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import dayjs from 'dayjs';
 import { CloseTradeCloseDialogReason, CloseTradeDialog } from "./close-trade";
 import { ConfirmDialog } from "./confirm-dialog";
-import { Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Switch, Typography } from "@mui/material";
+import { Box, Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Switch, Typography } from "@mui/material";
 
 import { ConditionalFormattingBox } from "./conditional-formatting";
 import { useTrades } from "@/lib/useTrades";
@@ -14,9 +14,17 @@ import { currencyFormatter, fixedCurrencyFormatter, percentageFormatter } from "
 import { ITradeView } from "@/lib/types";
 import { TickerName } from "./TickerName";
 import humanFormat from "human-format";
+import { ProgressBar } from "./progress-bar";
 
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 export const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
+
+const ProfitBar = (props: { cost: number, profit: number }) => {
+    const { profit, cost } = props;
+    return <Box>
+        <ProgressBar value={profit / cost} formattedValue={fixedCurrencyFormatter(profit)} />
+    </Box>
+}
 
 export const TradeList = () => {
     const { trades, deleteTrade, reloadTrade, isLoading } = useTrades();
@@ -57,11 +65,12 @@ export const TradeList = () => {
         { field: 'buyCost', width: 70, headerName: 'Buy Cost', type: 'number', valueFormatter: fixedCurrencyFormatter },
         { field: 'sellCost', width: 70, headerName: 'Sell Cost', type: 'number', valueFormatter: fixedCurrencyFormatter },
         {
-            field: 'actualProfit', width: 70, headerName: 'PnL', type: 'number', valueFormatter: fixedCurrencyFormatter,
-            renderCell: (p) => <ConditionalFormattingBox value={p.value} formattedValue={p.formattedValue} />
+            field: 'actualProfit', width: 100, headerName: 'PnL', type: 'number', valueFormatter: fixedCurrencyFormatter,
+            // renderCell: (p) => <ConditionalFormattingBox value={p.value} formattedValue={p.formattedValue} />
+            renderCell: (p) => <ProfitBar profit={p.value} cost={p.row.sellCost} />
         },
         {
-            field: 'actualAnnualizedReturn', headerName: 'Annualized%', type: 'number', valueFormatter: percentageFormatter,
+            field: 'actualAnnualizedReturn', width: 70, headerName: 'Annualized%', type: 'number', valueFormatter: percentageFormatter,
             renderCell: (p) => <ConditionalFormattingBox value={p.value * 1000} formattedValue={p.formattedValue} />
         },
         {
