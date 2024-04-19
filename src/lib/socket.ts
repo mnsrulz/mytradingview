@@ -121,7 +121,7 @@ export const useOptionTracker = (symbol: string) => {
             setOd(r);
             const { currentPrice } = r;
             const thresholdValue = currentPrice * 0.1;
-            debugger;
+            // debugger;
             setStrikePriceRange({
                 start: Math.round(currentPrice - thresholdValue),
                 end: Math.round(currentPrice + thresholdValue)

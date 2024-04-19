@@ -28,6 +28,7 @@ import { signOut } from 'next-auth/react'
 const pages = [
     { title: 'Home', href: '/' },
     { title: 'Trades', href: '/trades' },
+    { title: 'Option analyzer', href: '/options/analyze' },
     { title: 'History', href: '/history' }
 ];
 const settings = ['Profile', 'Logout'];
@@ -77,6 +78,7 @@ function MyTabs() {
             <Button><Link href="/" className=''>Home</Link></Button>
             <Button><Link href="/trades" className=''>Trades</Link></Button>
             <Button><Link href="/history">History</Link></Button>
+            <Button><Link href="/options/analyze">Option Analyzer</Link></Button>
         </ButtonGroup>
     );
 }
