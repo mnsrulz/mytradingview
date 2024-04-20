@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { NumberRange, useOptionTracker } from '../lib/socket';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs, LinearProgress } from '@mui/material';
+import { Box, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs, LinearProgress, TextField } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
@@ -53,15 +53,15 @@ type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE' | 'AVG_PRICE'
 type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN'
 
 const numberFormatter = (v: string) => v && Number(v);
-const todaysDate = dayjs();
+const todaysDate = dayjs().format('YYYY-MM-DD');
 export const StockOptionsView = (props: ITickerProps) => {
-    const { data, isLoading, strikePriceRange, setStrikePriceRange } = useOptionTracker(props.symbol);
+    const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice } = useOptionTracker(props.symbol);
 
     const [putCallTabValue, setPutCallTabValue] = useState<'PUT' | 'CALL'>('PUT');
     const [priceMode, setPriceMode] = useState<PriceModeType>('AVG_PRICE');
     const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
 
-    if (isLoading) return <LinearProgress /> ;
+    if (isLoading) return <LinearProgress />;
     const allDates = data && Array.from(Object.keys(data.options));
     const allStrikePrices = allDates && Array.from(new Set(allDates.flatMap(d => Object.keys(data.options[d].c))))//.map(Number).sort(function (a, b) { return a - b; });
     if (!allDates || !allStrikePrices) return <div>no option data found!!!</div>;
@@ -85,6 +85,7 @@ export const StockOptionsView = (props: ITickerProps) => {
     })
 
     const traderows = allDates?.map(d => {
+        if (dayjs(d).isBefore(todaysDate)) return null;
         const o: any = {
             id: d
         }
@@ -98,7 +99,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                     case 'ASK_PRICE':
                         return po?.a;
                     case 'AVG_PRICE':
-                        return (po?.a + po?.b) ? (po?.a + po?.b)/2 : null;
+                        return (po?.a + po?.b) ? (po?.a + po?.b) / 2 : null;
                     default:
                         return po?.b;
                 }
@@ -107,24 +108,19 @@ export const StockOptionsView = (props: ITickerProps) => {
             o[s.strikePrice] = price && (() => {
                 switch (valueMode) {
                     case 'TOTAL_RETURN':
-                        /*
-                        135
-                            138 --> 1.10
-
-                        */
                         if (putCallTabValue == 'PUT') {
-                            return (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice))) / s.value;
+                            return (targetPrice > s.value ? price : (price - (s.value - targetPrice))) / (s.value);
                         } else {
-                            return (price / data.currentPrice);
+                            return (price / targetPrice);
                         }
                     case 'ANNUAL_RETURN':
                         if (putCallTabValue == 'PUT') {
-                            const sellCost = (data.currentPrice > s.value ? price : (price - (s.value - data.currentPrice)));
+                            const sellCost = (targetPrice > s.value ? price : (price - (s.value - targetPrice)));
                             const risk = s.value;
                             return (sellCost / risk) * (365 / numberofdays);
                         } else {
-                            const sellCost = (data.currentPrice < s.value ? price : (price - (data.currentPrice - s.value)));
-                            return (sellCost / data.currentPrice) * (365 / numberofdays);
+                            const sellCost = (targetPrice < s.value ? price : (price - (targetPrice - s.value)));
+                            return (sellCost / targetPrice) * (365 / numberofdays);
                         }
                     default:
                         return price?.toFixed(2);
@@ -132,7 +128,7 @@ export const StockOptionsView = (props: ITickerProps) => {
             })();
         });
         return o;
-    });
+    }).filter(r => r);
 
     return <Paper>
         Symbol: {props.symbol} - {data.currentPrice}
@@ -156,11 +152,14 @@ export const StockOptionsView = (props: ITickerProps) => {
         </FormControl>
         <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel>Value Mode</InputLabel>
-            <Select value={valueMode} onChange={(e, v) => setValueMode(e.target.value as ValueModeType)}            >
+            <Select value={valueMode} onChange={(e, v) => setValueMode(e.target.value as ValueModeType)}>
                 <MenuItem value="PRICE">PRICE</MenuItem>
                 <MenuItem value="ANNUAL_RETURN">ANNUAL_RETURN</MenuItem>
                 <MenuItem value="TOTAL_RETURN">TOTAL_RETURN</MenuItem>
             </Select>
+        </FormControl>
+        <FormControl sx={{ m: 1 }} variant="standard">
+            <TextField label="Target price" variant="standard" value={targetPrice} onChange={v => setTargetPrice(Number(v.target.value))} type='number' />
         </FormControl>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={putCallTabValue} onChange={(e, v) => setPutCallTabValue(v)} variant="fullWidth" indicatorColor="secondary"

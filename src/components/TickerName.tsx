@@ -5,7 +5,8 @@ import dayjs from "dayjs";
 
 export const TickerName = (p: { trade: ITradeView; }) => {
     const { trade } = p;
-    const dt = trade.contractExpiry;
+    debugger;
+    const dt = `${trade.contractExpiry}`.substring(0, 10);  //keeping only the date part
     const isYearAfter = dayjs(dt).diff(dayjs(), 'days') > 365;
     const fmtDate = isYearAfter ? dayjs(dt).format('M/D/YY') : dayjs(dt).format('M/D');
     return <div>
