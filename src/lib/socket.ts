@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import ky from 'ky';
-import { StockPriceData } from './types';
+import { NumberRange, OptionsInnerData, StockPriceData } from './types';
 
 const URL = `https://tidy-spider-52.deno.dev`
 // const URL = `https://studious-telegram-4qq55vqj74hqgwp-8000.app.github.dev`
@@ -90,25 +90,13 @@ export const useMyStockList = () => {
     return { mytickers, addToWatchlist, removeFromWatchlist };
 }
 
+
 type OptionsData = {
     currentPrice: number,
-    options: Record<string, {
-        c: Record<string, {
-            a: number,
-            b: number,
-            l: number,
-            v: number
-        }>,
-        p: Record<string, {
-            a: number,
-            b: number,
-            l: number,
-            v: number
-        }>
-    }>
+    options: Record<string, OptionsInnerData>
 }
 
-export type NumberRange = { start: number, end: number }
+
 
 export const useOptionTracker = (symbol: string) => {
     const [data, setOd] = useState<OptionsData>();

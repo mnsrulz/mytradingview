@@ -23,3 +23,27 @@ export type StockPriceData = {
         }
     }
 }
+
+export type IOptionsGrid = {
+    id: string
+}
+
+export type NumberRange = { start: number, end: number }
+
+
+export type OptionsInnerData =  {
+    c: Record<string, {
+        a: number,
+        b: number,
+        l: number,
+        oi: number,
+        v: number
+    }>,
+    p: Record<string, {
+        a: number,
+        b: number,
+        l: number,
+        oi: number,
+        v: number
+    }>
+}

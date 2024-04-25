@@ -1,56 +1,25 @@
 
 import * as React from 'react';
-import { NumberRange, useOptionTracker } from '../lib/socket';
+import { useOptionTracker } from '../lib/socket';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Stack, Tab, Tabs, LinearProgress, TextField } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
 import { ConditionalFormattingBox } from './conditional-formatting';
+import { Pcr } from './pcr';
+import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
+import { StrikePriceSlider } from './StrikePriceSlider';
 
 interface ITickerProps {
     symbol: string
 }
 
 
-type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChange: (v: NumberRange) => void, currentPrice: number, strikePriceRange: NumberRange }
+export type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChange: (v: NumberRange) => void, currentPrice: number, strikePriceRange: NumberRange }
 
-const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
-    const { allStrikePricesValues, onChange, strikePriceRange } = props;
-    const t = [strikePriceRange.start, strikePriceRange.end];
-    const [minStrikePrice, maxStrikePrice] = [Math.min.apply(null, allStrikePricesValues), Math.max.apply(null, allStrikePricesValues)];
-    // const [minStrikePrice, maxStrikePrice] = [currentPrice - thresholdValue, currentPrice + thresholdValue];
-    const strikePriceMarks = allStrikePricesValues.map(m => ({ value: m }));
-    const handleChange = (e: Event, v: number | number[]) => {
-        const value = v as number[];
-        onChange({
-            start: value[0],
-            end: value[1]
-        });
-    };
-
-    return <div>
-        <div>Strike Price Range: {t[0]} - {t[1]}</div>
-        <Stack direction="row" sx={{ m: 1 }} alignItems="center">
-            <Grid item>
-            </Grid>
-            <Slider
-                getAriaLabel={() => 'Strike price'}
-                value={t}
-                onChange={handleChange}
-                valueLabelDisplay="auto"
-                min={minStrikePrice}
-                max={maxStrikePrice}
-                marks={strikePriceMarks}
-                step={null}
-            // scale={calculateValue}
-            //getAriaValueText={valuetext}
-            />
-        </Stack>
-    </div>
-}
 type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE' | 'AVG_PRICE'
-type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN'
+type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN' | 'PCR'
 
 const numberFormatter = (v: string) => v && Number(v);
 const todaysDate = dayjs().format('YYYY-MM-DD');
@@ -60,6 +29,16 @@ export const StockOptionsView = (props: ITickerProps) => {
     const [putCallTabValue, setPutCallTabValue] = useState<'PUT' | 'CALL'>('PUT');
     const [priceMode, setPriceMode] = useState<PriceModeType>('AVG_PRICE');
     const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
+    const [pcrSelectedData, setPcrSelectedData] = useState<OptionsInnerData | undefined>();
+    const [pcrOpen, setPcrOpen] = useState(false);
+
+    function handlePcrSelection(v: string) {
+        const fss = data?.options[v];
+        if (fss) {
+            setPcrSelectedData(fss);
+            setPcrOpen(true);
+        }
+    }
 
     if (isLoading) return <LinearProgress />;
     const allDates = data && Array.from(Object.keys(data.options));
@@ -67,7 +46,7 @@ export const StockOptionsView = (props: ITickerProps) => {
     if (!allDates || !allStrikePrices) return <div>no option data found!!!</div>;
     const allStrikePricesValues = allStrikePrices?.map(Number)
     const columns: GridColDef[] = [
-        { field: 'id', width: 120, headerName: 'expiry' },
+        { field: 'id', width: 120, headerName: 'expiry', renderCell: (v) => <Link title='View put call ratio' onClick={() => handlePcrSelection(v.value)}>{v.value}</Link> },
     ];
 
     const workingStrikePrices = allStrikePrices.map(s => ({
@@ -79,14 +58,14 @@ export const StockOptionsView = (props: ITickerProps) => {
         columns.push({
             field: s.strikePrice,
             width: 10, headerName: `${parseFloat(s.strikePrice)}`,
-            valueFormatter: valueMode == 'PRICE' ? numberFormatter : percentageFormatter, type: 'number',
-            renderCell: valueMode == 'PRICE' ? undefined : (p) => <ConditionalFormattingBox value={p.value * 1000} formattedValue={p.formattedValue} />
+            valueFormatter: ['PRICE', 'PCR'].includes(valueMode) ? numberFormatter : percentageFormatter, type: 'number',
+            renderCell: ['PRICE', 'PCR'].includes(valueMode) ? undefined : (p) => <ConditionalFormattingBox value={p.value * 1000} formattedValue={p.formattedValue} />
         })
     })
 
     const traderows = allDates?.map(d => {
         if (dayjs(d).isBefore(todaysDate)) return null;
-        const o: any = {
+        const o: IOptionsGrid = {
             id: d
         }
         const numberofdays = dayjs(d).diff(todaysDate, 'days') + 1;
@@ -105,7 +84,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                 }
             })();
 
-            o[s.strikePrice] = price && (() => {
+            (o as any)[s.strikePrice] = price && (() => {
                 switch (valueMode) {
                     case 'TOTAL_RETURN':
                         if (putCallTabValue == 'PUT') {
@@ -122,6 +101,8 @@ export const StockOptionsView = (props: ITickerProps) => {
                             const sellCost = (targetPrice < s.value ? price : (price - (targetPrice - s.value)));
                             return (sellCost / targetPrice) * (365 / numberofdays);
                         }
+                    case 'PCR':
+                        return po.oi;
                     default:
                         return price?.toFixed(2);
                 }
@@ -156,6 +137,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                 <MenuItem value="PRICE">PRICE</MenuItem>
                 <MenuItem value="ANNUAL_RETURN">ANNUAL_RETURN</MenuItem>
                 <MenuItem value="TOTAL_RETURN">TOTAL_RETURN</MenuItem>
+                <MenuItem value="PCR">PCR</MenuItem>
             </Select>
         </FormControl>
         <FormControl sx={{ m: 1 }} variant="standard">
@@ -210,5 +192,12 @@ export const StockOptionsView = (props: ITickerProps) => {
             columns={columns}
             sx={{ display: 'grid' }}
             getRowId={(r) => `${r.symbol} - ${r.name}`} /> */}
+        {
+            pcrSelectedData && <Pcr
+                open={pcrOpen}
+                data={pcrSelectedData}
+                currentPrice={data.currentPrice}
+                onClose={() => setPcrOpen(false)} />
+        }
     </Paper>
 }
