@@ -1,5 +1,5 @@
 import { IOptionsGrid, NumberRange, OptionsInnerData } from "@/lib/types";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Grid } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { StrikePriceSlider } from "./StrikePriceSlider";
 import { axisClasses } from '@mui/x-charts';
@@ -44,6 +44,7 @@ export const Pcr = (props: ITickerProps) => {
         value: Number(s)
     })).filter(n => n.value >= strikePriceRange.start && n.value <= strikePriceRange.end);
 
+
     const dataset = workingStrikePrices.map(d => {
         return {
             strike: d.value,
@@ -52,10 +53,33 @@ export const Pcr = (props: ITickerProps) => {
         }
     })
 
+    const totalCalls = dataset.map(d => d.c).reduce((a, b) => a + b);
+    const totalPuts = dataset.map(d => d.p).reduce((a, b) => a + b);
+    const pcr = (totalPuts / totalCalls);
+    const sentiment = pcr > 0.7 ? 'Bearish': 'Bullish';
+
     return (
         <Dialog fullWidth={true} fullScreen={true} open={open} onClose={onClose} aria-labelledby="pcr-dialog">
-            <DialogTitle id="pcr-dialog">Put Call Ratio - {currentPrice}</DialogTitle>
+            {/* <DialogTitle id="pcr-dialog">Put Call Ratio</DialogTitle> */}
             <DialogContent>
+                <Grid container >
+                    <Grid item xs={6}>
+                        <Typography color="text.secondary" gutterBottom>
+                            Current Stock Price
+                        </Typography>
+                        <Typography variant="h5">
+                            {currentPrice}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Typography color="text.secondary" gutterBottom>
+                            Put Call Ratio
+                        </Typography>
+                        <Typography variant="h5">
+                            {pcr.toFixed(2)} {sentiment}
+                        </Typography>
+                    </Grid>
+                </Grid>
                 <StrikePriceSlider currentPrice={currentPrice}
                     allStrikePricesValues={allStrikePricesValues}
                     onChange={setStrikePriceRange}
