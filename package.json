@@ -18,7 +18,7 @@
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.14",
     "@mui/x-charts": "^7.3.0",
-    "@mui/x-data-grid": "7.0",
+    "@mui/x-data-grid": "7.3",
     "@mui/x-date-pickers": "^6.19.9",
     "@prisma/client": "^5.12.1",
     "dayjs": "^1.11.10",
