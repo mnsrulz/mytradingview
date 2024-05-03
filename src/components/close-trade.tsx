@@ -1,6 +1,6 @@
 'use client';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment, Typography, Grid, useMediaQuery, useTheme } from '@mui/material';
-import { DatePickerElement, FormContainer, TextFieldElement, TextareaAutosizeElement, useWatch } from 'react-hook-form-mui';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment, Grid, useMediaQuery, useTheme } from '@mui/material';
+import { FormContainer, TextFieldElement, TextareaAutosizeElement, useWatch } from 'react-hook-form-mui';
 export type CloseTradeCloseDialogReason = 'cancel' | 'close';
 interface ITickerProps {
     tradeId: string,
@@ -15,10 +15,10 @@ import dayjs from 'dayjs';
 import ky from 'ky';
 import { useEffect, useState } from 'react';
 import { Trade } from '@prisma/client';
-import { ITradeView } from '@/lib/types';
 import { mapTradeToView } from '@/lib/useTrades';
 import { currencyFormatter, fixedCurrencyFormatter, percentageFormatter } from '@/lib/formatters';
 import { TickerName } from './TickerName';
+import { DatePickerElement } from 'react-hook-form-mui/date-pickers';
 
 
 const SubComp = (props: { t: Trade }) => {
@@ -117,7 +117,9 @@ export const CloseTradeDialog = (props: ITickerProps) => {
                                 <TextFieldElement fullWidth name={'transactionStartDate'} label={'Purchase date'} disabled />
                             </Grid>
                         </Grid> */}
+                        
                         <DatePickerElement label="Transaction End Date" name="transactionEndDate" required disableFuture={false} disablePast={false} />
+
                         <TextFieldElement name={'contractPriceAtClose'} label={'Contract Price at close'} required
                             InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
                         <TextareaAutosizeElement label="Notes" name="notes" rows={5} />

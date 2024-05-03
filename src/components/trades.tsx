@@ -6,7 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import dayjs from 'dayjs';
 import { CloseTradeCloseDialogReason, CloseTradeDialog } from "./close-trade";
 import { ConfirmDialog } from "./confirm-dialog";
-import { Box, Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Switch, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Switch, Typography } from "@mui/material";
 
 import { ConditionalFormattingBox } from "./conditional-formatting";
 import { useTrades } from "@/lib/useTrades";
@@ -15,6 +15,7 @@ import { ITradeView } from "@/lib/types";
 import { TickerName } from "./TickerName";
 import humanFormat from "human-format";
 import { ProgressBar } from "./progress-bar";
+import { AddTradeDialog } from "./add-trade";
 
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 export const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
@@ -32,9 +33,9 @@ export const TradeList = () => {
     const traderows = showCloseTrades ? trades : trades.filter(x => !x.isClosed);
     const [currentTrade, setCurrentTrade] = useState<ITradeView | null>(null);
     const apiRef = useGridApiRef();
-    const totalRisk = trades.filter(t => !t.transactionEndDate).map(t => t.maximumRisk).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
-    const potentialProfit = trades.filter(t => !t.transactionEndDate).map(t => t.maximumProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
-    const openTradesGainAndLoss = trades.filter(t => !t.transactionEndDate && t.actualProfit).map(t => t.actualProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
+    const totalRisk = traderows.map(t => t.maximumRisk).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
+    const potentialProfit = traderows.map(t => t.maximumProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
+    const openTradesGainAndLoss = traderows.filter(t => t.actualProfit).map(t => t.actualProfit).reduce((a, b) => a + b, 0); //arr.reduce((a, b) => a + b, 0);
 
     const [openCloseTrade, setOpenCloseTrade] = useState(false);
     const [isDeleteTradeOpen, setisDeleteTradeOpen] = useState(false);
@@ -140,6 +141,9 @@ export const TradeList = () => {
         deleteTrade(deleteTradeId);
     }
 
+    const [openAddTrade, setOpenAddTrade] = useState(false);
+    const handleCloseAddTrade = () => { setOpenAddTrade(false); };
+
     return isLoading ? <LinearProgress /> : <div>
         <Card>
             <CardContent>
@@ -172,6 +176,8 @@ export const TradeList = () => {
             </CardContent>
         </Card>
         <FormControlLabel control={<Switch checked={showCloseTrades} onChange={(e, v) => toggleShowCloseTrades(v)} />} label="Show closed trades?" />
+        <Button onClick={e => setOpenAddTrade(true)}>New Trade</Button>
+
         <DataGrid rows={traderows}
             disableColumnMenu={true}
             disableColumnFilter={true}
@@ -225,5 +231,8 @@ export const TradeList = () => {
             />
         }
 
+        <AddTradeDialog onClose={handleCloseAddTrade}
+            ticker={null}
+            open={openAddTrade} />
     </div>
 }

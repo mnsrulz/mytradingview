@@ -1,7 +1,8 @@
 'use client';
 import { SearchTickerItem } from '@/lib/socket';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment } from '@mui/material';
-import { DatePickerElement, FormContainer, SelectElement, SliderElement, TextFieldElement, TextareaAutosizeElement } from 'react-hook-form-mui';
+import { FormContainer, SelectElement, SliderElement, TextFieldElement, TextareaAutosizeElement } from 'react-hook-form-mui';
+import { DatePickerElement } from 'react-hook-form-mui/date-pickers';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -58,7 +59,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
     const theme = useTheme();
     const matches = useMediaQuery(theme.breakpoints.down('sm'));
 
-    if (!open || !ticker) return <div></div>
+    if (!open) return <div></div>
     const handleSubmit = async (data: any) => {
         await ky.post('/api/trades', {
             json: data
@@ -73,7 +74,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
     }
 
     const dv = {
-        symbol: ticker.symbol,
+        symbol: ticker?.symbol,
         numberOfContracts: 1, 
         contractType: 'PUT_SELL',
         transactionStartDate: dayjs(),
@@ -95,7 +96,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
                         <TextFieldElement name={'symbol'} label={'Symbol'} required />
                         <SelectElement name={'contractType'} label={'Type'} options={options} fullWidth />
                         <SliderElement name={"numberOfContracts"} label='Number of contracts' max={20} min={1} />
-                        <Stack direction="row" spacing={2}>
+                        <Stack direction="row" spacing={2}>                            
                             <DatePickerElement label="Transaction Start Date" name="transactionStartDate" required disableFuture={true} disablePast={false} />
                             <DatePickerElement label="Expiry Date" name="contractExpiry" required disableFuture={false} disablePast={false} />
                         </Stack>
