@@ -95,11 +95,13 @@ type OptionsData = {
     currentPrice: number,
     options: Record<string, OptionsInnerData>
 }
+export type dnmodel = { strike: number, [x: string]: number; }
 
 type OptionsHedgingData = {
-    dates: string[],
+    expirations: string[],
     strikes: number[],
-    data: { puts: number[], calls: number[], data: number[] }
+    data: { puts: number[], calls: number[], data: number[] },
+    dataset: dnmodel[]
 }
 
 

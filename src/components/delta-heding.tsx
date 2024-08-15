@@ -66,7 +66,16 @@ const pData = [1000, -900, 2400, 1398, -9800, 3908, 4800, -3800, 4300];
 //     '$200',
 //     '$210',
 // ];
-
+const colorCodes = ['#4e79a7',
+    '#f28e2c',
+    '#e15759',
+    '#76b7b2',
+    '#59a14f',
+    '#edc949',
+    '#af7aa1',
+    '#ff9da7',
+    '#9c755f',
+    '#bab0ab'];
 export const DeltaHeding = (props: ITickerProps) => {
     const { onClose } = props;
     // const rrs = await fetch('')
@@ -77,12 +86,19 @@ export const DeltaHeding = (props: ITickerProps) => {
 
     const xLabels = Object.keys(data.data);
 
+    const series = data.expirations.flatMap(j => {
+        return [{
+            dataKey: `${j}-call`, label: `${j}`, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
+        },
+        {
+            dataKey: `${j}-put`, label: `${j}`, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
+        }]
+    });
     return (
         <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog">
             <DialogContent>
-                I am in delta hedging...
                 <Typography variant="h5" align="center" gutterBottom>
-                    $BABA ABS Delta Hedging Exposure (50 DTE)
+                    ${props.symbol.toUpperCase()} ABS Delta Hedging Exposure (50 DTE)
                 </Typography>
                 {/* <BarChart
                     xAxis={[{ dataKey: 'strike', label: 'Strike', type: 'number' }]}
@@ -107,31 +123,55 @@ export const DeltaHeding = (props: ITickerProps) => {
                 <BarChart
                     // width={500}
                     // height={300}
-                    series={[
+                    dataset={data.dataset}
+                    series={series}
+                    grid={
                         {
-                            data: pData,
-                            label: '2024-08-16',
-                            stack: 'tol'
-                        },
-                        {
-                            data: uData,
-                            label: '2024-09-19',
-                            stack: 'tol'
-                        },
-                        {
-                            data: uData,
-                            label: '2024-10-10',
-                            stack: 'tol'
-                        },
-                    ]}
+                            vertical: true,
+                            horizontal: true
+                        }
+                    }
                     yAxis={[
                         {
-                            data: xLabels,
+                            // data: xLabels,
+                            label: 'Strike',
+                            dataKey: 'strike',
                             scaleType: 'band',
+                            reverse: true
                         },
                     ]}
                     // yAxis={[{ max: 10000 }]}
                     layout="horizontal"
+                    xAxis={
+                        [
+                            {
+                                label: 'Delta Hedging Exposure',
+                                scaleType: 'linear',
+
+                            }
+                        ]
+                    }
+                    slotProps={{
+                        legend: {
+                            seriesToDisplay: data.expirations.map(j=>{
+                                return {
+                                    id: j,
+                                    color: colorCodes[data.expirations.indexOf(j)],
+                                    label: j
+                                }
+                            }),
+                            // hidden: true,
+                            direction: 'row',
+                            position: {
+                                vertical: 'top',
+                                horizontal: 'middle',
+                            },
+                            itemMarkWidth: 20,
+                            itemMarkHeight: 2,
+                            markGap: 5,
+                            itemGap: 10,
+                        }
+                    }}
                 />
 
                 {/* <BarChart
