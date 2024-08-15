@@ -10,6 +10,7 @@ import { ConditionalFormattingBox } from './conditional-formatting';
 import { Pcr } from './pcr';
 import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
+import { DeltaHeding } from './delta-heding';
 
 interface ITickerProps {
     symbol: string
@@ -31,6 +32,7 @@ export const StockOptionsView = (props: ITickerProps) => {
     const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
     const [pcrSelectedData, setPcrSelectedData] = useState<OptionsInnerData | undefined>();
     const [pcrOpen, setPcrOpen] = useState(false);
+    const [deltaHedgingOpen, setDeltaHedgingOpen] = useState(false);
 
     function handlePcrSelection(v: string) {
         const fss = data?.options[v];
@@ -113,6 +115,7 @@ export const StockOptionsView = (props: ITickerProps) => {
 
     return <Paper>
         Symbol: {props.symbol} - {data.currentPrice}
+        <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta hedging</Button>
         {/* <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
             <BootstrapInput id="demo-customized-textbox" />
@@ -198,6 +201,12 @@ export const StockOptionsView = (props: ITickerProps) => {
                 data={pcrSelectedData}
                 currentPrice={data.currentPrice}
                 onClose={() => setPcrOpen(false)} />
+        }
+
+        {
+            deltaHedgingOpen && <DeltaHeding
+                symbol={props.symbol}
+                onClose={() => setDeltaHedgingOpen(false)} />
         }
     </Paper>
 }
