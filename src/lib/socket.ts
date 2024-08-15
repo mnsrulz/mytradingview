@@ -96,6 +96,11 @@ type OptionsData = {
     options: Record<string, OptionsInnerData>
 }
 
+type OptionsHedgingData = {
+    dates: string[],
+    strikes: number[],
+    data: { puts: number[], calls: number[], data: number[] }
+}
 
 
 export const useOptionTracker = (symbol: string) => {
@@ -127,6 +132,20 @@ export const useOptionTracker = (symbol: string) => {
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice };
 }
 
+
+
+export const useDeltaHedging = (symbol: string) => {
+    const [data, setOd] = useState<OptionsHedgingData>();
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        ky(`/api/symbols/${symbol}/options/analyze/tradier`).json<{dh: OptionsHedgingData}>().then(r => {
+            setOd(r.dh);
+        }).finally(() => setIsLoading(false));
+    }, []);
+    return { data, isLoading };
+}
 
 export const useStockPrice = (item: SearchTickerItem) => {
     const [od, setOd] = useState<StockPriceData>();
