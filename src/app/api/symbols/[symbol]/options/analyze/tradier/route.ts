@@ -80,15 +80,17 @@ function getOptionData(symbol: string, expiration: string) {
 async function getCurrentPrice(symbol: string) {
   const cp = await client(getQuotes, {
     searchParams: {
-      symbol
+      symbols: symbol
     }
   }).json<{
     quotes: {
       quote: {
         symbol: string,
         last: number
-      }[]
+      }
     }
   }>();
-  return cp.quotes.quote.find(x => x.symbol === symbol)?.last;
+  return cp.quotes.quote
+    //.find(x => x.symbol === symbol)?
+    .last;
 }
