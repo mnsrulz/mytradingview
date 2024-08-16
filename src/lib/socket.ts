@@ -95,15 +95,16 @@ type OptionsData = {
     currentPrice: number,
     options: Record<string, OptionsInnerData>
 }
-export type dnmodel = { strike: number, [x: string]: number; }
+export type OptionsHedgingDataset = { strike: number, [x: string]: number; }
 
 type OptionsHedgingData = {
     expirations: string[],
     strikes: number[],
     data: { puts: number[], calls: number[], data: number[] },
-    dataset: dnmodel[]
+    dataset: OptionsHedgingDataset[],
+    currentPrice: number,
+    maxPosition: number
 }
-
 
 export const useOptionTracker = (symbol: string) => {
     const [data, setOd] = useState<OptionsData>();
@@ -136,16 +137,21 @@ export const useOptionTracker = (symbol: string) => {
 
 
 
-export const useDeltaHedging = (symbol: string) => {
+export const useDeltaHedging = (symbol: string, dte: number, sc: number) => {
     const [data, setOd] = useState<OptionsHedgingData>();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setIsLoading(true);
-        ky(`/api/symbols/${symbol}/options/analyze/tradier`).json<{dh: OptionsHedgingData}>().then(r => {
+        ky(`/api/symbols/${symbol}/options/analyze/tradier`, {
+            searchParams: {
+                dte,
+                sc
+            }
+        }).json<{dh: OptionsHedgingData}>().then(r => {
             setOd(r.dh);
         }).finally(() => setIsLoading(false));
-    }, []);
+    }, [symbol, dte, sc]);
     return { data, isLoading };
 }
 

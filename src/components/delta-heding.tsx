@@ -1,7 +1,8 @@
-import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress } from "@mui/material";
+import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
-import { axisClasses } from '@mui/x-charts';
+import { ChartsReferenceLine } from '@mui/x-charts';
 import { useDeltaHedging } from "@/lib/socket";
+import { useState } from "react";
 
 interface ITickerProps {
     symbol: string,
@@ -52,40 +53,30 @@ interface ITickerProps {
 //     },
 // };
 
-const uData = [-900, -100, 4000, 3000, 2000, 2780, 1890, 2390, 3490];
-const pData = [1000, -900, 2400, 1398, -9800, 3908, 4800, -3800, 4300];
-
-// const xLabels = [
-//     '$50',
-//     '$70',
-//     '$85',
-//     '$90',
-//     '$100',
-//     '$105',
-//     '$120',
-//     '$200',
-//     '$210',
-// ];
-const colorCodes = ['#4e79a7',
-    '#f28e2c',
-    '#e15759',
-    '#76b7b2',
-    '#59a14f',
-    '#edc949',
-    '#af7aa1',
-    '#ff9da7',
-    '#9c755f',
-    '#bab0ab'];
+const colorCodes = ['#ae6867',
+    '#dd8f77',
+    '#fab079',
+    '#f6b17f',
+    '#ece990',
+    '#94ab5e',
+    '#d7f888',
+    '#519693',
+    '#7be3de',
+    '#8eb8f0',
+    '#7d7283',
+    '#c5b4cf',
+    '#f2ddff'
+];
 export const DeltaHeding = (props: ITickerProps) => {
     const { onClose } = props;
-    // const rrs = await fetch('')
-    const { data, isLoading } = useDeltaHedging(props.symbol);
+    const [dte, setDte] = useState(50);
+    const [strikeCounts, setStrikesCount] = useState(30);
+    const { data, isLoading } = useDeltaHedging(props.symbol, dte, strikeCounts);
 
     if (isLoading) return <LinearProgress />;
     if (!data) return <div>No data to show!!!</div>;
-
-    const xLabels = Object.keys(data.data);
-
+    const height = data.strikes.length * 15;
+    const yaxisline = Math.max(...data.strikes.filter(j => j <= data.currentPrice));
     const series = data.expirations.flatMap(j => {
         return [{
             dataKey: `${j}-call`, label: `${j}`, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
@@ -98,43 +89,57 @@ export const DeltaHeding = (props: ITickerProps) => {
         <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog">
             <DialogContent>
                 <Typography variant="h5" align="center" gutterBottom>
-                    ${props.symbol.toUpperCase()} ABS Delta Hedging Exposure (50 DTE)
+                    ${props.symbol.toUpperCase()} ABS Delta Hedging Exposure ({dte} DTE)
                 </Typography>
-                {/* <BarChart
-                    xAxis={[{ dataKey: 'strike', label: 'Strike', type: 'number' }]}
-                    yAxis={[{ label: 'Delta Hedging Exposure', type: 'number' }]}
-                    width={800}
-                    height={500}
-                >
-                    <BarSeries dataKey="exposure" data={data} />
-                </BarChart> 
-                
-                [
-
-                {
-                    v: 100
-                }
-                ]
-                
-                */}
-
-
+                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                    <InputLabel>DTE</InputLabel>
+                    <Select
+                        id="dte"
+                        value={dte}
+                        label="DTE"
+                        onChange={(e) => setDte(e.target.value as number)}
+                    >
+                        <MenuItem value={30}>30</MenuItem>
+                        <MenuItem value={50}>50</MenuItem>
+                        <MenuItem value={90}>90</MenuItem>
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                    <InputLabel>Strikes</InputLabel>
+                    <Select
+                        id="strikes"
+                        value={strikeCounts}
+                        label="Strikes"
+                        
+                        onChange={(e) => setStrikesCount(e.target.value as number)}
+                    >
+                        <MenuItem value={20}>20</MenuItem>
+                        <MenuItem value={30}>30</MenuItem>
+                        <MenuItem value={50}>50</MenuItem>
+                        <MenuItem value={80}>80</MenuItem>
+                        <MenuItem value={100}>100</MenuItem>
+                    </Select>
+                </FormControl>
 
                 <BarChart
-                    // width={500}
-                    // height={300}
+                    // width={960}
+                    height={height}
                     dataset={data.dataset}
                     series={series}
-                    grid={
-                        {
-                            vertical: true,
-                            horizontal: true
-                        }
-                    }
+                    tooltip={{
+                        trigger: 'none'
+                    }}
+                    // grid={
+                    //     {
+                    //         vertical: true,
+                    //         horizontal: true
+                    //     }
+                    // }
                     yAxis={[
                         {
                             // data: xLabels,
                             label: 'Strike',
+
                             dataKey: 'strike',
                             scaleType: 'band',
                             reverse: true
@@ -147,13 +152,27 @@ export const DeltaHeding = (props: ITickerProps) => {
                             {
                                 label: 'Delta Hedging Exposure',
                                 scaleType: 'linear',
+                                // tickNumber: 5,
+                                // tickMinStep: 100000,
 
+                                min: -data.maxPosition,
+                                max: data.maxPosition,
+
+                                valueFormatter: (tick) => {
+                                    tick = Math.abs(tick);
+                                    if (tick >= 1000000) {
+                                        return `${(tick / 1000000).toFixed(1)}M`; // Millions
+                                    } else if (tick >= 1000) {
+                                        return `${(tick / 1000).toFixed(1)}K`; // Thousands
+                                    }
+                                    return `${tick}`;
+                                }
                             }
                         ]
                     }
                     slotProps={{
                         legend: {
-                            seriesToDisplay: data.expirations.map(j=>{
+                            seriesToDisplay: data.expirations.map(j => {
                                 return {
                                     id: j,
                                     color: colorCodes[data.expirations.indexOf(j)],
@@ -161,18 +180,32 @@ export const DeltaHeding = (props: ITickerProps) => {
                                 }
                             }),
                             // hidden: true,
-                            direction: 'row',
+                            direction: 'column',
                             position: {
                                 vertical: 'top',
-                                horizontal: 'middle',
+                                horizontal: 'right',
                             },
-                            itemMarkWidth: 20,
-                            itemMarkHeight: 2,
+                            itemMarkWidth: 32,
+                            itemMarkHeight: 12,
                             markGap: 5,
-                            itemGap: 10,
+                            itemGap: 5,
                         }
-                    }}
-                />
+                    }}>
+
+                    <ChartsReferenceLine x={0} />
+                    <ChartsReferenceLine y={yaxisline} label={"SPOT PRICE: $" + data.currentPrice}
+                        labelAlign="start"
+                        lineStyle={{
+                            color: 'red',
+                            stroke: 'red'
+                        }}
+                        labelStyle={
+                            {
+                                color: 'red',
+                                stroke: 'red'
+                            }
+                        } />
+                </BarChart>
 
                 {/* <BarChart
                     width={600}
