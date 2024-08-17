@@ -55,8 +55,8 @@ export async function GET(request: Request, p: { params: { symbol: string } }) {
       const cv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'call');
       const pv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'put');
 
-      const cv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.delta || 0) * 100;
-      const pv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.delta || 0) * 100;
+      const cv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.delta || 0) * 100 * currentPrice;
+      const pv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.delta || 0) * 100 * currentPrice;
       model[sp].calls.push(cv);
       model[sp].puts.push(pv);
       model[sp].data.push(-cv, pv);
