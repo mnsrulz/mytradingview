@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
-import { ChartsReferenceLine } from '@mui/x-charts';
+import { axisClasses, ChartsReferenceLine } from '@mui/x-charts';
 import { useDeltaHedging } from "@/lib/socket";
 import { useState } from "react";
 
@@ -95,7 +95,7 @@ const colorCodes = [
     "#228B22", "#33FF33", "#8CFF33", "#ADFF33", "#98FB98",
     "#4169E1", "#3333FF", "#3357FF", "#338CFF", "#87CEFA",
     "#B8860B", "#FFD700", "#FFEB3B", "#FFFACD", "#FFFFE0"
-  ]
+]
 
 
 export const DeltaHeding = (props: ITickerProps) => {
@@ -133,6 +133,9 @@ export const DeltaHeding = (props: ITickerProps) => {
                         <MenuItem value={30}>30</MenuItem>
                         <MenuItem value={50}>50</MenuItem>
                         <MenuItem value={90}>90</MenuItem>
+                        <MenuItem value={180}>180</MenuItem>
+                        <MenuItem value={400}>400</MenuItem>
+                        <MenuItem value={1000}>1000</MenuItem>
                     </Select>
                 </FormControl>
                 <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
@@ -169,10 +172,14 @@ export const DeltaHeding = (props: ITickerProps) => {
                     yAxis={[
                         {
                             // data: xLabels,
-                            label: 'Strike',
+                            // label: 'Strike',
                             dataKey: 'strike',
                             scaleType: 'band',
-                            reverse: true
+                            reverse: true,
+                            valueFormatter: (tick) => {
+                                return `$${Number(tick).toFixed(2)}`;
+                            },
+                            //tickLabelPlacement: 'tick'
                         },
                     ]}
                     // yAxis={[{ max: 10000 }]}
@@ -185,8 +192,8 @@ export const DeltaHeding = (props: ITickerProps) => {
                                 // tickNumber: 5,
                                 // tickMinStep: 100000,
 
-                                min: -data.maxPosition,
-                                max: data.maxPosition,
+                                min: -data.maxPosition * 1.05,  //5% extra to allow some spacing
+                                max: data.maxPosition * 1.05,
 
                                 valueFormatter: (tick) => {
                                     tick = Math.abs(tick);
@@ -200,6 +207,7 @@ export const DeltaHeding = (props: ITickerProps) => {
                             }
                         ]
                     }
+
                     slotProps={{
                         legend: {
                             seriesToDisplay: data.expirations.map(j => {
