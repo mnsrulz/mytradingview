@@ -17,7 +17,7 @@ export default NextAuth(authOptions).auth;
 // })
 
 export const config = { 
-       matcher: ['/((?!api/auth|_next/static|_next/image|.*\\.png$).*)']    
+       matcher: ['/((?!api/auth|_next/static|_next/image|.*\\.png$|.*\\.ico$).*)']    
 };
 
 // async function isAuthenticated(req: NextRequest) {
