@@ -53,20 +53,51 @@ interface ITickerProps {
 //     },
 // };
 
-const colorCodes = ['#ae6867',
-    '#dd8f77',
-    '#fab079',
-    '#f6b17f',
-    '#ece990',
-    '#94ab5e',
-    '#d7f888',
-    '#519693',
-    '#7be3de',
-    '#8eb8f0',
-    '#7d7283',
-    '#c5b4cf',
-    '#f2ddff'
-];
+
+/*
+
+
+
+
+
+
+
+
+
+
+
+
+*/
+
+// const colorCodes = [
+//     '#a32020',
+//     '#e0301e',
+//     '#eb8c00',
+//     '#dc6900',
+
+//     '#005073',
+//     '#107dac',
+//     '#189ad3',
+//     '#1ebbd7',
+//     '#71c7ec',
+
+//     '#234d20',
+//     '#36802d',
+//     '#77ab59',
+//     '#c9df8a',
+//     '#f0f7da',
+
+//     '#bf8bff',
+//     '#dabcff'
+// ];
+const colorCodes = [
+    "#A52A2A", "#FF3333", "#FF5733", "#FF8C33", "#FFA07A",
+    "#228B22", "#33FF33", "#8CFF33", "#ADFF33", "#98FB98",
+    "#4169E1", "#3333FF", "#3357FF", "#338CFF", "#87CEFA",
+    "#B8860B", "#FFD700", "#FFEB3B", "#FFFACD", "#FFFFE0"
+  ]
+
+
 export const DeltaHeding = (props: ITickerProps) => {
     const { onClose } = props;
     const [dte, setDte] = useState(50);
@@ -110,7 +141,7 @@ export const DeltaHeding = (props: ITickerProps) => {
                         id="strikes"
                         value={strikeCounts}
                         label="Strikes"
-                        
+
                         onChange={(e) => setStrikesCount(e.target.value as number)}
                     >
                         <MenuItem value={20}>20</MenuItem>
@@ -139,7 +170,6 @@ export const DeltaHeding = (props: ITickerProps) => {
                         {
                             // data: xLabels,
                             label: 'Strike',
-
                             dataKey: 'strike',
                             scaleType: 'band',
                             reverse: true
