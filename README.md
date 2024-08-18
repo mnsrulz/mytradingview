@@ -13,9 +13,6 @@ Welcome to the MyTradingView! This project is a Next.js application designed to 
 - Integration with external trading APIs (tradier) for reading option data
 - Responsive and intuitive user interface
 
-## Screenshots
-- 
-
 ## Prerequisites
 
 Before you get started, ensure you have the following installed:
