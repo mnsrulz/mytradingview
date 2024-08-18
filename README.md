@@ -5,8 +5,16 @@ Welcome to the MyTradingView! This project is a Next.js application designed to 
 ## Features
 
 - In-depth stock option analysis
+- View the profit for any option symbol, including total and annual returns, to determine which option offers the best return.
+![Options Profit View](screenshots/option-profit-view.png)
+- Delta hedging exposure view for any symbol
+![Delta hedging exposure View](screenshots/delta-hedging-exposure.png)
+- Gamma hedging exposure view for any symbol (will be available soon )
 - Integration with external trading APIs (tradier) for reading option data
 - Responsive and intuitive user interface
+
+## Screenshots
+- 
 
 ## Prerequisites
 
