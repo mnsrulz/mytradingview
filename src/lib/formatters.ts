@@ -4,7 +4,9 @@ export const fixedCurrencyFormatter = new Intl.NumberFormat('en-US', { style: 'c
 
 export const humanAbsCurrencyFormatter = (tick: number) => {
     tick = Math.abs(tick);
-    if (tick >= 1000000) {
+    if (tick >= 1000000000) {
+        return `${(tick / 1000000000).toFixed(1)}B`; // Billions
+    } else if (tick >= 1000000) {
         return `${(tick / 1000000).toFixed(1)}M`; // Millions
     } else if (tick >= 1000) {
         return `${(tick / 1000).toFixed(1)}K`; // Thousands
