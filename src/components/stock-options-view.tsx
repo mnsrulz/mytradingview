@@ -115,7 +115,7 @@ export const StockOptionsView = (props: ITickerProps) => {
 
     return <Paper>
         Symbol: {props.symbol} - {data.currentPrice}
-        <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta hedging</Button>
+        <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button>
         {/* <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
             <BootstrapInput id="demo-customized-textbox" />
