@@ -11,7 +11,8 @@ Welcome to the MyTradingView! This project is a Next.js application designed to 
 ![Options Profit View](screenshots/option-pcr.png)
 - Delta hedging exposure view for any symbol
 ![Delta hedging exposure View](screenshots/delta-hedging-exposure.png)
-- Gamma hedging exposure view for any symbol (will be available soon )
+- Gamma hedging exposure view for any symbol
+![Gamma hedging exposure View](screenshots/gamma-hedging-exposure.png)
 - Integration with external trading APIs (tradier) for reading option data
 - Responsive and intuitive user interface
 

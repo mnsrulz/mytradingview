@@ -97,13 +97,18 @@ type OptionsData = {
 }
 export type OptionsHedgingDataset = { strike: number, [x: string]: number; }
 
-type OptionsHedgingData = {
+type GammaDeltaDatasetType = {
+    dataset: OptionsHedgingDataset[],
+    maxPosition: number
+}
+
+export type OptionsHedgingData = {
     expirations: string[],
     strikes: number[],
     data: { puts: number[], calls: number[], data: number[] },
-    dataset: OptionsHedgingDataset[],
     currentPrice: number,
-    maxPosition: number
+    deltaDataset: GammaDeltaDatasetType,
+    gammaDataset: GammaDeltaDatasetType
 }
 
 export const useOptionTracker = (symbol: string) => {
@@ -131,13 +136,13 @@ export const useOptionTracker = (symbol: string) => {
         //     socket.emit('options-unsubscribe-request', item);
         //     socket.off('options-subscribe-response', setOd);
         // }
-    }, []);
+    }, [symbol]);
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice };
 }
 
 
 
-export const useDeltaHedging = (symbol: string, dte: number, sc: number) => {
+export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number) => {
     const [data, setOd] = useState<OptionsHedgingData>();
     const [isLoading, setIsLoading] = useState(true);
 
@@ -148,8 +153,8 @@ export const useDeltaHedging = (symbol: string, dte: number, sc: number) => {
                 dte,
                 sc
             }
-        }).json<{dh: OptionsHedgingData}>().then(r => {
-            setOd(r.dh);
+        }).json<{ exposureData: OptionsHedgingData }>().then(r => {
+            setOd(r.exposureData);
         }).finally(() => setIsLoading(false));
     }, [symbol, dte, sc]);
     return { data, isLoading };

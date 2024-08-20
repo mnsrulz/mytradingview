@@ -11,7 +11,8 @@ const client = ky.create({
   headers: {
     'Authorization': `Bearer ${process.env.TRADIER_TOKEN}`,
     'Accept': 'application/json'
-  }
+  },
+  cache: 'no-cache'
 });
 
 export async function GET(request: Request, p: { params: { symbol: string } }) {
@@ -38,47 +39,73 @@ export async function GET(request: Request, p: { params: { symbol: string } }) {
 
   const allOp = allOptionChains.flatMap(j => j.options.option.map(s => s));
 
-  console.log(`Rendering with dates: ${allDates} and strikes: ${allStrikes}`);
-  const model: Record<number, { puts: number[], calls: number[], data: number[] }> = {};
+  //console.log(`Rendering with dates: ${allDates} and strikes: ${allStrikes}`);
+  // const model: Record<number, { puts: number[], calls: number[], data: number[] }> = {};
   const dmodel: OptionsHedgingDataset[] = [];
-  let maxPosition = 0;
+  const gmodel: OptionsHedgingDataset[] = [];
+  let maxPosition = 0, gmaxPosition = 0;
   for (const sp of allStrikes) {
-    const md: OptionsHedgingDataset = { strike: sp };
+    const deltaExposure: OptionsHedgingDataset = { strike: sp };
+    const gammaExposure: OptionsHedgingDataset = { strike: sp };
     let sumOfPv = 0, sumOfCv = 0;
-    dmodel.push(md);
-    model[sp] = {
-      calls: [],
-      puts: [],
-      data: []
-    }
+    let sumOfGPv = 0, sumOfGCv = 0;
+    dmodel.push(deltaExposure);
+    gmodel.push(gammaExposure);
+    // model[sp] = {
+    //   calls: [],
+    //   puts: [],
+    //   data: []
+    // }
     for (const dt of allDates) {
       const cv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'call');
       const pv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'put');
 
       const cv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.delta || 0) * 100 * currentPrice;
       const pv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.delta || 0) * 100 * currentPrice;
-      model[sp].calls.push(cv);
-      model[sp].puts.push(pv);
-      model[sp].data.push(-cv, pv);
 
-      md[`${dt}-call`] = -cv;
-      md[`${dt}-put`] = -pv;
+      const gcv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.gamma || 0) * 100 * currentPrice;
+      const gpv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.gamma || 0) * 100 * currentPrice;
+      // model[sp].calls.push(cv);
+      // model[sp].puts.push(pv);
+      // model[sp].data.push(-cv, pv);
+
+      deltaExposure[`${dt}-call`] = -cv;
+      deltaExposure[`${dt}-put`] = -pv;
+
+      const gv = gcv - gpv;
+
+      if (gv > 0) {
+        gammaExposure[`${dt}-call`] = -gv;
+        gammaExposure[`${dt}-put`] = 0;
+      } else {
+        gammaExposure[`${dt}-call`] = 0;
+        gammaExposure[`${dt}-put`] = -gv;
+      }
 
       sumOfPv = sumOfPv + Math.abs(pv);
       sumOfCv = sumOfCv + Math.abs(cv);
 
+      sumOfGPv = sumOfGPv + Math.abs(gpv);
+      sumOfGCv = sumOfGCv + Math.abs(gcv);
     }
     maxPosition = Math.max(maxPosition, sumOfPv, sumOfCv);
+    gmaxPosition = Math.max(gmaxPosition, sumOfGPv, sumOfGCv);
   }
 
   const finalResponse = {
-    dh: {
-      data: model,
-      dataset: dmodel,
+    exposureData: {
       strikes: allStrikes,
       expirations: allDates,
       currentPrice,
-      maxPosition
+      maxPosition,
+      deltaDataset: {
+        dataset: dmodel,
+        maxPosition
+      },
+      gammaDataset: {
+        dataset: gmodel,
+        maxPosition: gmaxPosition
+      }
     },
     raw: allOptionChains
   }

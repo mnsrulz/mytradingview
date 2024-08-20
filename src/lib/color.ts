@@ -1,4 +1,4 @@
-import { green, red } from "@mui/material/colors";
+import { green, red, deepOrange, lime, cyan } from "@mui/material/colors";
 
 const fn1 = (v: number) => {
     const v1 = v;
@@ -18,7 +18,7 @@ const fn1 = (v: number) => {
         case v1 <= 600:
             return 600;
         default:
-        // case v1 <= 700:
+            // case v1 <= 700:
             return 700;
         // case v1 <= 800:
         //     return 800;
@@ -29,4 +29,33 @@ const fn1 = (v: number) => {
 export const getColor = (v: number) => {
     const colorvalue = fn1(Math.abs(v));
     return v >= 0 ? green[colorvalue] : red[colorvalue];
+}
+
+export const getColorPallete = () => {
+    
+    return [
+        deepOrange[900],
+        deepOrange[700],
+        deepOrange[500],
+        deepOrange[300],
+        deepOrange[100],
+
+        lime[900],
+        lime[700],
+        lime[500],
+        lime[300],
+        lime[100],
+
+        cyan[900],
+        cyan[700],
+        cyan[500],
+        cyan[300],
+        cyan[100],
+
+        green[900],
+        green[700],
+        green[500],
+        green[300],
+        green[100],
+    ]
 }

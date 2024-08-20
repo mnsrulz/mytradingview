@@ -10,7 +10,7 @@ import { ConditionalFormattingBox } from './conditional-formatting';
 import { Pcr } from './pcr';
 import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
-import { DeltaHeding } from './delta-heding';
+import { DeltaGammaHedging } from './DeltaGammaHedging';
 
 interface ITickerProps {
     symbol: string
@@ -204,7 +204,7 @@ export const StockOptionsView = (props: ITickerProps) => {
         }
 
         {
-            deltaHedgingOpen && <DeltaHeding
+            deltaHedgingOpen && <DeltaGammaHedging
                 symbol={props.symbol}
                 onClose={() => setDeltaHedgingOpen(false)} />
         }
