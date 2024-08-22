@@ -17,7 +17,7 @@ import { useState } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
 import AdbIcon from '@mui/icons-material/Adb';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import { signOut } from 'next-auth/react'
+import { signIn, signOut, useSession } from 'next-auth/react'
 
 /*
 <Button><Link href="/" className=''>Home</Link></Button>
@@ -96,6 +96,7 @@ function CurrentRoute() {
 export default function TabsRouter() {
     const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+    const session = useSession();
 
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
@@ -231,7 +232,7 @@ export default function TabsRouter() {
                         </Box>
 
                         <Box sx={{ flexGrow: 0 }}>
-                            <Tooltip title="Open settings">
+                            <Tooltip title="User settings">
                                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                                     <AccountCircle />
                                 </IconButton>
@@ -252,14 +253,17 @@ export default function TabsRouter() {
                                 open={Boolean(anchorElUser)}
                                 onClose={handleCloseUserMenu}
                             >
-                                {/* {settings.map((setting) => (
-                                    <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                                        <Typography textAlign="center">{setting}</Typography>
+                                {session.status == 'authenticated' ? (
+                                    <>
+                                        <MenuItem key='signout' onClick={handleSignout}>
+                                            <Typography textAlign="center">Sign Out</Typography>
+                                        </MenuItem>
+                                    </>
+                                ) : (
+                                    <MenuItem key='signout' onClick={() => signIn()}>
+                                        <Typography textAlign="center">Sign In</Typography>
                                     </MenuItem>
-                                ))} */}
-                                <MenuItem key='signout' onClick={handleSignout}>
-                                    <Typography textAlign="center">Sign Out</Typography>
-                                </MenuItem>
+                                )}
                             </Menu>
                         </Box>
                     </Toolbar>

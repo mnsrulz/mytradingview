@@ -11,6 +11,8 @@ import { Pcr } from './pcr';
 import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
 import { DeltaGammaHedging } from './DeltaGammaHedging';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 
 interface ITickerProps {
     symbol: string
@@ -21,18 +23,33 @@ export type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChang
 
 type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE' | 'AVG_PRICE'
 type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN' | 'PCR'
+// type PutCallType = 'PUT' | 'CALL';
+enum PutCallType {
+    'PUT' = 'PUT',
+    'CALL' = 'CALL'
+}
 
 const numberFormatter = (v: string) => v && Number(v);
 const todaysDate = dayjs().format('YYYY-MM-DD');
 export const StockOptionsView = (props: ITickerProps) => {
     const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice } = useOptionTracker(props.symbol);
 
-    const [putCallTabValue, setPutCallTabValue] = useState<'PUT' | 'CALL'>('PUT');
+    //const router = useRouter();
+    //const query = useSearchParams();
+    //const currentTab = query.get('tab') as PutCallType || 'PUT';
+    // const handleCallTabValue = (v: PutCallType) => {
+    //     setPutCallTabValue(v);
+    //     const newSearchParams = new URLSearchParams(query);
+    //     newSearchParams.set('tab', v);
+    //     router.push(`?${newSearchParams.toString()}`);
+    // };
+
+    const [putCallTabValue, handleCallTabValue] = useQueryState<PutCallType>('tab', parseAsStringEnum<PutCallType>(Object.values(PutCallType)).withDefault(PutCallType.PUT));
     const [priceMode, setPriceMode] = useState<PriceModeType>('AVG_PRICE');
     const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
     const [pcrSelectedData, setPcrSelectedData] = useState<OptionsInnerData | undefined>();
     const [pcrOpen, setPcrOpen] = useState(false);
-    const [deltaHedgingOpen, setDeltaHedgingOpen] = useState(false);
+    const [deltaHedgingOpen, setDeltaHedgingOpen] = useQueryState('showDexGex', parseAsBoolean);
 
     function handlePcrSelection(v: string) {
         const fss = data?.options[v];
@@ -72,7 +89,7 @@ export const StockOptionsView = (props: ITickerProps) => {
         }
         const numberofdays = dayjs(d).diff(todaysDate, 'days') + 1;
         workingStrikePrices.forEach(s => {
-            const po = putCallTabValue == 'CALL' ? data.options[d].c[s.strikePrice] : data.options[d].p[s.strikePrice];
+            const po = putCallTabValue == PutCallType.CALL ? data.options[d].c[s.strikePrice] : data.options[d].p[s.strikePrice];
             const price = (() => {
                 switch (priceMode) {
                     case 'LAST_PRICE':
@@ -89,13 +106,13 @@ export const StockOptionsView = (props: ITickerProps) => {
             (o as any)[s.strikePrice] = price && (() => {
                 switch (valueMode) {
                     case 'TOTAL_RETURN':
-                        if (putCallTabValue == 'PUT') {
+                        if (putCallTabValue == PutCallType.PUT) {
                             return (targetPrice > s.value ? price : (price - (s.value - targetPrice))) / (s.value);
                         } else {
                             return (price / targetPrice);
                         }
                     case 'ANNUAL_RETURN':
-                        if (putCallTabValue == 'PUT') {
+                        if (putCallTabValue == PutCallType.PUT) {
                             const sellCost = (targetPrice > s.value ? price : (price - (s.value - targetPrice)));
                             const risk = s.value;
                             return (sellCost / risk) * (365 / numberofdays);
@@ -147,7 +164,7 @@ export const StockOptionsView = (props: ITickerProps) => {
             <TextField label="Target price" variant="standard" value={targetPrice} onChange={v => setTargetPrice(Number(v.target.value))} type='number' />
         </FormControl>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={putCallTabValue} onChange={(e, v) => setPutCallTabValue(v)} variant="fullWidth" indicatorColor="secondary"
+            <Tabs value={putCallTabValue} onChange={(e, v) => handleCallTabValue(v)} variant="fullWidth" indicatorColor="secondary"
                 textColor="secondary">
                 <Tab label="PUT" value={'PUT'} />
                 <Tab label="CALL" value='CALL' />

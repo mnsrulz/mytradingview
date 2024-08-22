@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import TabsRouter from "./routes";
 import { CssBaseline } from "@mui/material";
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,10 +19,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className} style={{padding: 12 }}>
+      <body className={inter.className} style={{ padding: 12 }}>
         <CssBaseline />
-        <TabsRouter />
-          {children}
+        <SessionProvider>
+          <TabsRouter />
+        </SessionProvider>
+        {children}
       </body>
     </html>
   );

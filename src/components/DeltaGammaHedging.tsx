@@ -1,107 +1,22 @@
-import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select, Tab, Tabs, Paper, CircularProgress, Box } from "@mui/material";
+import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select, Tab, Tabs, Paper, Box } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
-import { axisClasses, ChartsReferenceLine } from '@mui/x-charts';
+import { ChartsReferenceLine } from '@mui/x-charts';
 import { OptionsHedgingData, useDeltaGammaHedging } from "@/lib/socket";
-import { useState } from "react";
 import { getColorPallete } from "@/lib/color";
-import { currencyFormatter, fixedCurrencyFormatter, humanAbsCurrencyFormatter } from "@/lib/formatters";
+import { humanAbsCurrencyFormatter } from "@/lib/formatters";
+import { useQueryState, parseAsInteger, parseAsStringEnum } from "nuqs";
 
 interface ITickerProps {
     symbol: string,
     onClose: () => void
 }
 
-// const data = [
-//     { strike: 67.5, exposure: 200 },
-//     { strike: 69.0, exposure: -300 },
-//     { strike: 70.5, exposure: 400 },
-//     { strike: 72.0, exposure: -150 },
-//     { strike: 73.5, exposure: 350 },
-//     { strike: 75.0, exposure: -250 },
-//     { strike: 76.5, exposure: 100 },
-//     { strike: 78.0, exposure: -50 },
-//     { strike: 79.5, exposure: 450 },
-//     { strike: 81.0, exposure: -100 },
-//     { strike: 82.5, exposure: 200 },
-// ];
-
-// const seriesA = {
-//     data: [2, 3, 1, 4, 5],
-//     label: 'Series A',
-// };
-// const seriesB = {
-//     data: [3, 1, 4, 2, 1],
-//     label: 'Series B',
-// };
-// const seriesC = {
-//     data: [3, 2, 4, 5, 1],
-//     label: 'Series C',
-// };
-
-// const valueFormatter = (value: number | null) => `${value}`;
-// const chartSetting = {
-//     yAxis: [
-//         {
-//             label: 'Open interest',
-//         },
-//     ],
-//     // width: 500,
-//     colors: ['red', 'green'],
-//     height: 500,
-//     sx: {
-//         [`.${axisClasses.left} .${axisClasses.label}`]: {
-//             //transform: 'translate(-20px, 0)',
-//         },
-//     },
-// };
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-// const colorCodes = [
-//     '#a32020',
-//     '#e0301e',
-//     '#eb8c00',
-//     '#dc6900',
-
-//     '#005073',
-//     '#107dac',
-//     '#189ad3',
-//     '#1ebbd7',
-//     '#71c7ec',
-
-//     '#234d20',
-//     '#36802d',
-//     '#77ab59',
-//     '#c9df8a',
-//     '#f0f7da',
-
-//     '#bf8bff',
-//     '#dabcff'
-// ];
-
-//deepOrange
-// const colorCodes = [
-//     "#A52A2A", "#FF3333", "#FF5733", "#FF8C33", "#FFA07A",
-//     "#228B22", "#33FF33", "#8CFF33", "#ADFF33", "#98FB98",
-//     "#4169E1", "#3333FF", "#3357FF", "#338CFF", "#87CEFA",
-//     "#B8860B", "#FFD700", "#FFEB3B", "#FFFACD", "#FFFFE0"
-// ]
-
 const colorCodes = getColorPallete();
+
+enum DexGexType {
+    'DEX' = 'DEX',
+    'GEX' = 'GEX'
+}
 
 interface IExpo {
     data: OptionsHedgingData,
@@ -194,14 +109,11 @@ const Expo = (props: IExpo) => {
 
 export const DeltaGammaHedging = (props: ITickerProps) => {
     const { onClose } = props;
-    const [dte, setDte] = useState(50);
-    const [strikeCounts, setStrikesCount] = useState(30);
-    const { data, isLoading } = useDeltaGammaHedging(props.symbol, dte, strikeCounts);
-    const [value, setValue] = useState(0);
+    const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
+    const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
 
-    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-        setValue(newValue);
-    };
+    const { data, isLoading } = useDeltaGammaHedging(props.symbol, dte, strikeCounts);
+    const [gexTab, setGexTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
 
     // if (isLoading) return <LinearProgress />;
     // if (!data) return <div>No data to show!!!</div>;
@@ -242,19 +154,19 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                 </FormControl>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs
-                        value={value}
-                        onChange={handleChange}
+                        value={gexTab}
+                        onChange={(e, v) => setGexTab(v)}
                         indicatorColor="secondary"
                         textColor="inherit"
                         variant="fullWidth"
                         aria-label="full width tabs example"
                     >
-                        <Tab label="Dex"></Tab>
-                        <Tab label="Gex"></Tab>
+                        <Tab label="Dex" value={'DEX'}></Tab>
+                        <Tab label="Gex" value={'GEX'}></Tab>
                     </Tabs>
                 </Box>
                 {
-                    isLoading ? <LinearProgress /> : data ? <Expo data={data} exposure={value == 0 ? 'dex' : 'gex'} symbol={props.symbol} dte={dte} /> : <div>no data...</div>
+                    isLoading ? <LinearProgress /> : data ? <Expo data={data} exposure={gexTab == DexGexType.DEX ? 'dex' : 'gex'} symbol={props.symbol} dte={dte} /> : <div>no data...</div>
                 }
             </DialogContent>
             <DialogActions>

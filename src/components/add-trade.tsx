@@ -57,7 +57,7 @@ import ky from 'ky';
 export const AddTradeDialog = (props: ITickerProps) => {
     const { onClose, open, ticker } = props;
     const theme = useTheme();
-    const matches = useMediaQuery(theme.breakpoints.down('sm'));
+    const showFullScreenDialog = useMediaQuery(theme.breakpoints.down('sm'));
 
     if (!open) return <div></div>
     const handleSubmit = async (data: any) => {
@@ -84,7 +84,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
     return <Dialog
         open={open}
         // maxWidth={'md'}
-        fullScreen={matches}
+        fullScreen={showFullScreenDialog}
         fullWidth={true}
         onClose={onCloseRequest}>
         <FormContainer onSuccess={handleSubmit} defaultValues={dv}>

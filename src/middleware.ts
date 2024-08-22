@@ -17,7 +17,8 @@ export default NextAuth(authOptions).auth;
 // })
 
 export const config = { 
-       matcher: ['/((?!api/auth|_next/static|_next/image|.*\\.png$|.*\\.ico$).*)']    
+       //matcher: ['/((?!api/auth|_next/static|_next/image|.*\\.png$|.*\\.ico$).*)']    
+       matcher: ['/api/trades/:path*', '/trades/:path*']
 };
 
 // async function isAuthenticated(req: NextRequest) {

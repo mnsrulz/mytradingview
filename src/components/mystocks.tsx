@@ -88,7 +88,7 @@ export const MyStockList = (props: ITickerProps) => {
   const handleCloseAddTrade = () => { setOpenAddTrade(false); };
   const descriptionElementRef = React.useRef<HTMLElement>(null);
   return <div>
-    <h1>my stocks</h1>
+    <h1>Watchlist</h1>
     {/* <ul>
             {mytickers.map(m => <li key={m.symbol}>{m.name} -- {m.symbol} <Button onClick={()=>RemoveItemFromMyList(m)}>Remove</Button></li>)}
         </ul> */}
