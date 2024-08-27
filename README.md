@@ -50,6 +50,7 @@ To get started with development, follow these steps:
    AUTH_SECRET=test123
    NEXTAUTH_URL=https://p63xdw4l-3000.use.devtunnels.ms/
    TRADIER_TOKEN=your_tradier_api_token
+   TRADIER_BASE_URI=https://sandbox.tradier.com/
    ```
 
 4. **Set Up the Database**

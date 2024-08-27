@@ -2,7 +2,7 @@ import ky from "ky";
 import dayjs from 'dayjs';
 import { NextResponse } from "next/server";
 import { OptionsHedgingDataset } from "@/lib/socket";
-const tradierBaseUri = 'https://sandbox.tradier.com/';
+const tradierBaseUri = process.env.TRADIER_BASE_URI || 'https://sandbox.tradier.com/';
 const optionsChain = `${tradierBaseUri}v1/markets/options/chains`;
 const optionsExpiration = `${tradierBaseUri}v1/markets/options/expirations`;
 const getQuotes = `${tradierBaseUri}v1/markets/quotes`;
