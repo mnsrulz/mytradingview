@@ -254,11 +254,9 @@ export default function TabsRouter() {
                                 onClose={handleCloseUserMenu}
                             >
                                 {session.status == 'authenticated' ? (
-                                    <>
-                                        <MenuItem key='signout' onClick={handleSignout}>
-                                            <Typography textAlign="center">Sign Out</Typography>
-                                        </MenuItem>
-                                    </>
+                                    <MenuItem key='signout' onClick={handleSignout}>
+                                        <Typography textAlign="center">Sign Out</Typography>
+                                    </MenuItem>
                                 ) : (
                                     <MenuItem key='signout' onClick={() => signIn()}>
                                         <Typography textAlign="center">Sign In</Typography>

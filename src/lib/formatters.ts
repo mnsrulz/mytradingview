@@ -1,5 +1,7 @@
 export const percentageFormatter = (v: number) => v && Number(v).toLocaleString(undefined, { style: 'percent', minimumFractionDigits: 2 }) || '';
 export const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', }).format;
+export const numberFormatter = new Intl.NumberFormat('en-US', { style: 'decimal', maximumFractionDigits: 2 }).format;
+export const positiveNegativeNumberFormatter = new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'always' }).format;
 export const fixedCurrencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format;
 
 export const humanAbsCurrencyFormatter = (tick: number) => {

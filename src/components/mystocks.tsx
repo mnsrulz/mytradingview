@@ -1,77 +1,67 @@
 'use client';
 import * as React from 'react';
-import { SearchTickerItem } from '../lib/socket';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
+import { Button, Paper, Typography } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useState } from 'react';
-import { StockTickerView } from './stock-ticker';
+import { StockTickerSymbolView, StockTickerView } from './stock-ticker';
 import AddTradeIcon from '@mui/icons-material/Add';
 import { AddTradeDialog } from './add-trade';
 import { GridLinkAction } from './GridLinkAction';
+import { SearchTickerItem } from '@/lib/types';
 
 
 interface ITickerProps {
   mytickers: SearchTickerItem[]
-  removFromWatchlist: (value: SearchTickerItem) => void
+  removFromWatchlist: (value: SearchTickerItem) => void,
+  loading: boolean
 }
 
 export const MyStockList = (props: ITickerProps) => {
-  const { mytickers, removFromWatchlist } = props;
-
-
+  const { mytickers, removFromWatchlist, loading } = props;
   const apiRef = useGridApiRef();
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const columns: GridColDef<SearchTickerItem>[] = [
-    { field: 'symbol', headerName: 'Ticker', width: 150 },
-    { field: 'name', headerName: 'Name', flex: 1 },
     {
-      field: 'price', headerName: 'Price', flex: 1, renderCell: (p) => {
+      field: 'symbol', headerName: 'Watchlist', flex: 1, 
+      resizable: false,
+      disableColumnMenu: true, disableReorder: true, renderCell: (p) => {
+        return <StockTickerSymbolView item={p.row}></StockTickerSymbolView>
+      }
+    },
+    // { field: 'name', headerName: 'Name', flex: 1 },
+    {
+      resizable: false,
+      field: 'price', headerName: '', headerAlign: 'right', align: 'right', flex: 0.5, renderCell: (p) => {
         return <StockTickerView item={p.row}></StockTickerView>
       }
     },
     {
       field: 'actions',
       type: 'actions',
-      width: 150,
+      width: 20,
       getActions: ({ id, row }) => {
         return [<GridActionsCellItem
           key='Remove'
           icon={<DeleteIcon />}
           label="Remove from my list"
           onClick={() => removFromWatchlist(row)}
+          showInMenu
         />,
         <GridLinkAction
           key='ViewOptionsData'
           icon={<InfoIcon />}
           label="View options data"
+          LinkComponent={Button}
           to={"/options/analyze/" + row.symbol}
+          showInMenu
         />,
-        // <GridActionsCellItem
-        //   key='ViewOptionsData'
-        //   icon={<InfoIcon />}
-        //   label="View options data"
-        //   // component={Link}
-        //   component={() => {
-        //     const dlink = `/options/analyze/${row.symbol}`;
-        //     return <Link href={dlink}>Dashboard</Link>
-        //   }
-        //   }
-        // // to={"/options/analyze/" + row.symbol}
-        // // onClick={() => {
-        // //   setCurrentStock(row);
-        // //   setOpen(true);
-        // // }} 
-        // />,
         <GridActionsCellItem
           key='AddTrade'
           icon={<AddTradeIcon />}
           label="Add trade"
-
-          // LinkComponent={() => {
-          //   const dlink = `/options/analyze/${row.symbol}`;
-          //   return <Link href={dlink}>Dashboard</Link>
-          // }}
+          showInMenu
           onClick={() => {
             setCurrentStock(row);
             setOpenAddTrade(true);
@@ -86,45 +76,30 @@ export const MyStockList = (props: ITickerProps) => {
   const [openAddTrade, setOpenAddTrade] = useState(false);
   const handleClose = () => { setOpen(false); };
   const handleCloseAddTrade = () => { setOpenAddTrade(false); };
-  const descriptionElementRef = React.useRef<HTMLElement>(null);
-  return <div>
-    <h1>Watchlist</h1>
-    {/* <ul>
-            {mytickers.map(m => <li key={m.symbol}>{m.name} -- {m.symbol} <Button onClick={()=>RemoveItemFromMyList(m)}>Remove</Button></li>)}
-        </ul> */}
+  return <div >
+    {/* <Typography variant='body2'>Watchlist</Typography> */}
     <DataGrid rows={mytickers}
       columns={columns}
-      sx={{ display: 'grid' }}
-      apiRef={apiRef}
+      //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+      sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+      // columnHeaderHeight={0}
+      // slots={{
+      //   columnHeaders: () => <div></div>,
+      // }}
+      loading={loading}
+      disableColumnMenu
+      disableColumnSorting
+      disableColumnSelector
+      disableColumnResize
+      rowHeight={64}
+      //apiRef={apiRef}
+      // rowSelection={true}
+      disableRowSelectionOnClick
+      hideFooter={true}
+      density='compact'
       getRowId={(r) => `${r.symbol} - ${r.name}`} />
-    {/* <DataGrid sx={{display: 'grid'}} rows={rows} columns={columns} autoHeight={false} disableVirtualization  /> */}
-
-    {/* <Dialog
-      open={open}
-      onClose={handleClose}
-      // scroll={scroll}
-      aria-labelledby="scroll-dialog-title"
-      aria-describedby="scroll-dialog-description"
-    >
-      <DialogTitle id="scroll-dialog-title">Subscribe</DialogTitle>
-      <DialogContent dividers={true}>
-        <DialogContentText
-          id="scroll-dialog-description"
-          ref={descriptionElementRef}
-          tabIndex={-1}
-        >
-          {currentStock && <StockOptionsView item={currentStock} />}
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleClose}>Subscribe</Button>
-      </DialogActions>
-    </Dialog> */}
-
     <AddTradeDialog onClose={handleCloseAddTrade}
       open={openAddTrade}
       ticker={currentStock} />
-
   </div>
 }

@@ -17,10 +17,18 @@ export interface ITradeView extends Trade {
 }
 
 export type StockPriceData = {
+    item: SearchTickerItem,
     quoteSummary: {
-        price: {
-            regularMarketPrice: number
-        }
+        marketState: 'POST' | 'REGULAR',
+        hasPrePostMarketData: boolean,
+        
+        regularMarketPrice: number,
+        regularMarketChange: number,
+        regularMarketChangePercent: number,
+        
+        postMarketPrice: number,
+        postMarketChange: number,
+        postMarketChangePercent: number
     }
 }
 
@@ -31,7 +39,7 @@ export type IOptionsGrid = {
 export type NumberRange = { start: number, end: number }
 
 
-export type OptionsInnerData =  {
+export type OptionsInnerData = {
     c: Record<string, {
         a: number,
         b: number,
@@ -47,3 +55,7 @@ export type OptionsInnerData =  {
         v: number
     }>
 }
+
+export type SearchTickerResult = { items: SearchTickerItem[] };
+export type SearchTickerItem = { symbol: string, name: string }
+export type AddTickerToMyListResult = { success: boolean }

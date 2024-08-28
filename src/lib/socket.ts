@@ -2,9 +2,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import ky from 'ky';
-import { NumberRange, OptionsInnerData, StockPriceData } from './types';
+import { NumberRange, OptionsInnerData, SearchTickerItem, StockPriceData } from './types';
 
-const URL = `https://tidy-spider-52.deno.dev`
+const URL = `https://mztrading-socket.deno.dev`
 // const URL = `https://studious-telegram-4qq55vqj74hqgwp-8000.app.github.dev`
 
 export const socket = io(URL, {
@@ -17,9 +17,7 @@ socket.on("connect", () => {
     console.log("Connected")
 })
 
-export type SearchTickerResult = { items: SearchTickerItem[] };
-export type SearchTickerItem = { symbol: string, name: string }
-export type AddTickerToMyListResult = { success: boolean }
+
 export const searchTicker = async (searchTerm: string) => {
     const { items } = await ky('/api/symbols/search', {
         searchParams: {
@@ -70,8 +68,12 @@ export const RemoveItemFromMyList = (item: SearchTickerItem) => {
 
 export const useMyStockList = () => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>([]);
+    const [loading, setIsLoading] = useState(true);
     useEffect(() => {
-        ky(`/api/watchlist`).json<{ items: SearchTickerItem[] }>().then(r => setMyTickers(r.items));
+        ky(`/api/watchlist`).json<{ items: SearchTickerItem[] }>().then(r => {
+            setMyTickers(r.items);
+            setIsLoading(false);
+        });
         // socket.emit('mystocks-list-request');
         // socket.on(`mystocks-list-response`, setMyTickers);
         // return () => {
@@ -87,7 +89,7 @@ export const useMyStockList = () => {
         ky.delete(`/api/watchlist`, { json: item }).json().then(r => setMyTickers((ii) => ii.filter(i => i.symbol != item.symbol)));
     }, []);
 
-    return { mytickers, addToWatchlist, removeFromWatchlist };
+    return { mytickers, addToWatchlist, removeFromWatchlist, loading };
 }
 
 
@@ -162,27 +164,25 @@ export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number) =>
 
 export const useStockPrice = (item: SearchTickerItem) => {
     const [od, setOd] = useState<StockPriceData>();
-    const fn = async () => {
-        const data = await ky(`/api/symbols/${item.symbol}/summary`).json<StockPriceData>();
-        setOd(data);
-    }
+    // const fn = async () => {
+    //     const data = await ky(`/api/symbols/${item.symbol}/summary`).json<StockPriceData>();
+    //     setOd(data);
+    // }
     useEffect(() => {
-        fn();
-        const i = setInterval(fn, 30000);
-        return () => {
-            clearInterval(i);
-        }
-
-        // socket.emit('stock-price-subscribe-request', item);
-        // socket.on(`stock-price-subscribe-response`, (r: StockPriceData) => {
-        //     if (r.item.symbol === item.symbol) {
-        //         setOd(r);
-        //     }
-        // });
+        // fn();
+        // const i = setInterval(fn, 30000);
         // return () => {
-        //     socket.emit('stock-price-unsubscribe-request', item);
-        //     socket.off('stock-price-subscribe-response', setOd);
+        //     clearInterval(i);
         // }
+
+        socket.emit('stock-price-subscribe-request', { ...item, frequency: 300 });
+        socket.on(`stock-price-subscribe-response-${item.symbol}`, (r: StockPriceData) => {
+            setOd(r);
+        });
+        return () => {
+            socket.emit('stock-price-unsubscribe-request', item);
+            socket.off('stock-price-subscribe-response', setOd);
+        }
     }, [item.symbol]);
     return od;
 }

@@ -1,10 +1,12 @@
 import { Autocomplete, CircularProgress, TextField, debounce } from '@mui/material';
 import * as React from 'react';
-import { SearchTickerItem, searchTicker } from '../lib/socket';
+import { searchTicker } from '../lib/socket';
 import { useEffect, useMemo, useState } from 'react';
+import { SearchTickerItem } from '@/lib/types';
 
 interface ITickerProps {
-    onChange: (value: SearchTickerItem) => void
+    onChange: (value: SearchTickerItem) => void,
+    label?: string
 }
 
 export const TickerSearch = (props: ITickerProps) => {
@@ -31,13 +33,15 @@ export const TickerSearch = (props: ITickerProps) => {
 
     return <Autocomplete filterOptions={(x) => x}
         onInputChange={debouncedEventHandler}
+        size='small'
         onChange={(ev, value) => value && props.onChange(value)}
         renderInput={(params) => (
             <TextField
                 {...params}
-                variant='outlined'
+                variant='standard'
+                size='small'
                 fullWidth
-                label="Search ticker"
+                label={props.label || 'Search Item'}
                 InputProps={{
                     ...params.InputProps,
                     endAdornment: (
