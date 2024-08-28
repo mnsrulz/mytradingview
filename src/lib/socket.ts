@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import ky from 'ky';
 import { NumberRange, OptionsInnerData, SearchTickerItem, StockPriceData } from './types';
+const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
 
 const URL = `https://mztrading-socket.deno.dev`
 // const URL = `https://studious-telegram-4qq55vqj74hqgwp-8000.app.github.dev`
@@ -175,13 +176,11 @@ export const useStockPrice = (item: SearchTickerItem) => {
         //     clearInterval(i);
         // }
 
-        socket.emit('stock-price-subscribe-request', { ...item, frequency: 300 });
-        socket.on(`stock-price-subscribe-response-${item.symbol}`, (r: StockPriceData) => {
-            setOd(r);
-        });
+        socket.emit('stock-price-subscribe-request', { ...item, frequency: WatchlistUpdateFrequency });
+        socket.on(`stock-price-subscribe-response-${item.symbol}`, setOd);
         return () => {
             socket.emit('stock-price-unsubscribe-request', item);
-            socket.off('stock-price-subscribe-response', setOd);
+            socket.off(`stock-price-subscribe-response-${item.symbol}`, setOd);
         }
     }, [item]);
     return od;

@@ -15,7 +15,7 @@ export const StockTickerView = (props: ITickerProps) => {
     const oddata = useStockPrice(props.item);
     if (oddata) {
         const { quoteSummary } = oddata;
-        const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && quoteSummary.marketState == 'POST') ?
+        const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST'].includes(quoteSummary.marketState)) ?
             [quoteSummary.postMarketPrice, quoteSummary.postMarketChange, quoteSummary.postMarketChangePercent]
             : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
 

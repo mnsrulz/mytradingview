@@ -19,7 +19,7 @@ export interface ITradeView extends Trade {
 export type StockPriceData = {
     item: SearchTickerItem,
     quoteSummary: {
-        marketState: 'POST' | 'REGULAR',
+        marketState: 'POST' | 'REGULAR' | 'POSTPOST',
         hasPrePostMarketData: boolean,
         regularMarketPrice: number,
         regularMarketChange: number,

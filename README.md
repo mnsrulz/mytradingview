@@ -51,6 +51,7 @@ To get started with development, follow these steps:
    NEXTAUTH_URL=https://p63xdw4l-3000.use.devtunnels.ms/
    TRADIER_TOKEN=your_tradier_api_token
    TRADIER_BASE_URI=https://sandbox.tradier.com/
+   WATCHLIST_UPDATE_FREQUENCY_MS=1000
    ```
 
 4. **Set Up the Database**
