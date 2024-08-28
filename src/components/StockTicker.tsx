@@ -13,7 +13,7 @@ interface ITickerProps {
 
 export const StockTickerView = (props: ITickerProps) => {
     const oddata = useStockPrice(props.item);
-    if (oddata) {
+    if (oddata && oddata.quoteSummary) {
         const { quoteSummary } = oddata;
         const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
             [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent|| quoteSummary.preMarketChangePercent]
