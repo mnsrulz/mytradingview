@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Grid, Slider, Stack } from '@mui/material';
-import { IStrikePriceSliderPorps } from './stock-options-view';
+import { IStrikePriceSliderPorps } from './StockOptionsView';
 
 export const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
     const { allStrikePricesValues, onChange, strikePriceRange } = props;

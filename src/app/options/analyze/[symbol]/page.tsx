@@ -1,5 +1,5 @@
 'use client';
-import { StockOptionsView } from "@/components/stock-options-view";
+import { StockOptionsView } from "@/components/StockOptionsView";
 import { useParams } from "next/navigation";
 
 export default function Page() {

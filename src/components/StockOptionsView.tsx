@@ -6,8 +6,8 @@ import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, Linea
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
-import { ConditionalFormattingBox } from './conditional-formatting';
-import { Pcr } from './pcr';
+import { ConditionalFormattingBox } from './ConditionalFormattingBox';
+import { PutCallRatio } from './PutCallRatio';
 import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
 import { DeltaGammaHedging } from './DeltaGammaHedging';
@@ -213,7 +213,7 @@ export const StockOptionsView = (props: ITickerProps) => {
             sx={{ display: 'grid' }}
             getRowId={(r) => `${r.symbol} - ${r.name}`} /> */}
         {
-            pcrSelectedData && <Pcr
+            pcrSelectedData && <PutCallRatio
                 open={pcrOpen}
                 data={pcrSelectedData}
                 currentPrice={data.currentPrice}

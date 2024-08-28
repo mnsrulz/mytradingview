@@ -4,18 +4,18 @@ import { useState } from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import dayjs from 'dayjs';
-import { CloseTradeCloseDialogReason, CloseTradeDialog } from "./close-trade";
-import { ConfirmDialog } from "./confirm-dialog";
+import { CloseTradeCloseDialogReason, CloseTradeDialog } from "./CloseTradeDialog";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { Box, Button, Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Switch, Typography } from "@mui/material";
 
-import { ConditionalFormattingBox } from "./conditional-formatting";
+import { ConditionalFormattingBox } from "./ConditionalFormattingBox";
 import { useTrades } from "@/lib/useTrades";
 import { currencyFormatter, fixedCurrencyFormatter, percentageFormatter } from "@/lib/formatters";
 import { ITradeView } from "@/lib/types";
 import { TickerName } from "./TickerName";
 import humanFormat from "human-format";
-import { ProgressBar } from "./progress-bar";
-import { AddTradeDialog } from "./add-trade";
+import { ProgressBar } from "./ProgressBar";
+import { AddTradeDialog } from "./AddTradeDialog";
 
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 export const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part

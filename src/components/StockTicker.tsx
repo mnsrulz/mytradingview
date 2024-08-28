@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { useStockPrice } from '../lib/socket';
 import { SearchTickerItem } from '@/lib/types';
-import { currencyFormatter, numberFormatter, percentageFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
-import { ListItem, ListItemText, Typography } from '@mui/material';
+import { numberFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
+import { ListItemText } from '@mui/material';
 import { green, red } from "@mui/material/colors";
 
-const [primaryTextSize, secondaryTextSize] = ['0.8em', '0.75em'];
+const [primaryTextSize, secondaryTextSize] = ['1em', '0.85em'];
 
 interface ITickerProps {
     item: SearchTickerItem

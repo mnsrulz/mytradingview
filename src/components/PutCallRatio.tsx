@@ -29,7 +29,7 @@ const chartSetting = {
     },
 };
 
-export const Pcr = (props: ITickerProps) => {
+export const PutCallRatio = (props: ITickerProps) => {
     const { open, onClose, data, currentPrice } = props;
     const allStrikePrices = Object.keys(data.c);
     const allStrikePricesValues = allStrikePrices?.map(Number)

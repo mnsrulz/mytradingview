@@ -100,8 +100,9 @@ const Expo = (props: IExpo) => {
                 }}
                 labelStyle={
                     {
-                        color: 'red',
-                        stroke: 'red'
+                        stroke: 'red',
+                        strokeWidth: 0.25,
+                        fontSize: '8px'
                     }
                 } />
         </BarChart></Paper>
@@ -119,9 +120,9 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     // if (!data) return <div>No data to show!!!</div>;
 
     return (
-        <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog">
-            <DialogContent>
-                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+        <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" >
+            <DialogContent style={{ padding: '8px' }}>
+                <FormControl sx={{ marginTop: 1, minWidth: 120 }} size="small">
                     <InputLabel>DTE</InputLabel>
                     <Select
                         id="dte"

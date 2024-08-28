@@ -1,4 +1,4 @@
-import { TradeList } from "@/components/trades";
+import { TradeList } from "@/components/TradeList";
 import ky from "ky";
 import { useEffect, useState } from "react";
 

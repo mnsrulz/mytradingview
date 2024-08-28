@@ -120,34 +120,9 @@ export default function TabsRouter() {
 
     return (
         <Router>
-            {/* <Routes>
-          <Route path="*" element={<CurrentRoute />} />
-        </Routes> */}
-            {/* <Box sx={{ width: '100%', padding: '0px 0px 20px 0px' }} >
-                <MyTabs />
-            </Box> */}
-            <AppBar position="static" sx={{ margin: '0px 0px 20px 0px' }}>
+            <AppBar position="static" sx={{ margin: '0px 0px 0px 0px' }}>
                 <Container maxWidth="xl">
                     <Toolbar disableGutters>
-                        {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
-                        {/* <Typography
-                            variant="h6"
-                            noWrap
-                            component="a"
-                            href="#app-bar-with-responsive-menu"
-                            sx={{
-                                mr: 2,
-                                display: { xs: 'none', md: 'flex' },
-                                fontFamily: 'monospace',
-                                fontWeight: 700,
-                                letterSpacing: '.3rem',
-                                color: 'inherit',
-                                textDecoration: 'none',
-                            }}
-                        >
-                            MZ
-                        </Typography> */}
-
                         <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
                             <IconButton
                                 size="large"
@@ -182,40 +157,10 @@ export default function TabsRouter() {
                                         <Button LinkComponent={Link} href={page.href}>
                                             <Typography textAlign="center">{page.title}</Typography>
                                         </Button>
-                                        {/* <Link role="menuitem" href={page.href}>
-                                        </Link> */}
-                                        {/* {page.title} */}
-
-                                        {/* <Button
-                                            key={page.title}
-                                            onClick={handleCloseNavMenu}
-                                            href={page.href}
-                                            LinkComponent={Link}
-                                            sx={{ my: 2, color: 'white', display: 'block' }}>
-                                        </Button> */}
                                     </MenuItem>
                                 ))}
                             </Menu>
                         </Box>
-                        {/* <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-                        <Typography
-                            variant="h5"
-                            noWrap
-                            component="a"
-                            href="#app-bar-with-responsive-menu"
-                            sx={{
-                                mr: 2,
-                                display: { xs: 'flex', md: 'none' },
-                                flexGrow: 1,
-                                fontFamily: 'monospace',
-                                fontWeight: 700,
-                                letterSpacing: '.3rem',
-                                color: 'inherit',
-                                textDecoration: 'none',
-                            }}
-                        >
-                            LOGO
-                        </Typography> */}
                         <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                             {pages.map((page) => (
                                 <Button
@@ -225,8 +170,6 @@ export default function TabsRouter() {
                                     LinkComponent={Link}
                                     sx={{ my: 2, color: 'white', display: 'block' }}>
                                     {page.title}
-                                    {/* <Link href={page.href}>
-                                    </Link> */}
                                 </Button>
                             ))}
                         </Box>

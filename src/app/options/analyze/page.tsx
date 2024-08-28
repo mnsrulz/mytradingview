@@ -1,5 +1,5 @@
 'use client';
-import { TickerSearch } from "@/components/ticker-search";
+import { TickerSearch } from "@/components/TickerSearch";
 import { useRouter } from 'next/navigation'
 
 export default function Page() {

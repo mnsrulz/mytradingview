@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import TabsRouter from "./routes";
-import { CssBaseline } from "@mui/material";
+import { CssBaseline, Grid } from "@mui/material";
 import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -24,7 +24,11 @@ export default function RootLayout({
         <SessionProvider>
           <TabsRouter />
         </SessionProvider>
-        {children}
+        <div style={{
+          padding: '8px'
+        }}>
+          {children}
+        </div>
       </body>
     </html>
   );
