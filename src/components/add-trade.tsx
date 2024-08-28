@@ -1,5 +1,4 @@
 'use client';
-import { SearchTickerItem } from '@/lib/socket';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment } from '@mui/material';
 import { FormContainer, SelectElement, SliderElement, TextFieldElement, TextareaAutosizeElement } from 'react-hook-form-mui';
 import { DatePickerElement } from 'react-hook-form-mui/date-pickers';
@@ -54,6 +53,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import ky from 'ky';
+import { SearchTickerItem } from '@/lib/types';
 export const AddTradeDialog = (props: ITickerProps) => {
     const { onClose, open, ticker } = props;
     const theme = useTheme();
@@ -63,7 +63,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
     const handleSubmit = async (data: any) => {
         await ky.post('/api/trades', {
             json: data
-        }).json<{id: string}>();
+        }).json<{ id: string }>();
         onClose();
     }
 
@@ -75,7 +75,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
 
     const dv = {
         symbol: ticker?.symbol,
-        numberOfContracts: 1, 
+        numberOfContracts: 1,
         contractType: 'PUT_SELL',
         transactionStartDate: dayjs(),
         expiryDate: dayjs().add(7, 'days'),
@@ -96,7 +96,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
                         <TextFieldElement name={'symbol'} label={'Symbol'} required />
                         <SelectElement name={'contractType'} label={'Type'} options={options} fullWidth />
                         <SliderElement name={"numberOfContracts"} label='Number of contracts' max={20} min={1} />
-                        <Stack direction="row" spacing={2}>                            
+                        <Stack direction="row" spacing={2}>
                             <DatePickerElement label="Transaction Start Date" name="transactionStartDate" required disableFuture={true} disablePast={false} />
                             <DatePickerElement label="Expiry Date" name="contractExpiry" required disableFuture={false} disablePast={false} />
                         </Stack>

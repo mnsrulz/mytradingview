@@ -62,7 +62,7 @@ export const useTrades = () => {
     const deleteTrade = useCallback(async (deleteTradeId: string) => {
         await ky.delete(`/api/trades/${deleteTradeId}`);
         setTrades((v) => v.filter(t => t.id != deleteTradeId));
-    }, [trades]);
+    }, []);
 
     const reloadTrade = useCallback((id: string) => {
         const existingObject = trades.find(t => t.id == id);

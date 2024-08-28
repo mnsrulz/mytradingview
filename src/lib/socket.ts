@@ -183,6 +183,6 @@ export const useStockPrice = (item: SearchTickerItem) => {
             socket.emit('stock-price-unsubscribe-request', item);
             socket.off('stock-price-subscribe-response', setOd);
         }
-    }, [item.symbol]);
+    }, [item]);
     return od;
 }
