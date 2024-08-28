@@ -21,11 +21,9 @@ export type StockPriceData = {
     quoteSummary: {
         marketState: 'POST' | 'REGULAR',
         hasPrePostMarketData: boolean,
-        
         regularMarketPrice: number,
         regularMarketChange: number,
         regularMarketChangePercent: number,
-        
         postMarketPrice: number,
         postMarketChange: number,
         postMarketChangePercent: number

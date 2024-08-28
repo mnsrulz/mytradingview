@@ -12,5 +12,5 @@ export async function GET(request: Request, p: { params: { symbol: string } }) {
                 regularMarketPrice: resp.price.last
             }
         }
-    } as StockPriceData);
+    }); // } as StockPriceData);
 }
