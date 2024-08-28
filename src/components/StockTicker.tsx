@@ -15,8 +15,8 @@ export const StockTickerView = (props: ITickerProps) => {
     const oddata = useStockPrice(props.item);
     if (oddata) {
         const { quoteSummary } = oddata;
-        const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST'].includes(quoteSummary.marketState)) ?
-            [quoteSummary.postMarketPrice, quoteSummary.postMarketChange, quoteSummary.postMarketChangePercent]
+        const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
+            [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent|| quoteSummary.preMarketChangePercent]
             : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
 
         const secondaryColor = changePercent < 0 ? red[500] : green[500];
