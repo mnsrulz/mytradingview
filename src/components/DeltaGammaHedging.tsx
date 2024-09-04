@@ -1,10 +1,11 @@
 import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select, Tab, Tabs, Paper, Box } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { ChartsReferenceLine } from '@mui/x-charts';
-import { OptionsHedgingData, useDeltaGammaHedging } from "@/lib/socket";
+import { OptionsHedgingData, useCachedDates, useDeltaGammaHedging } from "@/lib/socket";
 import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
 import { useQueryState, parseAsInteger, parseAsStringEnum } from "nuqs";
+import { useState } from "react";
 
 interface ITickerProps {
     symbol: string,
@@ -112,8 +113,9 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     const { onClose } = props;
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
-
-    const { data, isLoading } = useDeltaGammaHedging(props.symbol, dte, strikeCounts);
+    const { cachedDates } = useCachedDates(props.symbol);
+    const [dataMode, setDataMode] = useState('Live');
+    const { data, isLoading } = useDeltaGammaHedging(props.symbol, dte, strikeCounts, dataMode);
     const [gexTab, setGexTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
 
     // if (isLoading) return <LinearProgress />;
@@ -151,6 +153,22 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                         <MenuItem value={50}>50</MenuItem>
                         <MenuItem value={80}>80</MenuItem>
                         <MenuItem value={100}>100</MenuItem>
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                    <InputLabel>Data Mode</InputLabel>
+                    <Select
+                        id="data-mode"
+                        value={dataMode}
+                        label="Data Mode"
+                        onChange={(e) => setDataMode(e.target.value)}
+                    >
+                        <MenuItem value="Live">Live</MenuItem>
+                        {
+                            cachedDates.map(c=> {
+                                return <MenuItem key={c.dt} value={c.dt}>{c.dt}</MenuItem>
+                            })
+                        }
                     </Select>
                 </FormControl>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

@@ -33,6 +33,21 @@ export type StockPriceData = {
     }
 }
 
+export type TradierOptionData = {
+    options: {
+      option: {
+        strike: number,
+        open_interest: number,
+        expiration_date: string,
+        option_type: 'put' | 'call',
+        greeks: {
+          delta: number,
+          gamma: number
+        }
+      }[]
+    }
+  }
+
 export type IOptionsGrid = {
     id: string
 }

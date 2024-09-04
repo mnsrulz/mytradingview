@@ -2,7 +2,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import ky from 'ky';
-import { NumberRange, OptionsInnerData, SearchTickerItem, StockPriceData } from './types';
+import { NumberRange, OptionsInnerData, SearchTickerItem, StockPriceData, TradierOptionData } from './types';
+import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
 
 const URL = `https://mztrading-socket.deno.dev`
@@ -105,10 +106,14 @@ type GammaDeltaDatasetType = {
     maxPosition: number
 }
 
+export type CachedOptionSummaryType = {
+    symbol: string, dt: string
+}
+
 export type OptionsHedgingData = {
     expirations: string[],
     strikes: number[],
-    data: { puts: number[], calls: number[], data: number[] },
+    //data: { puts: number[], calls: number[], data: number[] },
     currentPrice: number,
     deltaDataset: GammaDeltaDatasetType,
     gammaDataset: GammaDeltaDatasetType
@@ -143,23 +148,72 @@ export const useOptionTracker = (symbol: string) => {
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice };
 }
 
+export const useCachedDatesData = (symbol: string, dt: string) => {
+    const [data, setOd] = useState<TradierOptionData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
+    useEffect(() => {
+        setIsLoading(true);
+        ky(`https://mztrading-data.deno.dev/data`, {
+            searchParams: {
+                s: symbol,
+                dt
+            }
+        }).json<TradierOptionData[]>().then(r => {
+            setOd(r);
+        }).finally(() => setIsLoading(false));
+    }, [symbol]);
 
-export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number) => {
+    return { cachedDatesData: data, isLoadingCachedDatesData: isLoading };
+}
+
+export const useCachedDates = (symbol: string) => {
+    const [data, setOd] = useState<CachedOptionSummaryType[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        ky(`https://mztrading-data.deno.dev/summary`, {
+            searchParams: {
+                s: symbol
+            }
+        }).json<{ symbol: string, dt: string }[]>().then(r => {
+            setOd(r);
+        }).finally(() => setIsLoading(false));
+    }, [symbol]);
+
+    return { cachedDates: data, isLoadingCachedDates: isLoading };
+}
+
+export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, dataMode: string) => {
     const [data, setOd] = useState<OptionsHedgingData>();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setIsLoading(true);
-        ky(`/api/symbols/${symbol}/options/analyze/tradier`, {
-            searchParams: {
-                dte,
-                sc
-            }
-        }).json<{ exposureData: OptionsHedgingData }>().then(r => {
-            setOd(r.exposureData);
-        }).finally(() => setIsLoading(false));
-    }, [symbol, dte, sc]);
+        if (dataMode == 'Live') {
+            ky(`/api/symbols/${symbol}/options/analyze/tradier`, {
+                searchParams: {
+                    dte,
+                    sc
+                }
+            }).json<{ exposureData: OptionsHedgingData }>().then(r => {
+                setOd(r.exposureData);
+            }).finally(() => setIsLoading(false));
+        } else {
+            ky(`https://mztrading-data.deno.dev/data`, {
+                searchParams: {
+                    s: symbol,
+                    dt: dataMode
+                }
+            }).json<{ data: TradierOptionData[], currentPrice: number }>().then(r => {
+                const allDates = [...new Set(r.data.flatMap(j => j.options.option.map(s => s.expiration_date)))];
+                const allStrikes = getCalculatedStrikes(r.currentPrice, sc, [...new Set(r.data.flatMap(j => j.options.option.map(s => s.strike)))]);
+                const finalResponse = calculateHedging(r.data, allStrikes, allDates, r.currentPrice);
+                setOd(finalResponse.exposureData);
+            }).finally(() => setIsLoading(false));
+        }
+    }, [symbol, dte, sc, dataMode]);
     return { data, isLoading };
 }
 
