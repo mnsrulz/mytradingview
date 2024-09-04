@@ -11,6 +11,7 @@ import { AddTradeDialog } from './AddTradeDialog';
 import { GridLinkAction } from './GridLinkAction';
 import { SearchTickerItem } from '@/lib/types';
 import { TickerSearch } from './TickerSearch';
+import { TradingViewWidgetDialog } from './TradingViewWidgetDialog';
 
 
 interface IWatchlistProps {
@@ -73,16 +74,27 @@ export const Watchlist = (props: IWatchlistProps) => {
             setCurrentStock(row);
             setOpenAddTrade(true);
           }}
+        />,
+        <GridActionsCellItem
+          key='ViewTradingView'
+          icon={<AddTradeIcon />}
+          label="Show in Trading view"
+          showInMenu
+          onClick={() => {
+            setCurrentStock(row);
+            setOpenTradingViewDialog(true);
+          }}
         />
         ]
       }
     }
   ];
 
-  
+
   const [openAddTrade, setOpenAddTrade] = useState(false);
+  const [openTradingViewDialog, setOpenTradingViewDialog] = useState(false);
   const [openAddToWatchlist, setOpenAddToWatchlist] = useState(false);
-  
+
   const handleCloseAddTrade = () => { setOpenAddTrade(false); };
   const handleAddToWatchlist = (item: SearchTickerItem) => { addToWatchlist(item); setOpenAddToWatchlist(false); }
   return <div>
@@ -121,5 +133,7 @@ export const Watchlist = (props: IWatchlistProps) => {
         <TickerSearch onChange={handleAddToWatchlist} />
       </DialogContent>
     </Dialog>
+
+    {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
   </div>
 }
