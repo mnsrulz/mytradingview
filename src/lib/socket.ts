@@ -228,10 +228,15 @@ export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, da
                     s: symbol,
                     dt: dataMode
                 }
-            }).json<{ data: TradierOptionData[], currentPrice: number }>().then(r => {
+            }).json<{ data: TradierOptionData[] }>().then(async r => {
                 const allDates = [...new Set(r.data.flatMap(j => j.options.option.map(s => s.expiration_date)))];
-                const allStrikes = getCalculatedStrikes(r.currentPrice, sc, [...new Set(r.data.flatMap(j => j.options.option.map(s => s.strike)))]);
-                const finalResponse = calculateHedging(r.data, allStrikes, allDates, r.currentPrice);
+                const { price } = await ky(`/api/symbols/${symbol}/historical`, {
+                    searchParams: {
+                        dt: dataMode
+                    }
+                }).json<{ price: number }>();
+                const allStrikes = getCalculatedStrikes(price, sc, [...new Set(r.data.flatMap(j => j.options.option.map(s => s.strike)))]);
+                const finalResponse = calculateHedging(r.data, allStrikes, allDates, price);
                 setOd(finalResponse.exposureData);
             }).finally(() => setIsLoading(false));
         }

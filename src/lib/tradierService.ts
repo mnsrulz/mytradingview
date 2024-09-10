@@ -1,8 +1,10 @@
 import ky from "ky";
 import { TradierOptionData } from "./types";
+import dayjs from "dayjs";
 const tradierBaseUri = process.env.TRADIER_BASE_URI || 'https://sandbox.tradier.com/';
 const optionsChain = `${tradierBaseUri}v1/markets/options/chains`;
 const lookup = `${tradierBaseUri}v1/markets/lookup`;
+const historical = `${tradierBaseUri}v1/markets/history`;
 const optionsExpiration = `${tradierBaseUri}v1/markets/options/expirations`;
 const getQuotes = `${tradierBaseUri}v1/markets/quotes`;
 
@@ -56,9 +58,11 @@ type Symbol = {
     description: string
 }
 
-type LookupSymbolResponse = { securities: {
-    security: Symbol | Symbol[]
-} }
+type LookupSymbolResponse = {
+    securities: {
+        security: Symbol | Symbol[]
+    }
+}
 
 export const lookupSymbol = (q: string) => {
     return client(lookup, {
@@ -68,4 +72,29 @@ export const lookupSymbol = (q: string) => {
         }
     }).json<LookupSymbolResponse>();
 
+}
+
+export const getPriceAtDate = async (s: string, dt: string) => {
+    console.log(`${s} -- ${dt}`);
+    const start = dayjs(dt.substring(0, 10)).format('YYYY-MM-DD');
+    
+    const result = await client(historical, {
+        searchParams: {
+            'symbol': s,
+            'interval': 'daily',
+            'start': start,
+            'end': start, //dayjs(dt.substring(0, 10)).add(1, 'days').format('YYYY-MM-DD'),
+            'session_filter': 'all'
+        }
+    }).json<{
+        "history": {
+            "day": {
+                "date": string,
+                "open": number
+            }
+        }
+    }>();
+    const dtresult = result.history.day;
+    if (dtresult) return dtresult.open;
+    throw new Error('unable to determine price');
 }
