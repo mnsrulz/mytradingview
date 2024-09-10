@@ -23,6 +23,7 @@
     "@prisma/client": "^5.12.1",
     "@uidotdev/usehooks": "^2.4.1",
     "dayjs": "^1.11.10",
+    "he": "^1.2.0",
     "human-format": "^1.2.0",
     "ky": "^1.2.3",
     "localforage": "^1.10.0",
@@ -41,6 +42,7 @@
     "yahoo-finance2": "^2.11.3"
   },
   "devDependencies": {
+    "@types/he": "^1.2.3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

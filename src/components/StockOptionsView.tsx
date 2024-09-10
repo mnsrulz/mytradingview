@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useOptionTracker } from '../lib/socket';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link, IconButton, Dialog, DialogContent, DialogTitle, Input } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
@@ -13,6 +13,9 @@ import { StrikePriceSlider } from './StrikePriceSlider';
 import { DeltaGammaHedging } from './DeltaGammaHedging';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
+import EditIcon from '@mui/icons-material/Edit';
+import { TickerSearch } from './TickerSearch';
+import he from 'he';
 
 interface ITickerProps {
     symbol: string
@@ -33,16 +36,8 @@ const numberFormatter = (v: string) => v && Number(v);
 const todaysDate = dayjs().format('YYYY-MM-DD');
 export const StockOptionsView = (props: ITickerProps) => {
     const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice } = useOptionTracker(props.symbol);
-
-    //const router = useRouter();
-    //const query = useSearchParams();
-    //const currentTab = query.get('tab') as PutCallType || 'PUT';
-    // const handleCallTabValue = (v: PutCallType) => {
-    //     setPutCallTabValue(v);
-    //     const newSearchParams = new URLSearchParams(query);
-    //     newSearchParams.set('tab', v);
-    //     router.push(`?${newSearchParams.toString()}`);
-    // };
+    const [openSearchTickerDialog, setOpenSearchTickerDialog] = useState(false);
+    const router = useRouter();
 
     const [putCallTabValue, handleCallTabValue] = useQueryState<PutCallType>('tab', parseAsStringEnum<PutCallType>(Object.values(PutCallType)).withDefault(PutCallType.PUT));
     const [priceMode, setPriceMode] = useState<PriceModeType>('AVG_PRICE');
@@ -131,7 +126,10 @@ export const StockOptionsView = (props: ITickerProps) => {
     }).filter(r => r);
 
     return <Paper>
-        Symbol: {props.symbol} - {data.currentPrice}
+
+        Symbol: <IconButton onClick={() => { setOpenSearchTickerDialog(true) }} sx={{ p: 0 }} size='small' disableFocusRipple disableRipple>
+            <EditIcon /> {decodeURIComponent(props.symbol)}
+        </IconButton>  - {data.currentPrice}
         <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button>
         {/* <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
@@ -225,5 +223,17 @@ export const StockOptionsView = (props: ITickerProps) => {
                 symbol={props.symbol}
                 onClose={() => setDeltaHedgingOpen(false)} />
         }
+
+        <Dialog
+            open={openSearchTickerDialog}
+            fullWidth={true}
+            onClose={() => setOpenSearchTickerDialog(false)}
+        >
+            <DialogTitle id="search-ticker-dialog-title">Search</DialogTitle>
+            <DialogContent dividers={true}>
+                <TickerSearch  onChange={(v) => router.push(`/options/analyze/${v.symbol}`)} />
+            </DialogContent>
+        </Dialog>
+
     </Paper>
 }

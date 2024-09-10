@@ -13,7 +13,6 @@ interface ITickerProps {
 export const TickerSearch = (props: ITickerProps) => {
     const [searchTerm, setSearchTerm] = React.useState('');
     //const [options, setOptions] = useState<SearchTickerItem[]>([]);
-
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const { options, loading } = useTickerSearch(debouncedSearchTerm);
 
@@ -28,6 +27,7 @@ export const TickerSearch = (props: ITickerProps) => {
                 size='small'
                 fullWidth
                 label={props.label || 'Search Item'}
+                autoFocus
                 InputProps={{
                     ...params.InputProps,
                     endAdornment: (
