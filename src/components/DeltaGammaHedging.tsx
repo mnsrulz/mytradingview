@@ -41,7 +41,7 @@ const Expo = (props: IExpo) => {
     const gammaOrDelta = (props.exposure == 'dex' ? 'ABS Delta' : 'NET Gamma')
 
     const { dataset, maxPosition } = props.exposure == 'dex' ? data.deltaDataset : data.gammaDataset;
-    const title = `${symbol.toUpperCase()} ${gammaOrDelta} Hedging Exposure (${dte} DTE)`;
+    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} Hedging Exposure (${dte} DTE)`;
     return <Paper><Typography variant="h6" align="center" gutterBottom>
         {title}
     </Typography><BarChart
