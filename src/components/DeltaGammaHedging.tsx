@@ -38,11 +38,12 @@ const Expo = (props: IExpo) => {
             dataKey: `${j}-put`, label: `${j}`, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
         }]
     });
-    const gammaOrDelta = (props.exposure == 'dex' ? 'Delta' : 'Gamma')
+    const gammaOrDelta = (props.exposure == 'dex' ? 'ABS Delta' : 'NET Gamma')
 
     const { dataset, maxPosition } = props.exposure == 'dex' ? data.deltaDataset : data.gammaDataset;
-    return <Paper><Typography variant="h5" align="center" gutterBottom>
-        ${symbol.toUpperCase()} ABS {gammaOrDelta} Hedging Exposure ({dte} DTE)
+    const title = `${symbol.toUpperCase()} ${gammaOrDelta} Hedging Exposure (${dte} DTE)`;
+    return <Paper><Typography variant="h6" align="center" gutterBottom>
+        {title}
     </Typography><BarChart
         height={height}
         dataset={dataset}
@@ -85,10 +86,13 @@ const Expo = (props: IExpo) => {
                     vertical: 'top',
                     horizontal: 'right',
                 },
-                itemMarkWidth: 32,
-                itemMarkHeight: 12,
-                markGap: 5,
-                itemGap: 5,
+                labelStyle: {
+                    fontSize: '0.75rem'
+                },
+                itemMarkWidth: 24,
+                itemMarkHeight: 8,
+                markGap: 2,
+                itemGap: 2,
             }
         }}>
 
@@ -124,7 +128,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     return (
         <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" >
             <DialogContent style={{ padding: '8px' }}>
-                <FormControl sx={{ marginTop: 1, minWidth: 120 }} size="small">
+                <FormControl sx={{ marginTop: 1 }} size="small">
                     <InputLabel>DTE</InputLabel>
                     <Select
                         id="dte"
@@ -140,7 +144,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                         <MenuItem value={1000}>1000</MenuItem>
                     </Select>
                 </FormControl>
-                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                <FormControl sx={{ m: 1 }} size="small">
                     <InputLabel>Strikes</InputLabel>
                     <Select
                         id="strikes"
@@ -165,7 +169,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                     >
                         <MenuItem value="Live">Live</MenuItem>
                         {
-                            cachedDates.map(c=> {
+                            cachedDates.map(c => {
                                 return <MenuItem key={c.dt} value={c.dt}>{c.dt}</MenuItem>
                             })
                         }
