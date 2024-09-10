@@ -1,8 +1,9 @@
-import { Autocomplete, CircularProgress, TextField, debounce } from '@mui/material';
+import { Autocomplete, CircularProgress, TextField } from '@mui/material';
+import { useDebounce } from "@uidotdev/usehooks";
 import * as React from 'react';
-import { searchTicker } from '../lib/socket';
-import { useEffect, useMemo, useState } from 'react';
+import { useTickerSearch } from '../lib/socket';
 import { SearchTickerItem } from '@/lib/types';
+
 
 interface ITickerProps {
     onChange: (value: SearchTickerItem) => void,
@@ -10,29 +11,14 @@ interface ITickerProps {
 }
 
 export const TickerSearch = (props: ITickerProps) => {
-    const [options, setOptions] = useState<SearchTickerItem[]>([]);
-    const [loading, setLoading] = useState(false);
-    const onInputChange = (ev: any, value: any, reason: any) => {
-        if (value) {
-            getData(value);
-        } else {
-            setOptions([]);
-        }
-    };
+    const [searchTerm, setSearchTerm] = React.useState('');
+    //const [options, setOptions] = useState<SearchTickerItem[]>([]);
 
-    const debouncedEventHandler = useMemo(
-        () => debounce(onInputChange, 300)
-      , []);
-      
-    const getData = async (searchTerm: string) => {
-        setLoading(true);
-        const result = await searchTicker(searchTerm);
-        setOptions(result);
-        setLoading(false);
-    };
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const { options, loading } = useTickerSearch(debouncedSearchTerm);
 
     return <Autocomplete filterOptions={(x) => x}
-        onInputChange={debouncedEventHandler}
+        onInputChange={(ev, v) => setSearchTerm(v)}
         size='small'
         onChange={(ev, value) => value && props.onChange(value)}
         renderInput={(params) => (
@@ -54,6 +40,6 @@ export const TickerSearch = (props: ITickerProps) => {
         )}
         options={options}
         getOptionLabel={(option: SearchTickerItem) => `${option.symbol} - ${option.name}`}
-        fullWidth        
+        fullWidth
     />
 }

@@ -20,25 +20,21 @@ socket.on("connect", () => {
 })
 
 
-export const searchTicker = async (searchTerm: string) => {
+export const searchTicker = async (searchTerm: string, signal?: AbortSignal) => {
     const { items } = await ky('/api/symbols/search', {
         searchParams: {
             q: searchTerm
-        }
+        },
+        signal: signal
     }).json<{
-        items: {
-            quotes: {
-                symbol: string,
-                longname: string,
-                isYahooFinance: boolean
-            }[]
-        }
+        items: SearchTickerItem[]
     }>();
 
-    return items.quotes.filter(f => f.isYahooFinance).map(r => ({
-        symbol: r.symbol,
-        name: r.longname
-    }));
+    return items;
+    // return items.quotes.filter(f => f.isYahooFinance).map(r => ({
+    //     symbol: r.symbol,
+    //     name: r.longname
+    // }));
     // return new Promise<SearchTickerResult>((res, rej) => {
     //     socket.emit('stock-list-request', {
     //         q: searchTerm
@@ -48,6 +44,32 @@ export const searchTicker = async (searchTerm: string) => {
     //         res(args);
     //     });
     // });
+}
+
+export const useTickerSearch = (v: string) => {
+    const [options, setOptions] = useState<SearchTickerItem[]>([]);
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        if (!v) {
+            setOptions([]);
+            return;
+        }
+        const ab = new AbortController();
+        const getData = async () => {
+            setLoading(true);
+            try {
+                const result = await searchTicker(v, ab.signal);
+                setOptions(result);
+            } catch (error) {
+                //do nothing
+            }
+            setLoading(false);
+        };
+        getData();
+        return () => { ab.abort(); }
+    }, [v]);
+
+    return { options, loading };
 }
 
 export const AddTickerToMyList = (item: SearchTickerItem) => {
