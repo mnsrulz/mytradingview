@@ -245,24 +245,18 @@ export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, da
 }
 
 export const useStockPrice = (item: SearchTickerItem) => {
-    const [od, setOd] = useState<StockPriceData>();
-    // const fn = async () => {
-    //     const data = await ky(`/api/symbols/${item.symbol}/summary`).json<StockPriceData>();
-    //     setOd(data);
-    // }
+    const [stockPrice, setStockPrice] = useState<StockPriceData>();
     useEffect(() => {
-        // fn();
-        // const i = setInterval(fn, 30000);
-        // return () => {
-        //     clearInterval(i);
-        // }
-
         socket.emit('stock-price-subscribe-request', { ...item, frequency: WatchlistUpdateFrequency });
-        socket.on(`stock-price-subscribe-response-${item.symbol}`, setOd);
+        socket.on(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
         return () => {
             socket.emit('stock-price-unsubscribe-request', item);
-            socket.off(`stock-price-subscribe-response-${item.symbol}`, setOd);
+            socket.off(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
         }
     }, [item]);
-    return od;
+    return stockPrice;
+}
+
+export const subscribeStockPriceBatchRequest = (tickers: SearchTickerItem[]) => {
+    socket.emit('stock-price-subscribe-batch-request', { tickers, frequency: WatchlistUpdateFrequency });
 }

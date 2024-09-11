@@ -2,9 +2,9 @@
 import * as React from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
-import { Button, Dialog, DialogContent, DialogTitle, Paper, Typography } from '@mui/material';
+import { Button, Dialog, DialogContent, DialogTitle } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridColDef, useGridApiRef } from '@mui/x-data-grid';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StockTickerSymbolView, StockTickerView } from './StockTicker';
 import AddTradeIcon from '@mui/icons-material/Add';
 import { AddTradeDialog } from './AddTradeDialog';
@@ -12,6 +12,7 @@ import { GridLinkAction } from './GridLinkAction';
 import { SearchTickerItem } from '@/lib/types';
 import { TickerSearch } from './TickerSearch';
 import { TradingViewWidgetDialog } from './TradingViewWidgetDialog';
+import { subscribeStockPriceBatchRequest } from '@/lib/socket';
 
 
 interface IWatchlistProps {
@@ -25,6 +26,15 @@ export const Watchlist = (props: IWatchlistProps) => {
   const { tickers, removFromWatchlist, loading, addToWatchlist } = props;
   const apiRef = useGridApiRef();
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
+
+  useEffect(() => { 
+    const interval = setInterval(()=>{
+      subscribeStockPriceBatchRequest(tickers);
+    }, 1000); //every one second just ping the server to resubscribe
+
+    return ()=> clearInterval(interval);
+  }, [tickers]);
+
   const columns: GridColDef<SearchTickerItem>[] = [
     {
       field: 'symbol', headerName: 'Watchlist', flex: 1,
