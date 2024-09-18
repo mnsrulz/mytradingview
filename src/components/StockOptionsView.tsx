@@ -35,7 +35,7 @@ enum PutCallType {
 const numberFormatter = (v: string) => v && Number(v);
 const todaysDate = dayjs().format('YYYY-MM-DD');
 export const StockOptionsView = (props: ITickerProps) => {
-    const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice } = useOptionTracker(props.symbol);
+    const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis } = useOptionTracker(props.symbol);
     const [openSearchTickerDialog, setOpenSearchTickerDialog] = useState(false);
     const router = useRouter();
 
@@ -104,7 +104,8 @@ export const StockOptionsView = (props: ITickerProps) => {
                         if (putCallTabValue == PutCallType.PUT) {
                             return (targetPrice > s.value ? price : (price - (s.value - targetPrice))) / (s.value);
                         } else {
-                            return (price / targetPrice);
+                            const sellCost = targetPrice >= s.value ? (price + s.value) : (targetPrice + price);
+                            return (sellCost - costBasis) / costBasis;
                         }
                     case 'ANNUAL_RETURN':
                         if (putCallTabValue == PutCallType.PUT) {
@@ -112,8 +113,9 @@ export const StockOptionsView = (props: ITickerProps) => {
                             const risk = s.value;
                             return (sellCost / risk) * (365 / numberofdays);
                         } else {
-                            const sellCost = (targetPrice < s.value ? price : (price - (targetPrice - s.value)));
-                            return (sellCost / targetPrice) * (365 / numberofdays);
+                            // const sellCost = (targetPrice < s.value ? price : (price - (targetPrice - s.value)));
+                            const sellCost = targetPrice >= s.value ? (price + s.value) : (targetPrice + price);
+                            return ((sellCost -costBasis) / costBasis) * (365 / numberofdays);
                         }
                     case 'PCR':
                         return po.oi;
@@ -160,6 +162,9 @@ export const StockOptionsView = (props: ITickerProps) => {
         </FormControl>
         <FormControl sx={{ m: 1 }} variant="standard">
             <TextField label="Target price" variant="standard" value={targetPrice} onChange={v => setTargetPrice(Number(v.target.value))} type='number' />
+        </FormControl>
+        <FormControl sx={{ m: 1 }} variant="standard">
+            <TextField label="Cost basis" variant="standard" value={costBasis} onChange={v => setCostBasis(Number(v.target.value))} type='number' />
         </FormControl>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={putCallTabValue} onChange={(e, v) => handleCallTabValue(v)} variant="fullWidth" indicatorColor="secondary"
@@ -231,7 +236,7 @@ export const StockOptionsView = (props: ITickerProps) => {
         >
             <DialogTitle id="search-ticker-dialog-title">Search</DialogTitle>
             <DialogContent dividers={true}>
-                <TickerSearch  onChange={(v) => router.push(`/options/analyze/${v.symbol}`)} />
+                <TickerSearch onChange={(v) => router.push(`/options/analyze/${v.symbol}`)} />
             </DialogContent>
         </Dialog>
 
