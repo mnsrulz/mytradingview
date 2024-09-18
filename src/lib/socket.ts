@@ -145,6 +145,7 @@ export const useOptionTracker = (symbol: string) => {
     const [data, setOd] = useState<OptionsData>();
     const [isLoading, setIsLoading] = useState(true);
     const [targetPrice, setTargetPrice] = useState(0);
+    const [costBasis, setCostBasis] = useState(0);
     const [strikePriceRange, setStrikePriceRange] = useState<NumberRange>({ start: 0, end: Number.MAX_VALUE });
 
     useEffect(() => {
@@ -159,6 +160,7 @@ export const useOptionTracker = (symbol: string) => {
                 end: Math.round(currentPrice + thresholdValue)
             });
             setTargetPrice(r.currentPrice);
+            setCostBasis(r.currentPrice);
         }).finally(() => setIsLoading(false));
         // socket.emit('options-subscribe-request', item);
         // socket.on(`options-subscribe-response`, setOd);
@@ -167,7 +169,7 @@ export const useOptionTracker = (symbol: string) => {
         //     socket.off('options-subscribe-response', setOd);
         // }
     }, [symbol]);
-    return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice };
+    return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis };
 }
 
 export const useCachedDatesData = (symbol: string, dt: string) => {
