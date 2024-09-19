@@ -209,6 +209,20 @@ export const useCachedDates = (symbol: string) => {
     return { cachedDates: data, isLoadingCachedDates: isLoading };
 }
 
+export const useCachedSummaryData = () => {
+    const [data, setOd] = useState<CachedOptionSummaryType[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        ky(`https://mztrading-data.deno.dev/summary`).json<{ symbol: string, dt: string }[]>().then(r => {
+            setOd(r);
+        }).finally(() => setIsLoading(false));
+    }, []);
+
+    return { cachedSummaryData: data, isLoadingCachedSummaryData: isLoading };
+}
+
 export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, dataMode: string) => {
     const [data, setOd] = useState<OptionsHedgingData>();
     const [isLoading, setIsLoading] = useState(true);

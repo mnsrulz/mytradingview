@@ -23,11 +23,12 @@ interface IExpo {
     data: OptionsHedgingData,
     exposure: 'dex' | 'gex',
     symbol: string,
-    dte: number
+    dte: number,
+    skipAnimation?: boolean
 }
 
-const Expo = (props: IExpo) => {
-    const { data, dte, symbol } = props;
+export const Expo = (props: IExpo) => {
+    const { data, dte, symbol, skipAnimation } = props;
     const height = data.strikes.length * 15;
     const yaxisline = Math.max(...data.strikes.filter(j => j <= data.currentPrice));
     const series = data.expirations.flatMap(j => {
@@ -48,6 +49,7 @@ const Expo = (props: IExpo) => {
         height={height}
         dataset={dataset}
         series={series}
+        skipAnimation={skipAnimation}
         tooltip={{
             trigger: 'none'
         }}
