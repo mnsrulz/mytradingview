@@ -29,7 +29,8 @@ const pages = [
     { title: 'Home', href: '/' },
     { title: 'Trades', href: '/trades' },
     { title: 'Option analyzer', href: '/options/analyze' },
-    { title: 'History', href: '/history' }
+    { title: 'History', href: '/history' },
+    { title: 'Calculator', href: '/calculator' }
 ];
 const settings = ['Profile', 'Logout'];
 
@@ -60,28 +61,29 @@ function useRouteMatch(patterns: readonly string[]) {
     return null;
 }
 
-function MyTabs() {
-    // You need to provide the routes in descendant order.
-    // This means that if you have nested routes like:
-    // users, users/new, users/edit.
-    // Then the order should be ['users/add', 'users/edit', 'users'].
-    const routeMatch = useRouteMatch(['/inbox/:id', '/drafts', '/trash']);
-    const currentTab = routeMatch?.pattern?.path;
+// function MyTabs() {
+//     // You need to provide the routes in descendant order.
+//     // This means that if you have nested routes like:
+//     // users, users/new, users/edit.
+//     // Then the order should be ['users/add', 'users/edit', 'users'].
+//     const routeMatch = useRouteMatch(['/inbox/:id', '/drafts', '/trash']);
+//     const currentTab = routeMatch?.pattern?.path;
 
-    return (
-        // <Tabs value={currentTab}>
-        //   <Tab label="Inbox" value="/inbox/:id" to="/inbox/1" component={Link} />
-        //   <Tab label="Drafts" value="/drafts" to="/drafts" component={Link} />
-        //   <Tab label="Trash" value="/trash" to="/trash" component={Link} />
-        // </Tabs>
-        <ButtonGroup variant="contained" aria-label="Basic button group">
-            <Button><Link href="/" className=''>Home</Link></Button>
-            <Button><Link href="/trades" className=''>Trades</Link></Button>
-            <Button><Link href="/history">History</Link></Button>
-            <Button><Link href="/options/analyze">Option Analyzer</Link></Button>
-        </ButtonGroup>
-    );
-}
+//     return (
+//         // <Tabs value={currentTab}>
+//         //   <Tab label="Inbox" value="/inbox/:id" to="/inbox/1" component={Link} />
+//         //   <Tab label="Drafts" value="/drafts" to="/drafts" component={Link} />
+//         //   <Tab label="Trash" value="/trash" to="/trash" component={Link} />
+//         // </Tabs>
+//         <ButtonGroup variant="contained" aria-label="Basic button group">
+//             <Button><Link href="/" className=''>Home</Link></Button>
+//             <Button><Link href="/trades" className=''>Trades</Link></Button>
+//             <Button><Link href="/history">History</Link></Button>
+//             <Button><Link href="/options/analyze">Option Analyzer</Link></Button>
+//             <Button><Link href="/options/analyze">Option Analyzer</Link></Button>
+//         </ButtonGroup>
+//     );
+// }
 
 function CurrentRoute() {
     const location = useLocation();
