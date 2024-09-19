@@ -5,17 +5,14 @@ import Link from 'next/link';
 import Typography from '@mui/material/Typography';
 import {
     MemoryRouter,
-    Route,
-    Routes,
     matchPath,
     useLocation,
 } from 'react-router-dom';
 
 import { StaticRouter } from 'react-router-dom/server';
-import { ButtonGroup, Button, AppBar, Avatar, Container, IconButton, Menu, MenuItem, Toolbar, Tooltip } from '@mui/material';
+import { Button, AppBar, Container, IconButton, Menu, MenuItem, Toolbar, Tooltip } from '@mui/material';
 import { useState } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
-import AdbIcon from '@mui/icons-material/Adb';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { signIn, signOut, useSession } from 'next-auth/react'
 
