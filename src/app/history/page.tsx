@@ -24,7 +24,7 @@ export default function Page() {
 
     const ts = cachedSummaryData.filter(r => r.dt == dt).filter(r => mytickersSymbols.includes(r.symbol));    //make sure to load only those which are part of the watchlist.
     const m = ts.map(r => {
-        return <Grid key={r.symbol} xs={1} xl={3} p={1}><WrapperExpo dataMode={dt} symbol={r.symbol} /></Grid>
+        return <Grid key={r.symbol} xs={12} xl={3} p={1}><WrapperExpo dataMode={dt} symbol={r.symbol} /></Grid>
     });
     return (
         <>
