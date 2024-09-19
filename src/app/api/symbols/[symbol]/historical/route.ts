@@ -34,7 +34,7 @@ const getPriceAtDate = async (symbol: string, dt: string) => {
                 period1: dayjs().add(-1, 'day').toDate(),
                 period2: new Date()
             });
-            return resp.at(0)?.adjClose?.toFixed(2);
+            return resp.at(0)?.close?.toFixed(2);
         }
     }
 
