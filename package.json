@@ -22,7 +22,7 @@
     "@mui/x-date-pickers": "^7.3.2",
     "@prisma/client": "^5.12.1",
     "@uidotdev/usehooks": "^2.4.1",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.13",
     "he": "^1.2.0",
     "human-format": "^1.2.0",
     "ky": "^1.2.3",
