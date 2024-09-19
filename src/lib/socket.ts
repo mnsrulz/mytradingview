@@ -186,7 +186,7 @@ export const useCachedDatesData = (symbol: string, dt: string) => {
         }).json<TradierOptionData[]>().then(r => {
             setOd(r);
         }).finally(() => setIsLoading(false));
-    }, [symbol]);
+    }, [symbol, dt]);
 
     return { cachedDatesData: data, isLoadingCachedDatesData: isLoading };
 }

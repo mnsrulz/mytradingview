@@ -18,16 +18,19 @@ export async function GET(request: NextRequest) {
     //     items: resp
     // });
 }
-const allowedYfTypes = ["EQUITY" , "ETF" , "INDEX"];
+const allowedYfTypes = ["EQUITY", "ETF", "INDEX"];
 async function search(q: string) {
     try {
         const resp = await yf.search(q);
-        const yahooSymbols = resp.quotes.filter(j => j.isYahooFinance).filter(j => allowedYfTypes.includes(j.quoteType)).map(j => {
-            return {
-                symbol: j.symbol,
-                name: j.longname
-            }
-        })
+
+        const yahooSymbols = resp.quotes.map(j=>j as unknown as any).filter(j => j.isYahooFinance)
+            .filter(j => allowedYfTypes.includes(j.quoteType))
+            .map(j => {
+                return {
+                    symbol: j.symbol,
+                    name: j.longname
+                }
+            })
         if (yahooSymbols && yahooSymbols.length > 0) {
             return yahooSymbols
         }
