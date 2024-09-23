@@ -31,10 +31,10 @@ const getPriceAtDate = async (symbol: string, dt: string) => {
         if (!isUSMarketOpenedForToday()) {
             const resp = await yf.historical(symbol, {
                 interval: '1d',
-                period1: dayjs().add(-1, 'day').toDate(),
+                period1: dayjs().add(-7, 'day').toDate(),
                 period2: new Date()
             });
-            return resp.at(0)?.close?.toFixed(2);
+            return resp.pop()?.close?.toFixed(2);
         }
     }
 
