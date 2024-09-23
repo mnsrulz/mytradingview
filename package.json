@@ -29,7 +29,7 @@
     "localforage": "^1.10.0",
     "lodash.debounce": "^4.0.8",
     "match-sorter": "^6.3.4",
-    "next": "14.2.2",
+    "next": "14.2.13",
     "next-auth": "^5.0.0-beta.16",
     "nuqs": "^1.17.8",
     "react": "^18",
