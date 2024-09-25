@@ -9,7 +9,8 @@ import { useState } from "react";
 
 interface ITickerProps {
     symbol: string,
-    onClose: () => void
+    onClose: () => void,
+    skipAnimation?: boolean
 }
 
 const colorCodes = getColorPallete();
@@ -194,7 +195,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                 </Box>
                 </Box>)}
                 {
-                    isLoading ? <LinearProgress /> : data ? <Expo data={data} exposure={gexTab == DexGexType.DEX ? 'dex' : 'gex'} symbol={props.symbol} dte={dte} /> : <div>no data...</div>
+                    isLoading ? <LinearProgress /> : data ? <Expo data={data} exposure={gexTab == DexGexType.DEX ? 'dex' : 'gex'} symbol={props.symbol} dte={dte} skipAnimation={props.skipAnimation} /> : <div>no data...</div>
                 }
             </DialogContent>
             {!printMode && (<DialogActions>
