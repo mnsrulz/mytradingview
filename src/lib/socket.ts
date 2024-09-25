@@ -132,6 +132,14 @@ export type CachedOptionSummaryType = {
     symbol: string, dt: string
 }
 
+export type CachedReleasesType = {
+    name: string
+}
+
+export type CachedReleaseSymbolType = {
+    name: string
+}
+
 export type OptionsHedgingData = {
     expirations: string[],
     strikes: number[],
@@ -221,6 +229,34 @@ export const useCachedSummaryData = () => {
     }, []);
 
     return { cachedSummaryData: data, isLoadingCachedSummaryData: isLoading };
+}
+
+export const useCachedReleaseData = () => {
+    const [data, setOd] = useState<CachedReleasesType[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        ky(`https://mztrading-data.deno.dev/releases`).json<CachedReleasesType[]>().then(r => {
+            setOd(r);
+        }).finally(() => setIsLoading(false));
+    }, []);
+
+    return { cachedSummaryData: data, isLoadingCachedSummaryData: isLoading };
+}
+
+export const useCachedReleaseSymbolData = (r: string) => {
+    const [data, setOd] = useState<CachedReleaseSymbolType[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        ky(`https://mztrading-data.deno.dev/releases/symbols?r=${r}`).json<CachedReleaseSymbolType[]>().then(r => {
+            setOd(r);
+        }).finally(() => setIsLoading(false));
+    }, []);
+
+    return { cachedSummarySymbolsData: data, isLoadingCachedSummaryData: isLoading };
 }
 
 export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, dataMode: string) => {
