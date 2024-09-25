@@ -1,28 +1,54 @@
 'use client';
-import { Expo } from '@/components/DeltaGammaHedging';
-import { useCachedReleaseData, useCachedReleaseSymbolData, useCachedSummaryData, useDeltaGammaHedging, useMyStockList } from '@/lib/socket';
-import { FormControl, Grid, ImageList, ImageListItem, InputLabel, LinearProgress, Link, MenuItem, Select, Skeleton } from '@mui/material';
+import { useCachedReleaseData, useCachedReleaseSymbolData, useMyStockList } from '@/lib/socket';
+import { Dialog, DialogContent, DialogTitle, FormControl, Grid, ImageList, ImageListItem, InputLabel, LinearProgress, Link, MenuItem, Select, useMediaQuery, useTheme } from '@mui/material';
 import { useState } from 'react';
-
-const WrapperExpo = (props: { symbol: string, dataMode: string }) => {
-    const { symbol, dataMode } = props;    
-    return <div>
-        {<img src={`https://mztrading-data.deno.dev/images?dt=${dataMode}&s=${symbol}`} loading="lazy" />}
-    </div>
-}
-
+import { IconButton} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 const D1 = (props: { dt: string, mytickersSymbols: string[] }) => {
     const { dt, mytickersSymbols } = props;
     const { cachedSummarySymbolsData } = useCachedReleaseSymbolData(dt);
-
+    const theme = useTheme();
+    const matchesXs = useMediaQuery(theme.breakpoints.down("sm"));
+    const matchesMd = useMediaQuery(theme.breakpoints.down("md"));
+    const numberOfItemsToDisplay = matchesXs ? 2 : matchesMd ? 3 : 4;
     const ts = cachedSummarySymbolsData.filter(r => mytickersSymbols.includes(r.name));    //make sure to load only those which are part of the watchlist.
-    return <ImageList cols={3} gap={1}>
+
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedImage, setSelectedImage] = useState('');
+
+    const handleImageClick = (imageSrc: string) => {
+        setSelectedImage(imageSrc);
+        setOpenDialog(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+    };
+    return <><ImageList cols={numberOfItemsToDisplay} gap={1}>
         {ts.map((item) => (
-            <ImageListItem key={item.name}>
-                <WrapperExpo dataMode={dt} symbol={item.name} />
+            <ImageListItem key={item.name} sx={{ width: '100%', height: '100px' }}>
+                <img src={`https://mztrading-data.deno.dev/images?dt=${dt}&s=${item.name}`}
+                    style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                    loading="lazy"
+                    onClick={() => handleImageClick(`https://mztrading-data.deno.dev/images?dt=${dt}&s=${item.name}`)} />
             </ImageListItem>
         ))}
-    </ImageList>;
+    </ImageList>
+        <Dialog open={openDialog} onClose={handleCloseDialog} fullScreen>
+            <DialogTitle>
+                <IconButton
+                    aria-label="close"
+                    onClick={handleCloseDialog}
+                    sx={{ position: 'absolute', right: 8, top: 8 }}
+                >
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent>
+                <img src={selectedImage} style={{ width: '100%', height: '90vh', objectFit: 'contain' }} />
+            </DialogContent>
+        </Dialog>
+    </>;
 }
 
 export default function Page() {
