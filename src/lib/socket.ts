@@ -254,7 +254,7 @@ export const useCachedReleaseSymbolData = (r: string) => {
         ky(`https://mztrading-data.deno.dev/releases/symbols?r=${r}`).json<CachedReleaseSymbolType[]>().then(r => {
             setOd(r);
         }).finally(() => setIsLoading(false));
-    }, []);
+    }, [r]);
 
     return { cachedSummarySymbolsData: data, isLoadingCachedSummaryData: isLoading };
 }
