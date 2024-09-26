@@ -28,13 +28,22 @@ const D1 = (props: { dt: string, mytickersSymbols: string[] }) => {
         {ts.map((item) => (
             <ImageListItem key={item.name} sx={{ width: '100%', height: '100px' }}>
                 <img src={`https://mztrading-data.deno.dev/images?dt=${dt}&s=${item.name}`}
-                    style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                    style={{ width: '100%', height: 'auto', objectFit: 'cover',
+                        transition: 'all 0.3s ease-in-out',
+                        cursor: 'pointer',
+                        // boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
+                        // '&:hover': {
+                        //   boxShadow: '0 0 20px rgba(0, 0, 0, 0.5)',
+                        //   transform: 'scale(1.05)',
+                        // }
+
+                     }}
                     loading="lazy"
                     onClick={() => handleImageClick(`https://mztrading-data.deno.dev/images?dt=${dt}&s=${item.name}`)} />
             </ImageListItem>
         ))}
     </ImageList>
-        <Dialog open={openDialog} onClose={handleCloseDialog} fullScreen>
+        <Dialog open={openDialog} onClose={handleCloseDialog} fullScreen={matchesXs}>
             <DialogTitle>
                 <IconButton
                     aria-label="close"
@@ -45,7 +54,7 @@ const D1 = (props: { dt: string, mytickersSymbols: string[] }) => {
                 </IconButton>
             </DialogTitle>
             <DialogContent>
-                <img src={selectedImage} style={{ width: '100%', height: '90vh', objectFit: 'contain' }} />
+                <img src={selectedImage} style={{ width: '100%', objectFit: 'contain' }} />
             </DialogContent>
         </Dialog>
     </>;
