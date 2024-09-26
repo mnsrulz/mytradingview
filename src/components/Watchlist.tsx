@@ -2,7 +2,7 @@
 import * as React from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
-import { Button, Dialog, DialogContent, DialogTitle } from '@mui/material';
+import { Button, Dialog, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
 import { StockTickerSymbolView, StockTickerView } from './StockTicker';
@@ -13,7 +13,7 @@ import { SearchTickerItem } from '@/lib/types';
 import { TickerSearch } from './TickerSearch';
 import { TradingViewWidgetDialog } from './TradingViewWidgetDialog';
 import { subscribeStockPriceBatchRequest } from '@/lib/socket';
-
+import collect from 'collect.js';
 
 interface IWatchlistProps {
   tickers: SearchTickerItem[]
@@ -26,13 +26,14 @@ export const Watchlist = (props: IWatchlistProps) => {
   const { tickers, removFromWatchlist, loading, addToWatchlist } = props;
   const apiRef = useGridApiRef();
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
+  const [sortMode, setSortMode] = useState('symbol');
 
-  useEffect(() => { 
-    const interval = setInterval(()=>{
+  useEffect(() => {
+    const interval = setInterval(() => {
       subscribeStockPriceBatchRequest(tickers);
     }, 1000); //every one second just ping the server to resubscribe
 
-    return ()=> clearInterval(interval);
+    return () => clearInterval(interval);
   }, [tickers]);
 
   const columns: GridColDef<SearchTickerItem>[] = [
@@ -53,6 +54,22 @@ export const Watchlist = (props: IWatchlistProps) => {
       resizable: false,
       field: 'price', headerName: '', headerAlign: 'right', align: 'right', flex: 0.5, renderCell: (p) => {
         return <StockTickerView item={p.row}></StockTickerView>
+      }, renderHeader: () => {
+        return <>Sort <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }} size='small'>
+          {/* <InputLabel id="sort-by-label">Sort by</InputLabel> */}
+          
+          <Select
+            labelId="sort-by-label"
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value)}
+            label="Sort by"
+            size='small'  
+            autoWidth
+          >
+            <MenuItem value="symbol">Ticker</MenuItem>
+            <MenuItem value="name">Name</MenuItem>
+          </Select>
+        </FormControl></>
       }
     },
     {
@@ -107,9 +124,12 @@ export const Watchlist = (props: IWatchlistProps) => {
 
   const handleCloseAddTrade = () => { setOpenAddTrade(false); };
   const handleAddToWatchlist = (item: SearchTickerItem) => { addToWatchlist(item); setOpenAddToWatchlist(false); }
+
   return <div>
     {/* <Typography variant='body2'>Watchlist</Typography> */}
-    <DataGrid rows={tickers}
+
+
+    <DataGrid rows={collect(tickers).sortBy(sortMode).all()}
       columns={columns}
       //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
       sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
@@ -147,3 +167,4 @@ export const Watchlist = (props: IWatchlistProps) => {
     {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
   </div>
 }
+
