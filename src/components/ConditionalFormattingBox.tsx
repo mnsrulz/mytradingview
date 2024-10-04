@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 type IConditionalFormattingBoxProps = { value: number, formattedValue: string }
 export const ConditionalFormattingBox = (props: IConditionalFormattingBoxProps) => {
     const { value, formattedValue } = props;
-    if (!Number.isNaN(value)) {
+    if (value && !Number.isNaN(value)) {
         let color = getColor(value);
         return <Box
             sx={{

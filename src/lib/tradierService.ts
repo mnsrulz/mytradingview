@@ -1,5 +1,5 @@
 import ky from "ky";
-import { TradierOptionData } from "./types";
+import { HistoricalDataResponse, TradierOptionData } from "./types";
 import dayjs from "dayjs";
 const tradierBaseUri = process.env.TRADIER_BASE_URI || 'https://sandbox.tradier.com/';
 const optionsChain = `${tradierBaseUri}v1/markets/options/chains`;
@@ -7,6 +7,19 @@ const lookup = `${tradierBaseUri}v1/markets/lookup`;
 const historical = `${tradierBaseUri}v1/markets/history`;
 const optionsExpiration = `${tradierBaseUri}v1/markets/options/expirations`;
 const getQuotes = `${tradierBaseUri}v1/markets/quotes`;
+
+type Symbol = {
+    symbol: string,
+    description: string
+}
+
+type LookupSymbolResponse = {
+    securities: {
+        security: Symbol | Symbol[]
+    }
+}
+
+
 
 const client = ky.create({
     headers: {
@@ -53,16 +66,6 @@ export const getCurrentPrice = async (symbol: string) => {
         .last;
 }
 
-type Symbol = {
-    symbol: string,
-    description: string
-}
-
-type LookupSymbolResponse = {
-    securities: {
-        security: Symbol | Symbol[]
-    }
-}
 
 export const lookupSymbol = (q: string) => {
     return client(lookup, {
@@ -77,7 +80,7 @@ export const lookupSymbol = (q: string) => {
 export const getPriceAtDate = async (s: string, dt: string) => {
     console.log(`${s} -- ${dt}`);
     const start = dayjs(dt.substring(0, 10)).format('YYYY-MM-DD');
-    
+
     const result = await client(historical, {
         searchParams: {
             'symbol': s,
@@ -97,4 +100,19 @@ export const getPriceAtDate = async (s: string, dt: string) => {
     const dtresult = result.history.day;
     if (dtresult) return dtresult.open;
     throw new Error('unable to determine price');
+}
+
+export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly') => {
+    const years = parseInt(duration.substring(0, 1));
+    const startDay = dayjs().startOf('year').subtract(years, 'year').format('YYYY-MM-DD')
+    const result = await client(historical, {
+        searchParams: {
+            'symbol': s,
+            'interval': interval,
+            'start': startDay,
+            'end': dayjs().startOf('month').format('YYYY-MM-DD'), //dayjs(dt.substring(0, 10)).add(1, 'days').format('YYYY-MM-DD'),
+            'session_filter': 'all'
+        }
+    }).json<HistoricalDataResponse>();
+    return result;
 }

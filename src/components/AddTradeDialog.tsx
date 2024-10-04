@@ -95,7 +95,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <TextFieldElement name={'symbol'} label={'Symbol'} required />
                         <SelectElement name={'contractType'} label={'Type'} options={options} fullWidth />
-                        <SliderElement name={"numberOfContracts"} label='Number of contracts' max={20} min={1} />
+                        <SliderElement name={"numberOfContracts"} label='Number of contracts' max={100} min={1} />
                         <Stack direction="row" spacing={2}>
                             <DatePickerElement label="Transaction Start Date" name="transactionStartDate" required disableFuture={true} disablePast={false} />
                             <DatePickerElement label="Expiry Date" name="contractExpiry" required disableFuture={false} disablePast={false} />

@@ -5,7 +5,7 @@ import TabsRouter from "./routes";
 import { CssBaseline, Grid } from "@mui/material";
 import { SessionProvider } from "next-auth/react";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 
 export const metadata: Metadata = {
   title: "My trading view app",

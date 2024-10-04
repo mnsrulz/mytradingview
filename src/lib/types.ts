@@ -75,3 +75,21 @@ export type OptionsInnerData = {
 export type SearchTickerResult = { items: SearchTickerItem[] };
 export type SearchTickerItem = { symbol: string, name: string }
 export type AddTickerToMyListResult = { success: boolean }
+
+
+type HistoricalDataItem = {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
+type HistoricalData = {
+  day: HistoricalDataItem[];
+};
+
+export type HistoricalDataResponse = {
+  history: HistoricalData;
+};
