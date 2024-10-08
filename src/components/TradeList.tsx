@@ -15,7 +15,7 @@ import { ITradeView } from "@/lib/types";
 import { TickerName } from "./TickerName";
 import humanFormat from "human-format";
 import { ProgressBar } from "./ProgressBar";
-import { AddTradeDialog } from "./AddTradeDialog";
+import { AddTradeCloseDialogReason, AddTradeDialog } from "./AddTradeDialog";
 
 const dateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
 export const shortDateFormatter = (v: string) => v && dayjs(v.substring(0, 10)).format('DD/MM/YYYY');   //to avoid utc conversion strip the time part
@@ -28,7 +28,7 @@ const ProfitBar = (props: { cost: number, profit: number }) => {
 }
 
 export const TradeList = () => {
-    const { trades, deleteTrade, reloadTrade, isLoading } = useTrades();
+    const { trades, deleteTrade, reloadTrade, isLoading, loadTrades } = useTrades();
     const [showCloseTrades, toggleShowCloseTrades] = useState(false);//useShowCloseTrades();
     const traderows = showCloseTrades ? trades : trades.filter(x => !x.isClosed);
     const [currentTrade, setCurrentTrade] = useState<ITradeView | null>(null);
@@ -142,7 +142,7 @@ export const TradeList = () => {
     }
 
     const [openAddTrade, setOpenAddTrade] = useState(false);
-    const handleCloseAddTrade = () => { setOpenAddTrade(false); };
+    const handleCloseAddTrade = (reason: AddTradeCloseDialogReason) => { setOpenAddTrade(false); reason == "add"  && loadTrades(); };
 
     return isLoading ? <LinearProgress /> : <div>
         <Card>

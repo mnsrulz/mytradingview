@@ -5,10 +5,12 @@ import { DatePickerElement } from 'react-hook-form-mui/date-pickers';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
+export type AddTradeCloseDialogReason = 'cancel' | 'add';
+
 interface ITickerProps {
     //onChange: (value: SearchTickerItem) => void,
     open: boolean,
-    onClose: () => void,
+    onClose: (reason: AddTradeCloseDialogReason) => void,
     ticker: SearchTickerItem | null
 }
 
@@ -64,13 +66,13 @@ export const AddTradeDialog = (props: ITickerProps) => {
         await ky.post('/api/trades', {
             json: data
         }).json<{ id: string }>();
-        onClose();
+        onClose('add');
     }
 
     const onCloseRequest: DialogProps["onClose"] = (event, reason) => {
         if (reason && reason === "backdropClick")
             return;
-        onClose();
+        onClose('cancel');
     }
 
     const dv = {
@@ -113,7 +115,7 @@ export const AddTradeDialog = (props: ITickerProps) => {
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
+                <Button onClick={() => onClose('cancel')}>Cancel</Button>
                 <Button type={'submit'}>Add</Button>
             </DialogActions>
         </FormContainer>

@@ -72,5 +72,5 @@ export const useTrades = () => {
             });
         }
     }, [trades]);
-    return { trades, deleteTrade, reloadTrade, isLoading };
+    return { trades, deleteTrade, reloadTrade, isLoading, loadTrades };
 };
