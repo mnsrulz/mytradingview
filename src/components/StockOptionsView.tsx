@@ -73,7 +73,7 @@ export const StockOptionsView = (props: ITickerProps) => {
             field: s.strikePrice,
             width: 10, headerName: `${parseFloat(s.strikePrice)}`,
             valueFormatter: ['PRICE', 'PCR'].includes(valueMode) ? numberFormatter : percentageFormatter, type: 'number',
-            renderCell: ['PRICE', 'PCR'].includes(valueMode) ? undefined : (p) => <ConditionalFormattingBox value={p.value * 1000} formattedValue={p.formattedValue} />
+            renderCell: ['PRICE'].includes(valueMode) ? undefined : (p) => <ConditionalFormattingBox value={p.value * (valueMode == 'PCR' ? 1 : 1000)} formattedValue={p.formattedValue} />
         })
     })
 
@@ -115,7 +115,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                         } else {
                             // const sellCost = (targetPrice < s.value ? price : (price - (targetPrice - s.value)));
                             const sellCost = targetPrice >= s.value ? (price + s.value) : (targetPrice + price);
-                            return ((sellCost -costBasis) / costBasis) * (365 / numberofdays);
+                            return ((sellCost - costBasis) / costBasis) * (365 / numberofdays);
                         }
                     case 'PCR':
                         return po.oi;
@@ -163,9 +163,11 @@ export const StockOptionsView = (props: ITickerProps) => {
         <FormControl sx={{ m: 1 }} variant="standard">
             <TextField label="Target price" variant="standard" value={targetPrice} onChange={v => setTargetPrice(Number(v.target.value))} type='number' />
         </FormControl>
-        <FormControl sx={{ m: 1 }} variant="standard">
-            <TextField label="Cost basis" variant="standard" value={costBasis} onChange={v => setCostBasis(Number(v.target.value))} type='number' />
-        </FormControl>
+        {putCallTabValue == PutCallType.CALL &&
+            <FormControl sx={{ m: 1 }} variant="standard">
+                <TextField label="Cost basis" variant="standard" value={costBasis} onChange={v => setCostBasis(Number(v.target.value))} type='number' />
+            </FormControl>
+        }
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={putCallTabValue} onChange={(e, v) => handleCallTabValue(v)} variant="fullWidth" indicatorColor="secondary"
                 textColor="secondary">
