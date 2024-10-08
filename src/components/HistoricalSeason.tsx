@@ -4,8 +4,8 @@ import { HistoricalDataResponse } from "@/lib/types"
 import { GridColDef, DataGrid, gridClasses } from "@mui/x-data-grid";
 import dayjs from "dayjs";
 import { ConditionalFormattingBox } from "./ConditionalFormattingBox";
-import { numberFormatter, percentageFormatter } from "@/lib/formatters";
-
+import { percentageFormatter } from "@/lib/formatters";
+import { Box, Typography } from "@mui/material";
 
 const months = [
     'January',
@@ -22,8 +22,8 @@ const months = [
     'December',
 ];
 
-export const HistoricalSeason = (props: { data: HistoricalDataResponse }) => {
-    const currentYear = dayjs().year();
+export const HistoricalSeason = (props: { data: HistoricalDataResponse, symbol: string }) => {
+    // const currentYear = dayjs().year();
     // use to render the graph/chart
     // const dkk = dt.history.day.reduce((acc: Record<string, number[]>, current) => {
     //     const year = dayjs(current.date).format('YYYY');
@@ -51,7 +51,7 @@ const seriesData = Object.keys(dkk).map(year => ({
     */
     const dt = props.data;
     const years: string[] = []
-    const dkk = dt.history.day.reduce((acc: { id: string }[], current) => {
+    const rowsData = dt.history.day.reduce((acc: { id: string }[], current) => {
         const year = dayjs(current.date).format('YYYY');
         const pm = ((current.close - current.open) / current.open);
         const month = dayjs(current.date).month();
@@ -59,22 +59,22 @@ const seriesData = Object.keys(dkk).map(year => ({
         if (!years.includes(year)) years.push(year);
         return acc
     }, months.map(j => ({ id: j })));
-    debugger;
 
     const columns: GridColDef[] = [
-        { field: 'id', width: 120, headerName: 'month' },
+        { field: 'id', width: 120, headerName: 'Month' },
         ...years.map(j => {
             return {
-                field: `d${j}`, width: 120, headerName: j,
-                valueFormatter: percentageFormatter, 
+                field: `d${j}`, width: 10, headerName: j, align: 'right',
+                valueFormatter: percentageFormatter,
                 type: 'number',
-                renderCell: (p) => <ConditionalFormattingBox value={p.value} formattedValue={p.formattedValue} />
+                renderCell: (p) => <ConditionalFormattingBox value={p.value * 1000} formattedValue={p.formattedValue} />
             } as GridColDef
         })
     ]
 
-    return <div>
-        <DataGrid rows={dkk}
+    return <Box sx={{ mt: 1 }}>
+        <Typography variant="h6">Ticker: {props.symbol}</Typography>
+        <DataGrid rows={rowsData}
             disableColumnMenu={true}
             disableColumnFilter={true}
             disableColumnSorting={true}
@@ -106,5 +106,5 @@ const seriesData = Object.keys(dkk).map(year => ({
                 },
             }}
         />
-    </div>
+    </Box>
 }

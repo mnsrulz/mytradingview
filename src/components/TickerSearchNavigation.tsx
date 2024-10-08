@@ -1,3 +1,4 @@
+'use client';
 import { TickerSearch } from '@/components/TickerSearch';
 import { useRouter } from 'next/navigation';
 
