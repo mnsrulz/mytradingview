@@ -72,7 +72,7 @@ To get started with development, follow these steps:
 
 ## Staging and Production Environments
 
-- **Staging Environment:** [https://stage--mztrading.netlify.app/](https://stage--mztrading.netlify.app/) Use admin as password.
+- **Staging Environment:** [https://stage--mztrading.netlify.app/](https://stage--mztrading.netlify.app/) Use admin as password. 
 - **Production Environment:** [https://mztrading.netlify.app/](https://mztrading.netlify.app/)
 
 ## Deployment
