@@ -25,7 +25,7 @@ interface ITickerProps {
 export type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChange: (v: NumberRange) => void, currentPrice: number, strikePriceRange: NumberRange }
 
 type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE' | 'AVG_PRICE'
-type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN' | 'PCR'
+type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN' | 'PCR' | 'VOLUME'
 // type PutCallType = 'PUT' | 'CALL';
 enum PutCallType {
     'PUT' = 'PUT',
@@ -72,8 +72,8 @@ export const StockOptionsView = (props: ITickerProps) => {
         columns.push({
             field: s.strikePrice,
             width: 10, headerName: `${parseFloat(s.strikePrice)}`,
-            valueFormatter: ['PRICE', 'PCR'].includes(valueMode) ? numberFormatter : percentageFormatter, type: 'number',
-            renderCell: ['PRICE'].includes(valueMode) ? undefined : (p) => <ConditionalFormattingBox value={p.value * (valueMode == 'PCR' ? 1 : 1000)} formattedValue={p.formattedValue} />
+            valueFormatter: ['PRICE', 'PCR', 'VOLUME'].includes(valueMode) ? numberFormatter : percentageFormatter, type: 'number',
+            renderCell: ['PRICE', 'VOLUME'].includes(valueMode) ? undefined : (p) => <ConditionalFormattingBox value={p.value * (valueMode == 'PCR' ? 1 : 1000)} formattedValue={p.formattedValue} />
         })
     })
 
@@ -119,6 +119,8 @@ export const StockOptionsView = (props: ITickerProps) => {
                         }
                     case 'PCR':
                         return po.oi;
+                    case 'VOLUME':
+                        return po.v;
                     default:
                         return price?.toFixed(2);
                 }
@@ -158,6 +160,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                 <MenuItem value="ANNUAL_RETURN">ANNUAL_RETURN</MenuItem>
                 <MenuItem value="TOTAL_RETURN">TOTAL_RETURN</MenuItem>
                 <MenuItem value="PCR">PCR</MenuItem>
+                <MenuItem value="VOLUME">VOLUME</MenuItem>
             </Select>
         </FormControl>
         <FormControl sx={{ m: 1 }} variant="standard">
