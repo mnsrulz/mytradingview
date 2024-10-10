@@ -111,7 +111,7 @@ const seriesData = Object.keys(dkk).map(year => ({
     //     return acc
     // }, months.map(j => ({ id: j })));
 
-    const ys = [...new Set(dt.history.day.map(j => dayjs(j.date).format('YYYY')))].toSorted();
+    const ys = [...new Set(dt.history.day.map(j => dayjs(j.date).format('YYYY')))];
     const afsd = [...Array<number[]>(12)].map(_ => Array<number>(ys.length).fill(0));
 
     const rowsData = dt.history.day.reduce((acc: number[][], current) => {
