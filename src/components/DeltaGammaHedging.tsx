@@ -162,6 +162,8 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                             <MenuItem value={50}>50</MenuItem>
                             <MenuItem value={80}>80</MenuItem>
                             <MenuItem value={100}>100</MenuItem>
+                            <MenuItem value={150}>150</MenuItem>
+                            <MenuItem value={200}>200</MenuItem>
                         </Select>
                     </FormControl>
                     <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
