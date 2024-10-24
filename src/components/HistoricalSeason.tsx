@@ -7,9 +7,7 @@ import { HeatMap } from "./HeatMap";
 import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 import { useRouter } from 'next/navigation';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import utc from 'dayjs/plugin/utc' // ES 2015
 
-dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
 const months = [
@@ -74,9 +72,9 @@ export const HistoricalSeason = (props: { data: HistoricalDataResponse, symbol: 
 
 function getDailyData(dt: HistoricalDataResponse) {
     if (dt.history.day.length < 2) throw new Error('not enough data...');
-    const startDate = dayjs.utc(dt.history.day.at(0)?.date, 'YYYY-MM-DD', true);
-    const endDate = dayjs.utc(dt.history.day.at(-1)?.date, 'YYYY-MM-DD', true);
-    const firstMonday = startDate.subtract(startDate.day() - 1);
+    const startDate = dayjs(dt.history.day.at(0)?.date, 'YYYY-MM-DD', true);
+    const endDate = dayjs(dt.history.day.at(-1)?.date, 'YYYY-MM-DD', true);
+    const firstMonday = dayjs(startDate.subtract(startDate.day() - 1).format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
     const numberOfWeeks = endDate.diff(startDate, 'w') + 1;
     const ys = [...Array(numberOfWeeks).keys()].reduce((j: string[], c) => {
         j.push(`${firstMonday.add(c, 'w').format('DD MMM YYYY')}`);
@@ -84,13 +82,19 @@ function getDailyData(dt: HistoricalDataResponse) {
     }, []);
     let lastClosingPrice = 0;
 
+    // console.log(`firstMonday: ${firstMonday.toISOString()} ${firstMonday.format('YYYY-MM-DD')}`);
+    // console.log(`startDate: ${startDate.toISOString()} ${startDate.format('YYYY-MM-DD')}`);
+
     //split this data dt into weekly data
     const data = dt.history.day.reduce((acc: number[][], current) => {
         const lp = lastClosingPrice || current.open
         const pm = ((current.close - lp) / lp);
-        const currentItemDate = dayjs.utc(current.date, 'YYYY-MM-DD', true)
+        const currentItemDate = dayjs(current.date, 'YYYY-MM-DD', true)
         const dayOfWeek = currentItemDate.day() - 1;
         const weekNumber = currentItemDate.diff(firstMonday, 'w');
+        // if (ys[weekNumber] == '14 Oct 2024') {
+        //     console.log(`${dayOfWeek}  -- ${currentItemDate.toISOString()} -- ${currentItemDate.format('YYYY-MM-DD')} -- weeddif: ${currentItemDate.diff(firstMonday, 'w', true)}`)
+        // }
         acc[weekNumber][dayOfWeek] = pm;
         lastClosingPrice = current.close;
         return acc;
