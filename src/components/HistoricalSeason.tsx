@@ -1,59 +1,10 @@
+'use client';
 import { HistoricalDataResponse } from "@/lib/types"
 import dayjs from "dayjs";
-import { ConditionalFormattingBox } from "./ConditionalFormattingBox";
-import { numberFormatter, percentageFormatter } from "@/lib/formatters";
-import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Divider } from "@mui/material";
+import { Box, Divider, FormControl, InputLabel, MenuItem, Select, Tab, Tabs } from "@mui/material";
 import { TickerSearchDialog } from "./TickerSearchDialog";
-
-type MyProps = {
-    xLabels: string[],
-    yLabels: string[],
-    data: number[][],
-    formatter: 'percent' | 'number'
-}
-const formatters = {'percent': percentageFormatter, number: numberFormatter}
-const HeatComponent = (props: MyProps) => {
-    const { xLabels, yLabels, data, formatter } = props;
-    const fmt = formatters[formatter];
-    return <TableContainer component={Paper} sx={{
-        width: 'auto', // Set width of the TableContainer to auto
-        maxWidth: '100%', // Optional: prevent it from exceeding the parent width
-        display: 'inline-block', // Make sure the container doesn't stretch
-        mt: 1
-    }}>
-        <Table size="small" sx={{
-            tableLayout: 'auto', // Allow table to auto-adjust to content
-            width: 'auto' // Ensure the table takes only the width it needs
-        }} padding='none'>
-            <TableHead>
-                <TableRow >
-                    <TableCell sx={{ px: 1 }}>Month</TableCell>
-                    {
-                        xLabels.map(c => <TableCell align="right" sx={{ px: 1 }} key={c}>{c}</TableCell>)
-                    }
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {data.map((row, ix) => (
-                    <TableRow
-                        key={ix}
-                        sx={{ '&:last-child td, &:last-child th': { border: 0 }, padding: 0 }}
-                    >
-                        <TableCell component="th" scope="row" sx={{ width: 100, px: 1 }}>
-                            {yLabels[ix]}
-                        </TableCell>
-                        {
-                            row.map(c => <TableCell key={c} align="right" sx={{ padding: 0, width: 80, height: '32px' }} padding="none">
-                                {/* {row[`d${c}`]} */}
-                                <ConditionalFormattingBox value={c * 1000} formattedValue={`${fmt(c)}`} />
-                            </TableCell>)
-                        }
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    </TableContainer>
-}
+import { HeatMap } from "./HeatMap";
+import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 
 const months = [
     'January',
@@ -70,152 +21,91 @@ const months = [
     'December',
 ];
 
+const days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday'
+]
+
+enum DataMode {
+    Daily = 'Daily',
+    Monthly = 'Monthly'
+}
+
 export const HistoricalSeason = (props: { data: HistoricalDataResponse, symbol: string }) => {
-    // const currentYear = dayjs().year();
-    // use to render the graph/chart
-    // const dkk = dt.history.day.reduce((acc: Record<string, number[]>, current) => {
-    //     const year = dayjs(current.date).format('YYYY');
-    //     if (!acc[year]) {
-    //         const currentMonth = dayjs().month();
-    //         if (year === `${currentYear}`) {
-    //             acc[year] = new Array(currentMonth + 1).fill(0);
-    //         } else {
-    //             acc[year] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    //         }
-    //     };
-    //     const pm = ((current.close - current.open) / current.open) * 100;
-    //     const month = dayjs(current.date).month();
-    //     acc[year][month] = pm;
-    //     return acc;
-    // }, {});
-
-    /*
-{month: 'Jan', d2022: 1, d2023: 1.6...},
-{}
-const seriesData = Object.keys(dkk).map(year => ({
-    label: year,
-    data: dkk[year]
-}));
-    */
+    const [mode, setMode] = useQueryState<DataMode>('mode', parseAsStringEnum<DataMode>(Object.values(DataMode)).withDefault(DataMode.Monthly));
     const dt = props.data;
-    const years: string[] = []
-    // const rowsData = dt.history.day.reduce((acc: { id: string }[], current) => {
-    //     const year = dayjs(current.date).format('YYYY');
-    //     const pm = ((current.close - current.open) / current.open);
-    //     const month = dayjs(current.date).month();
-    //     const row = (acc.find(j => j.id === months[month]) as any);
-    //     row[`d${year}`] = pm.toFixed(2);
-    //     row[`f${year}`] = percentageFormatter(pm);
+    const data = (mode == DataMode.Daily ? getDailyData : getMonthlyData)(dt);
 
-    //     if (!years.includes(year)) years.push(year);
-    //     return acc
-    // }, months.map(j => ({ id: j })));
+    return <Box sx={{ mt: 1 }}>
+        <TickerSearchDialog {...props} />
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={mode} onChange={(e, v) => setMode(v)} variant="fullWidth" indicatorColor="secondary"
+                textColor="secondary">
+                <Tab label="Daily" value={'Daily'} />
+                <Tab label="Monthly" value='Monthly' />
+            </Tabs>
+        </Box>
+        {/* <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+            <InputLabel>Data Mode</InputLabel>
+            <Select
+                value={mode}
+                label="Data Mode"
+                onChange={(e) => setMode(e.target.value as DataMode)}
+            >
+                <MenuItem key="Daily" value="Daily">Daily</MenuItem>
+                <MenuItem key="Monthly" value="Monthly">Monthly</MenuItem>
+            </Select>
+        </FormControl> */}
+        <Divider />
+        <HeatMap {...data} formatter='percent' />
+    </Box >
+}
 
+function getDailyData(dt: HistoricalDataResponse) {
+    if (dt.history.day.length < 2) throw new Error('not enough data...');
+    const startDate = dayjs(dt.history.day.at(0)?.date);
+    const endDate = dayjs(dt.history.day.at(-1)?.date);
+    const firstMonday = startDate.subtract(startDate.day() - 1);
+    const numberOfWeeks = endDate.diff(startDate, 'w') + 1;
+    const ys = [...Array(numberOfWeeks).keys()].reduce((j: string[], c) => {
+        j.push(`${firstMonday.add(c, 'w').format('DD MMM YYYY')}`);
+        return j;
+    }, []);
+    let lastClosingPrice = 0;
+
+    //split this data dt into weekly data
+    const data = dt.history.day.reduce((acc: number[][], current) => {
+        const lp = lastClosingPrice || current.open
+        const pm = ((current.close - lp) / lp);
+        const currentItemDate = dayjs(current.date)
+        const dayOfWeek = currentItemDate.day() - 1;
+        const weekNumber = currentItemDate.diff(startDate, 'w');
+        acc[weekNumber][dayOfWeek] = pm;
+        lastClosingPrice = current.close;
+        return acc;
+    }, [...Array<number[]>(numberOfWeeks)].map(_ => Array<number>(5).fill(0)));
+    return {
+        data: data.reverse(),
+        xLabels: days,
+        yLabels: ys.reverse()
+    }
+}
+
+function getMonthlyData(dt: HistoricalDataResponse) {
     const ys = [...new Set(dt.history.day.map(j => dayjs(j.date).format('YYYY')))];
-    const afsd = [...Array<number[]>(12)].map(_ => Array<number>(ys.length).fill(0));
-
-    const rowsData = dt.history.day.reduce((acc: number[][], current) => {
+    const data = dt.history.day.reduce((acc: number[][], current) => {
         const year = dayjs(current.date).format('YYYY');
         const pm = ((current.close - current.open) / current.open);
         const month = dayjs(current.date).month();
         acc[month][ys.indexOf(year)] = pm;
-        // const row = (acc.find(j => j.id === months[month]) as any);
-        // row[`d${year}`] = pm.toFixed(2);
-        // row[`f${year}`] = percentageFormatter(pm);
-
-        // if (!years.includes(year)) years.push(year);
-        // acc
         return acc;
     }, [...Array<number[]>(12)].map(_ => Array<number>(ys.length).fill(0)));
-
-    // const columns: GridColDef[] = [
-    //     { field: 'id', width: 120, headerName: 'Month' },
-    //     ...years.map(j => {
-    //         return {
-    //             field: `d${j}`, width: 10, headerName: j, align: 'right',
-    //             valueFormatter: percentageFormatter,
-    //             type: 'number',
-    //             renderCell: (p) => <ConditionalFormattingBox value={p.value * 1000} formattedValue={p.formattedValue} />
-    //         } as GridColDef
-    //     })
-    // ]
-
-    return <Box sx={{ mt: 1 }}>
-        {/* <Typography variant="h6">Ticker: {props.symbol}</Typography> */}
-        <TickerSearchDialog {...props} />
-        <Divider />
-        <HeatComponent xLabels={ys} yLabels={months} data={rowsData} formatter='percent' />
-        {/* <TableContainer component={Paper} sx={{
-            width: 'auto', // Set width of the TableContainer to auto
-            maxWidth: '100%', // Optional: prevent it from exceeding the parent width
-            display: 'inline-block', // Make sure the container doesn't stretch
-            mt: 1
-        }}>
-            <Table size="small" sx={{
-                tableLayout: 'auto', // Allow table to auto-adjust to content
-                width: 'auto' // Ensure the table takes only the width it needs
-            }} padding='none'>
-                <TableHead>
-                    <TableRow >
-                        <TableCell sx={{ px: 1 }}>Month</TableCell>
-                        {
-                            years.map(c => <TableCell align="right" sx={{ px: 1 }} key={c}>{c}</TableCell>)
-                        }
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {rowsData.map((row: any) => (
-                        <TableRow
-                            key={row.id}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 }, padding: 0 }}
-                        >
-                            <TableCell component="th" scope="row" sx={{ width: 100, px: 1 }}>
-                                {row.id}
-                            </TableCell>
-                            {
-                                years.map(c => <TableCell key={c} align="right" sx={{ padding: 0, width: 80, height: '32px' }} padding="none">
-                                    {/* {row[`d${c}`]} */}
-        {/* <ConditionalFormattingBox value={row[`d${c}`] * 1000} formattedValue={row[`f${c}`]} />
-    </TableCell>)
-}
-                        </TableRow >
-                    ))}
-                </TableBody >
-            </Table >
-        </TableContainer > */} 
-        
-{/* <DataGrid rows={rowsData}
-            disableColumnMenu={true}
-            disableColumnFilter={true}
-            disableColumnSorting={true}
-            columns={columns}
-            density="compact"
-            disableRowSelectionOnClick
-            columnHeaderHeight={32}
-            rowHeight={32}
-            hideFooter={true}
-            showColumnVerticalBorder={true}
-            showCellVerticalBorder={true}
-            sx={{
-                [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-                    outline: 'none',
-                },
-                [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
-                {
-                    outline: 'none',
-                },
-                [`& .${gridClasses.columnHeader}`]:
-                {
-                    fontSize: '0.7rem',
-                    fontWeight: 500
-                },
-                [`& .${gridClasses.cell}`]:
-                {
-                    fontSize: '0.7rem',
-                    padding: 0
-                },
-            }}
-        /> */}
-
-    </Box >
+    return {
+        data,
+        xLabels: ys,
+        yLabels: months
+    }
 }

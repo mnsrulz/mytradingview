@@ -1,9 +1,10 @@
 import { HistoricalSeason } from '@/components/HistoricalSeason';
-import { TickerSearchNavigation } from '@/components/TickerSearchNavigation';
 import { getSeasonalView } from '@/lib/tradierService';
 
-export default async function Page({ params }: { params: { symbol: string } }) {
+export default async function Page({ params, searchParams }: { params: { symbol: string }, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { symbol } = params;
-    const dt = await getSeasonalView(symbol, '5y', 'monthly');
+    const p = await searchParams;
+    const mode = p['mode'] as string;
+    const dt = await (mode.toLowerCase() == 'daily' ? getSeasonalView(symbol, '1y', 'daily') : getSeasonalView(symbol, '5y', 'monthly'));
     return <HistoricalSeason data={dt} symbol={symbol} />;
 }
