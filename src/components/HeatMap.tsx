@@ -1,11 +1,9 @@
-import { HistoricalDataResponse } from "@/lib/types"
-import dayjs from "dayjs";
 import { ConditionalFormattingBox } from "./ConditionalFormattingBox";
 import { numberFormatter, percentageFormatter } from "@/lib/formatters";
-import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Divider } from "@mui/material";
-import { TickerSearchDialog } from "./TickerSearchDialog";
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 
 type MyProps = {
+    zeroHeaderLabel: string,
     xLabels: string[],
     yLabels: string[],
     data: number[][],
@@ -13,7 +11,7 @@ type MyProps = {
 }
 const formatters = { 'percent': percentageFormatter, number: numberFormatter }
 export const HeatMap = (props: MyProps) => {
-    const { xLabels, yLabels, data, formatter } = props;
+    const { xLabels, yLabels, data, formatter, zeroHeaderLabel } = props;
     const fmt = formatters[formatter];
     return <TableContainer component={Paper} sx={{
         width: 'auto', // Set width of the TableContainer to auto
@@ -27,7 +25,7 @@ export const HeatMap = (props: MyProps) => {
         }} padding='none'>
             <TableHead>
                 <TableRow key="tablehead-row">
-                    <TableCell key='month' sx={{ px: 1 }}>Month</TableCell>
+                    <TableCell key='month' sx={{ px: 1 }}>{zeroHeaderLabel}</TableCell>
                     {
                         xLabels.map(c => <TableCell align="right" sx={{ px: 1 }} key={c}>{c}</TableCell>)
                     }

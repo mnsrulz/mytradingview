@@ -102,7 +102,8 @@ function getDailyData(dt: HistoricalDataResponse) {
     return {
         data: data.reverse(),
         xLabels: days,
-        yLabels: ys.reverse()
+        yLabels: ys.reverse(),
+        zeroHeaderLabel: 'Week'
     }
 }
 
@@ -118,6 +119,7 @@ function getMonthlyData(dt: HistoricalDataResponse) {
     return {
         data,
         xLabels: ys,
-        yLabels: months
+        yLabels: months,
+        zeroHeaderLabel: 'Month'
     }
 }

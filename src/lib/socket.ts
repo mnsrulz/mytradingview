@@ -4,6 +4,7 @@ import { io } from 'socket.io-client';
 import ky from 'ky';
 import { NumberRange, OptionsInnerData, SearchTickerItem, StockPriceData, TradierOptionData } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
+import dayjs from 'dayjs';
 const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
 
 const URL = `https://mztrading-socket.deno.dev`
@@ -281,14 +282,15 @@ export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, da
                     dt: dataMode
                 }
             }).json<{ data: TradierOptionData[] }>().then(async r => {
-                const allDates = [...new Set(r.data.flatMap(j => j.options.option.map(s => s.expiration_date)))];
+                const filteredData = r.data.filter(r => dayjs(r.options.option.at(0)?.expiration_date) <= dayjs(dataMode).add(dte, 'day'));
+                const allDates = [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.expiration_date)))];
                 const { price } = await ky(`/api/symbols/${symbol}/historical`, {
                     searchParams: {
                         dt: dataMode
                     }
                 }).json<{ price: number }>();
-                const allStrikes = getCalculatedStrikes(price, sc, [...new Set(r.data.flatMap(j => j.options.option.map(s => s.strike)))]);
-                const finalResponse = calculateHedging(r.data, allStrikes, allDates, price);
+                const allStrikes = getCalculatedStrikes(price, sc, [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.strike)))]);
+                const finalResponse = calculateHedging(filteredData, allStrikes, allDates, price);
                 setOd(finalResponse.exposureData);
             }).finally(() => setIsLoading(false));
         }
