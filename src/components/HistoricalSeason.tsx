@@ -5,6 +5,7 @@ import { Box, Divider, FormControl, InputLabel, MenuItem, Select, Tab, Tabs } fr
 import { TickerSearchDialog } from "./TickerSearchDialog";
 import { HeatMap } from "./HeatMap";
 import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
+import { useRouter } from 'next/navigation';
 
 const months = [
     'January',
@@ -34,15 +35,17 @@ enum DataMode {
     Monthly = 'Monthly'
 }
 
-export const HistoricalSeason = (props: { data: HistoricalDataResponse, symbol: string }) => {
-    const [mode, setMode] = useQueryState<DataMode>('mode', parseAsStringEnum<DataMode>(Object.values(DataMode)).withDefault(DataMode.Monthly));
+export const HistoricalSeason = (props: { data: HistoricalDataResponse, symbol: string, mode: string }) => {
+    // const [mode, setMode] = useQueryState<DataMode>('mode', parseAsStringEnum<DataMode>(Object.values(DataMode)).withDefault(DataMode.Monthly));
+    const { mode } = props;
     const dt = props.data;
     const data = (mode == DataMode.Daily ? getDailyData : getMonthlyData)(dt);
+    const { push } = useRouter();
 
     return <Box sx={{ mt: 1 }}>
         <TickerSearchDialog {...props} />
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={mode} onChange={(e, v) => setMode(v)} variant="fullWidth" indicatorColor="secondary"
+            <Tabs value={mode} onChange={(e, v) => push(`?mode=${v}`)} variant="fullWidth" indicatorColor="secondary"
                 textColor="secondary">
                 <Tab label="Daily" value={'Daily'} />
                 <Tab label="Monthly" value='Monthly' />
