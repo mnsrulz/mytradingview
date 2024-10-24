@@ -7,6 +7,9 @@ import { HeatMap } from "./HeatMap";
 import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 import { useRouter } from 'next/navigation';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import utc from 'dayjs/plugin/utc' // ES 2015
+
+dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
 const months = [
@@ -71,8 +74,8 @@ export const HistoricalSeason = (props: { data: HistoricalDataResponse, symbol: 
 
 function getDailyData(dt: HistoricalDataResponse) {
     if (dt.history.day.length < 2) throw new Error('not enough data...');
-    const startDate = dayjs(dt.history.day.at(0)?.date, 'YYYY-MM-DD', true);
-    const endDate = dayjs(dt.history.day.at(-1)?.date, 'YYYY-MM-DD', true);
+    const startDate = dayjs.utc(dt.history.day.at(0)?.date, 'YYYY-MM-DD', true);
+    const endDate = dayjs.utc(dt.history.day.at(-1)?.date, 'YYYY-MM-DD', true);
     const firstMonday = startDate.subtract(startDate.day() - 1);
     const numberOfWeeks = endDate.diff(startDate, 'w') + 1;
     const ys = [...Array(numberOfWeeks).keys()].reduce((j: string[], c) => {
@@ -85,7 +88,7 @@ function getDailyData(dt: HistoricalDataResponse) {
     const data = dt.history.day.reduce((acc: number[][], current) => {
         const lp = lastClosingPrice || current.open
         const pm = ((current.close - lp) / lp);
-        const currentItemDate = dayjs(current.date, 'YYYY-MM-DD', true)
+        const currentItemDate = dayjs.utc(current.date, 'YYYY-MM-DD', true)
         const dayOfWeek = currentItemDate.day() - 1;
         const weekNumber = currentItemDate.diff(firstMonday, 'w');
         acc[weekNumber][dayOfWeek] = pm;
