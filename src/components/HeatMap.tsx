@@ -11,7 +11,7 @@ type MyProps = {
     data: number[][],
     formatter: 'percent' | 'number'
 }
-const formatters = {'percent': percentageFormatter, number: numberFormatter}
+const formatters = { 'percent': percentageFormatter, number: numberFormatter }
 export const HeatMap = (props: MyProps) => {
     const { xLabels, yLabels, data, formatter } = props;
     const fmt = formatters[formatter];
@@ -39,11 +39,11 @@ export const HeatMap = (props: MyProps) => {
                         key={`row-${ix}`}
                         sx={{ '&:last-child td, &:last-child th': { border: 0 }, padding: 0 }}
                     >
-                        <TableCell key={`${ix}-${yLabels[ix]}`} component="th" scope="row" sx={{ width: 100, px: 1 }}>
+                        <TableCell key={`${ix}-${yLabels[ix]}`} component="th" scope="row" sx={{ flex: 1, px: 1, textAlign: 'right' }}>
                             {yLabels[ix]}
                         </TableCell>
                         {
-                            row.map((c, ixx) => <TableCell key={`${ix}-${ixx}`} align="right" sx={{ padding: 0, width: 80, height: '32px' }} padding="none">
+                            row.map((c, ixx) => <TableCell key={`${ix}-${ixx}`} align="right" sx={{ flex: 1, height: '32px' }}>
                                 {/* {row[`d${c}`]} */}
                                 <ConditionalFormattingBox value={c * 1000} formattedValue={`${fmt(c)}`} />
                             </TableCell>)

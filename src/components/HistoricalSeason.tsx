@@ -11,26 +11,26 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
 
 const months = [
-    'January',
-    'February',
-    'March',
-    'April',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
     'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
 ];
 
 const days = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday'
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri'
 ]
 
 enum DataMode {
@@ -77,7 +77,7 @@ function getDailyData(dt: HistoricalDataResponse) {
     const firstMonday = dayjs(startDate.subtract(startDate.day() - 1).format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
     const numberOfWeeks = endDate.diff(startDate, 'w') + 1;
     const ys = [...Array(numberOfWeeks).keys()].reduce((j: string[], c) => {
-        j.push(`${firstMonday.add(c, 'w').format('DD MMM YYYY')}`);
+        j.push(`${firstMonday.add(c, 'w').format('DD MMM YY')}`);
         return j;
     }, []);
     let lastClosingPrice = 0;
