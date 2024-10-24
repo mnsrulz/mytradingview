@@ -43,7 +43,7 @@ export const HeatMap = (props: MyProps) => {
                             {yLabels[ix]}
                         </TableCell>
                         {
-                            row.map(c => <TableCell key={`${ix}-${c}`} align="right" sx={{ padding: 0, width: 80, height: '32px' }} padding="none">
+                            row.map((c, ixx) => <TableCell key={`${ix}-${ixx}`} align="right" sx={{ padding: 0, width: 80, height: '32px' }} padding="none">
                                 {/* {row[`d${c}`]} */}
                                 <ConditionalFormattingBox value={c * 1000} formattedValue={`${fmt(c)}`} />
                             </TableCell>)
