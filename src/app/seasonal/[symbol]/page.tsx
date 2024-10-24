@@ -5,6 +5,6 @@ export default async function Page({ params, searchParams }: { params: { symbol:
     const { symbol } = params;
     const p = await searchParams;
     const mode = p['mode'] as string;
-    const dt = await (mode.toLowerCase() == 'daily' ? getSeasonalView(symbol, '1y', 'daily') : getSeasonalView(symbol, '5y', 'monthly'));
+    const dt = await (mode?.toLowerCase() == 'daily' ? getSeasonalView(symbol, '1y', 'daily') : getSeasonalView(symbol, '5y', 'monthly'));
     return <HistoricalSeason data={dt} symbol={symbol} />;
 }
