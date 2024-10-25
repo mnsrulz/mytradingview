@@ -74,7 +74,7 @@ function getDailyData(dt: HistoricalDataResponse) {
     if (dt.history.day.length < 2) throw new Error('not enough data...');
     const startDate = dayjs(dt.history.day.at(0)?.date, 'YYYY-MM-DD', true);
     const endDate = dayjs(dt.history.day.at(-1)?.date, 'YYYY-MM-DD', true);
-    const firstMonday = dayjs(startDate.subtract(startDate.day() - 1).format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+    const firstMonday = startDate.subtract(startDate.day() - 1, 'd');
     const numberOfWeeks = endDate.diff(startDate, 'w') + 1;
     const ys = [...Array(numberOfWeeks).keys()].reduce((j: string[], c) => {
         j.push(`${firstMonday.add(c, 'w').format('DD MMM YY')}`);
@@ -82,6 +82,7 @@ function getDailyData(dt: HistoricalDataResponse) {
     }, []);
     let lastClosingPrice = 0;
 
+    // console.log(`startDate: ${startDate.format('YYYY-MM-DD')}  dayOfWeek: ${startDate.day()} ${startDate.subtract(startDate.day() - 1, 'd')}`);
     // console.log(`firstMonday: ${firstMonday.toISOString()} ${firstMonday.format('YYYY-MM-DD')}`);
     // console.log(`startDate: ${startDate.toISOString()} ${startDate.format('YYYY-MM-DD')}`);
 
