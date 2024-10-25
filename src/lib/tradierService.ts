@@ -104,13 +104,27 @@ export const getPriceAtDate = async (s: string, dt: string) => {
 
 export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly') => {
     const years = parseInt(duration.substring(0, 1));
-    const startDay = dayjs().startOf('year').subtract(years, 'year').format('YYYY-MM-DD')
+    let startDay: string = '';
+    let endDay: string = '';
+
+    switch (interval) {
+        case 'daily':
+            startDay = dayjs().subtract(years, 'year').format('YYYY-MM-DD');
+            endDay = dayjs().format('YYYY-MM-DD');
+            break;
+        default:
+            startDay = dayjs().startOf('year').subtract(years, 'year').format('YYYY-MM-DD');
+            endDay = dayjs().startOf('month').format('YYYY-MM-DD')
+            break;
+    }
+
+    console.log(`fetching data for ${startDay} - ${endDay}`)
     const result = await client(historical, {
         searchParams: {
             'symbol': s,
             'interval': interval,
             'start': startDay,
-            'end': dayjs().startOf('month').format('YYYY-MM-DD'), //dayjs(dt.substring(0, 10)).add(1, 'days').format('YYYY-MM-DD'),
+            'end': endDay, //dayjs(dt.substring(0, 10)).add(1, 'days').format('YYYY-MM-DD'),
             'session_filter': 'all'
         }
     }).json<HistoricalDataResponse>();
