@@ -41,10 +41,10 @@ async function getEarningsView(symbol: string) {
         const closePercentage = ((data[ix].close - lp) / lp);
         const openPercentage = ((data[ix].open - lp) / lp);
 
-        const nextOpenPercentage = data.length > ix ? ((data[ix + 1].open - data[ix].close) / data[ix].close) : undefined;
-        const nextClosePercentage = data.length > ix ? ((data[ix + 1].close - data[ix].close) / data[ix].close) : undefined;
-        const nextOpen = data.length > ix ? data[ix + 1].open : undefined;
-        const nextClose = data.length > ix ? data[ix + 1].close : undefined;
+        const nextOpenPercentage = data.length > ix + 1 ? ((data[ix + 1].open - data[ix].close) / data[ix].close) : undefined;
+        const nextClosePercentage = data.length > ix + 1 ? ((data[ix + 1].close - data[ix].close) / data[ix].close) : undefined;
+        const nextOpen = data.length > ix + 1 ? data[ix + 1].open : undefined;
+        const nextClose = data.length > ix + 1 ? data[ix + 1].close : undefined;
 
         entries.push({
             open: data[ix].open,

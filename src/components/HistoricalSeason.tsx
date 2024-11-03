@@ -67,14 +67,27 @@ const cssFn = (v: any) => {
     return v > 0 ? 'positive' : 'negative';
 }
 
+
+
 export const EarningsSeasonComponent = (props: { data: EarningsSeason[], symbol: string, mode: string }) => {
     const { data } = props;
+    const cellRenderer = (price?: number, change?: number) => {
+        let returnValue = '';
+        if (price) {
+            returnValue += currencyFormatter(price);
+            if (change) {
+                returnValue += ` (${percentageFormatter(change)})`;
+            }
+        }
+        return returnValue;        
+    }
+
     const columns: GridColDef<EarningsSeason>[] = [
         { field: 'date', headerName: 'Date' },
-        { field: 'openPercentage', headerName: 'Open', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.open)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
-        { field: 'closePercentage', headerName: 'Close', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.close)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
-        { field: 'nextOpenPercentage', headerName: 'Next Day Open', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.nextOpen || 0)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
-        { field: 'nextClosePercentage', headerName: 'Next Day Close', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.nextClose || 0)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
+        { field: 'openPercentage', headerName: 'Open', type: 'number', valueFormatter: (v: number, row) => cellRenderer(row.open, v), width: 160, cellClassName: ({ value }) => cssFn(value) },
+        { field: 'closePercentage', headerName: 'Close', type: 'number', valueFormatter: (v: number, row) => cellRenderer(row.close, v), width: 160, cellClassName: ({ value }) => cssFn(value) },
+        { field: 'nextOpenPercentage', headerName: 'Next Day Open', type: 'number', valueFormatter: (v: number, row) => cellRenderer(row.nextOpen, v), width: 160, cellClassName: ({ value }) => cssFn(value) },
+        { field: 'nextClosePercentage', headerName: 'Next Day Close', type: 'number', valueFormatter: (v: number, row) => cellRenderer(row.nextClose, v), width: 160, cellClassName: ({ value }) => cssFn(value) },
     ];
     return data.length > 0 ? <DataGrid
         sx={{
