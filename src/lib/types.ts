@@ -93,3 +93,15 @@ type HistoricalData = {
 export type HistoricalDataResponse = {
   history: HistoricalData;
 };
+
+export type EarningsSeason = {
+  open: number,
+  close: number,
+  closePercentage: number;
+  openPercentage: number;
+  nextClosePercentage?: number;
+  nextOpenPercentage?: number;
+  nextClose?: number;
+  nextOpen?: number;
+  date: string; 
+}

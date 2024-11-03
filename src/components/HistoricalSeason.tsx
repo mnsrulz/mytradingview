@@ -1,12 +1,14 @@
 'use client';
-import { HistoricalDataResponse } from "@/lib/types"
+import { HistoricalDataResponse, EarningsSeason } from "@/lib/types"
 import dayjs from "dayjs";
-import { Box, Divider, FormControl, InputLabel, MenuItem, Select, Tab, Tabs } from "@mui/material";
+import { Box, Divider, FormControl, Grid, InputLabel, MenuItem, Select, Tab, Tabs } from "@mui/material";
 import { TickerSearchDialog } from "./TickerSearchDialog";
 import { HeatMap } from "./HeatMap";
 import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 import { useRouter } from 'next/navigation';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { currencyFormatter, percentageFormatter } from "@/lib/formatters";
 
 dayjs.extend(customParseFormat);
 
@@ -35,39 +37,74 @@ const days = [
 
 enum DataMode {
     Daily = 'Daily',
-    Monthly = 'Monthly'
+    Monthly = 'Monthly',
+    Earnings = 'Earnings'
+}
+
+export const SeasonHeader = (props: { symbol: string, mode: string }) => {
+    const { mode } = props;
+    const { push } = useRouter();
+    return <><TickerSearchDialog {...props} />
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={mode} onChange={(e, v) => push(`?mode=${v}`)} variant="fullWidth" indicatorColor="secondary"
+                textColor="secondary">
+                <Tab label="Daily" value='Daily' />
+                <Tab label="Monthly" value='Monthly' />
+                <Tab label="Earnings" value='Earnings' />
+            </Tabs>
+        </Box></>
 }
 
 export const HistoricalSeason = (props: { data: HistoricalDataResponse, symbol: string, mode: string }) => {
     // const [mode, setMode] = useQueryState<DataMode>('mode', parseAsStringEnum<DataMode>(Object.values(DataMode)).withDefault(DataMode.Monthly));
     const { mode } = props;
     const dt = props.data;
-    const data = (mode == DataMode.Daily ? getDailyData : getMonthlyData)(dt);
-    const { push } = useRouter();
+    const data = getHistoricalData(mode, dt);
+    return <HeatMap {...data} formatter='percent' />;
+}
 
-    return <Box sx={{ mt: 1 }}>
-        <TickerSearchDialog {...props} />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={mode} onChange={(e, v) => push(`?mode=${v}`)} variant="fullWidth" indicatorColor="secondary"
-                textColor="secondary">
-                <Tab label="Daily" value={'Daily'} />
-                <Tab label="Monthly" value='Monthly' />
-            </Tabs>
-        </Box>
-        {/* <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-            <InputLabel>Data Mode</InputLabel>
-            <Select
-                value={mode}
-                label="Data Mode"
-                onChange={(e) => setMode(e.target.value as DataMode)}
-            >
-                <MenuItem key="Daily" value="Daily">Daily</MenuItem>
-                <MenuItem key="Monthly" value="Monthly">Monthly</MenuItem>
-            </Select>
-        </FormControl> */}
-        <Divider />
-        <HeatMap {...data} formatter='percent' />
-    </Box >
+const cssFn = (v: any) => {
+    return v > 0 ? 'positive' : 'negative';
+}
+
+export const EarningsSeasonComponent = (props: { data: EarningsSeason[], symbol: string, mode: string }) => {
+    const { data } = props;
+    const columns: GridColDef<EarningsSeason>[] = [
+        { field: 'date', headerName: 'Date' },
+        { field: 'openPercentage', headerName: 'Open', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.open)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
+        { field: 'closePercentage', headerName: 'Close', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.close)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
+        { field: 'nextOpenPercentage', headerName: 'Next Day Open', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.nextOpen || 0)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
+        { field: 'nextClosePercentage', headerName: 'Next Day Close', type: 'number', valueFormatter: (v: number, row) => `${currencyFormatter(row.nextClose || 0)} (${percentageFormatter(v)})`, width: 160, cellClassName: ({ value }) => cssFn(value) },
+    ];
+    return data.length > 0 ? <DataGrid
+        sx={{
+            border: 0,
+            '& .positive': {
+                color: 'green'
+            },
+            '& .negative': {
+                color: 'red'
+            }
+        }}
+        density="compact"
+        getRowId={(r: EarningsSeason) => r.date}
+        rows={data}
+        columns={columns}
+        disableRowSelectionOnClick
+    /> : <span>There is no earnings data for this symbol.</span>;
+}
+
+function getHistoricalData(mode: string, data: HistoricalDataResponse) {
+    switch (mode) {
+        case DataMode.Daily:
+            return getDailyData(data);
+        case DataMode.Monthly:
+            return getMonthlyData(data);
+        case DataMode.Earnings:
+            return getDailyData(data);
+        default:
+            throw new Error('invalid mode supplied');
+    }
 }
 
 function getDailyData(dt: HistoricalDataResponse) {

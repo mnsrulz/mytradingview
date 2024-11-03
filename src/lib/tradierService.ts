@@ -7,6 +7,7 @@ const lookup = `${tradierBaseUri}v1/markets/lookup`;
 const historical = `${tradierBaseUri}v1/markets/history`;
 const optionsExpiration = `${tradierBaseUri}v1/markets/options/expirations`;
 const getQuotes = `${tradierBaseUri}v1/markets/quotes`;
+const calendars = `${tradierBaseUri}beta/markets/fundamentals/calendars`;
 
 type Symbol = {
     symbol: string,
@@ -17,6 +18,46 @@ type LookupSymbolResponse = {
     securities: {
         security: Symbol | Symbol[]
     }
+}
+
+interface CorporateCalendar {
+    company_id: string;
+    begin_date_time: string;
+    end_date_time: string;
+    event_type: number;
+    estimated_date_for_next_event: string;
+    event: string;
+    event_fiscal_year: number;
+    event_status: string;
+    time_zone: string;
+}
+
+interface Company {
+    type: string;
+    id: string;
+    tables: {
+        corporate_calendars: CorporateCalendar[] | null;
+    };
+}
+
+interface Result {
+    type: string;
+    id: string;
+    tables: {
+        corporate_calendars: CorporateCalendar[] | null;
+    };
+}
+
+interface Request {
+    request: string;
+    type: string;
+    results: Result[];
+}
+
+interface CorporateCalendarResponse {
+    request: string;
+    type: string;
+    results: Result[];
 }
 
 
@@ -102,7 +143,7 @@ export const getPriceAtDate = async (s: string, dt: string) => {
     throw new Error('unable to determine price');
 }
 
-export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly') => {
+export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly' | 'earnings') => {
     const years = parseInt(duration.substring(0, 1));
     let startDay: string = '';
     let endDay: string = '';
@@ -118,7 +159,6 @@ export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | 
             break;
     }
 
-    console.log(`fetching data for ${startDay} - ${endDay}`)
     const result = await client(historical, {
         searchParams: {
             'symbol': s,
@@ -129,4 +169,20 @@ export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | 
         }
     }).json<HistoricalDataResponse>();
     return result;
+}
+
+export const getEarningDates = async (symbol: string) => {
+    const calendar = await client(calendars, {
+        searchParams: {
+            'symbols': symbol
+        }
+    }).json<CorporateCalendarResponse[]>();
+    const earnings = calendar[0].results.flatMap(j => j.tables.corporate_calendars).filter(j => j != null)
+        //.filter(j => j.event_type == 14)
+        .filter(j => j.event_status == 'Confirmed')
+        .filter(j => j.event.includes('Quarter Earnings Result'))   //should there a  better way to filter?
+        .toSorted((j, k) => j.begin_date_time.localeCompare(k.begin_date_time))
+        .map(({ begin_date_time, event_type, event }) => ({ begin_date_time, event_type, event })); //9
+
+    return earnings;
 }
