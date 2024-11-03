@@ -32,19 +32,11 @@ interface CorporateCalendar {
     time_zone: string;
 }
 
-interface Company {
-    type: string;
-    id: string;
-    tables: {
-        corporate_calendars: CorporateCalendar[] | null;
-    };
-}
-
 interface Result {
     type: string;
     id: string;
     tables: {
-        corporate_calendars: CorporateCalendar[] | null;
+        corporate_calendars: CorporateCalendar[];
     };
 }
 
@@ -177,10 +169,11 @@ export const getEarningDates = async (symbol: string) => {
             'symbols': symbol
         }
     }).json<CorporateCalendarResponse[]>();
-    const earnings = calendar[0].results.flatMap(j => j.tables.corporate_calendars).filter(j => j != null)
+    const earnings = calendar[0].results.flatMap(j => j.tables.corporate_calendars)
+        // .filter(j => j != null)
+        // .filter(j => j != undefined)
         //.filter(j => j.event_type == 14)
-        .filter(j => j.event_status == 'Confirmed')
-        .filter(j => j.event.includes('Quarter Earnings Result'))   //should there a  better way to filter?
+        .filter(j => j && j.event_status == 'Confirmed' && j.event.includes('Quarter Earnings Result'))  //should there a  better way to filter?        
         .toSorted((j, k) => j.begin_date_time.localeCompare(k.begin_date_time))
         .map(({ begin_date_time, event_type, event }) => ({ begin_date_time, event_type, event })); //9
 
