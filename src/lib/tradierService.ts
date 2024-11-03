@@ -174,7 +174,7 @@ export const getEarningDates = async (symbol: string) => {
         // .filter(j => j != undefined)
         //.filter(j => j.event_type == 14)
         .filter(j => j && j.event_status == 'Confirmed' && j.event.includes('Quarter Earnings Result'))  //should there a  better way to filter?        
-        .toSorted((j, k) => j.begin_date_time.localeCompare(k.begin_date_time))
+        .sort((j, k) => j.begin_date_time.localeCompare(k.begin_date_time))
         .map(({ begin_date_time, event_type, event }) => ({ begin_date_time, event_type, event })); //9
 
     return earnings;
