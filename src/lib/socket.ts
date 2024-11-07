@@ -147,7 +147,9 @@ export type OptionsHedgingData = {
     //data: { puts: number[], calls: number[], data: number[] },
     currentPrice: number,
     deltaDataset: GammaDeltaDatasetType,
-    gammaDataset: GammaDeltaDatasetType
+    gammaDataset: GammaDeltaDatasetType,
+    oiDataset: GammaDeltaDatasetType,
+    volumeDataset: GammaDeltaDatasetType,
 }
 
 export const useOptionTracker = (symbol: string) => {

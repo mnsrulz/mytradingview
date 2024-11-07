@@ -18,14 +18,22 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
     // const model: Record<number, { puts: number[], calls: number[], data: number[] }> = {};
     const dmodel: OptionsHedgingDataset[] = [];
     const gmodel: OptionsHedgingDataset[] = [];
-    let maxPosition = 0, gmaxPosition = 0;
+    const oimodel: OptionsHedgingDataset[] = [];
+    const volumemodel: OptionsHedgingDataset[] = [];
+    let dmaxPosition = 0, gmaxPosition = 0, oimaxPosition = 0, volumemaxPosition = 0;
     for (const sp of allStrikes) {
         const deltaExposure: OptionsHedgingDataset = { strike: sp };
         const gammaExposure: OptionsHedgingDataset = { strike: sp };
+        const oi: OptionsHedgingDataset = { strike: sp };
+        const volume: OptionsHedgingDataset = { strike: sp };
         let sumOfPv = 0, sumOfCv = 0;
         let sumOfGPv = 0, sumOfGCv = 0;
+        let sumOfOpenInterestPv = 0, sumOfOpenInterestCv = 0;
+        let sumOfVolumePv = 0, sumOfVolumeCv = 0;
         dmodel.push(deltaExposure);
         gmodel.push(gammaExposure);
+        oimodel.push(oi);
+        volumemodel.push(volume);
         // model[sp] = {
         //   calls: [],
         //   puts: [],
@@ -44,8 +52,20 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
             // model[sp].puts.push(pv);
             // model[sp].data.push(-cv, pv);
 
+            const oicv = cv_o?.open_interest || 0;
+            const oipv = pv_o?.open_interest || 0;
+
+            const volumecv = cv_o?.volume || 0;
+            const volumepv = pv_o?.volume || 0;
+
             deltaExposure[`${dt}-call`] = -cv;
             deltaExposure[`${dt}-put`] = -pv;
+
+            oi[`${dt}-call`] = -oicv;
+            oi[`${dt}-put`] = oipv;
+
+            volume[`${dt}-call`] = -volumecv;
+            volume[`${dt}-put`] = volumepv;
 
             const gv = gcv - gpv;
 
@@ -62,9 +82,17 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
 
             sumOfGPv = sumOfGPv + Math.abs(gpv);
             sumOfGCv = sumOfGCv + Math.abs(gcv);
+
+            sumOfOpenInterestCv = sumOfOpenInterestCv + Math.abs(oicv);
+            sumOfOpenInterestPv = sumOfOpenInterestPv + Math.abs(oipv);
+            
+            sumOfVolumeCv = sumOfVolumeCv + Math.abs(volumecv);
+            sumOfVolumePv = sumOfVolumePv + Math.abs(volumepv);
         }
-        maxPosition = Math.max(maxPosition, sumOfPv, sumOfCv);
-        gmaxPosition = Math.max(gmaxPosition, sumOfGPv, sumOfGCv);
+        dmaxPosition = Math.max(dmaxPosition, sumOfPv, sumOfCv);
+        gmaxPosition = Math.max(gmaxPosition, sumOfGPv, sumOfGCv);        
+        oimaxPosition = Math.max(oimaxPosition, sumOfOpenInterestPv, sumOfOpenInterestCv);
+        volumemaxPosition = Math.max(volumemaxPosition, sumOfVolumePv, sumOfVolumeCv);
     }
 
     const finalResponse = {
@@ -72,14 +100,21 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
             expirations: allDates,
             strikes: allStrikes,
             currentPrice,
-            maxPosition,
             deltaDataset: {
                 dataset: dmodel,
-                maxPosition
+                maxPosition: dmaxPosition
             },
             gammaDataset: {
                 dataset: gmodel,
                 maxPosition: gmaxPosition
+            },
+            oiDataset: {
+                dataset: oimodel,
+                maxPosition: oimaxPosition
+            },
+            volumeDataset: {
+                dataset: volumemodel,
+                maxPosition: volumemaxPosition
             }
         },
         raw: allOptionChains

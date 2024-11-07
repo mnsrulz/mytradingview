@@ -14,15 +14,24 @@ interface ITickerProps {
 }
 
 const colorCodes = getColorPallete();
-
+type OptionsDatasetType = "dex" | "gex" | "oi" | "volume"
 enum DexGexType {
     'DEX' = 'DEX',
-    'GEX' = 'GEX'
+    'GEX' = 'GEX',
+    'OI' = 'OI',
+    'VOLUME' = 'VOLUME'
+}
+
+const typeMap = {
+    'DEX': 'dex' as OptionsDatasetType,
+    'GEX': 'gex' as OptionsDatasetType,
+    'OI': 'oi' as OptionsDatasetType,
+    'VOLUME': 'volume' as OptionsDatasetType
 }
 
 interface IExpo {
     data: OptionsHedgingData,
-    exposure: 'dex' | 'gex',
+    exposure: OptionsDatasetType,
     symbol: string,
     dte: number,
     skipAnimation?: boolean
@@ -40,9 +49,37 @@ export const Expo = (props: IExpo) => {
             dataKey: `${j}-put`, label: `${j}`, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
         }]
     });
-    const gammaOrDelta = (props.exposure == 'dex' ? 'ABS Delta' : 'NET Gamma')
 
-    const { dataset, maxPosition } = props.exposure == 'dex' ? data.deltaDataset : data.gammaDataset;
+    const fn = () => {
+        switch (props.exposure) {
+            case 'dex':
+                return {
+                    gammaOrDelta: 'ABS Delta',
+                    ds: data.deltaDataset
+                }
+            case 'gex':
+                return {
+                    gammaOrDelta: 'NET Gamma',
+                    ds: data.gammaDataset
+                }
+
+            case 'oi':
+                return {
+                    gammaOrDelta: 'Open interest',
+                    ds: data.oiDataset
+                }
+            case 'volume':
+                return {
+                    gammaOrDelta: 'Volume',
+                    ds: data.volumeDataset
+                }
+        }
+    }
+
+    // const gammaOrDelta = (props.exposure == 'dex' ? 'ABS Delta' : 'NET Gamma');
+    // const { dataset, maxPosition } = props.exposure == 'dex' ? data.deltaDataset : data.gammaDataset;
+    const { gammaOrDelta, ds } = fn();
+    const { dataset, maxPosition } = ds;
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} Hedging Exposure (${dte} DTE)`;
     return <Paper><Typography variant="h6" align="center" gutterBottom>
         {title}
@@ -116,6 +153,7 @@ export const Expo = (props: IExpo) => {
         </BarChart></Paper>
 }
 
+
 export const DeltaGammaHedging = (props: ITickerProps) => {
     const { onClose } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
@@ -132,7 +170,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     return (
         <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" >
             <DialogContent style={{ padding: '8px' }}>
-            {!printMode && (<Box>
+                {!printMode && (<Box>
                     <FormControl sx={{ marginTop: 1 }} size="small">
                         <InputLabel>DTE</InputLabel>
                         <Select
@@ -182,22 +220,24 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                             }
                         </Select>
                     </FormControl>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs
-                        value={gexTab}
-                        onChange={(e, v) => setGexTab(v)}
-                        indicatorColor="secondary"
-                        textColor="inherit"
-                        variant="fullWidth"
-                        aria-label="full width tabs example"
-                    >
-                        <Tab label="Dex" value={'DEX'}></Tab>
-                        <Tab label="Gex" value={'GEX'}></Tab>
-                    </Tabs>
-                </Box>
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                        <Tabs
+                            value={gexTab}
+                            onChange={(e, v) => setGexTab(v)}
+                            indicatorColor="secondary"
+                            textColor="inherit"
+                            variant="fullWidth"
+                            aria-label="full width tabs example"
+                        >
+                            <Tab label="Dex" value={'DEX'}></Tab>
+                            <Tab label="Gex" value={'GEX'}></Tab>
+                            <Tab label="Open Interest" value={'OI'}></Tab>
+                            <Tab label="Volume" value={'VOLUME'}></Tab>
+                        </Tabs>
+                    </Box>
                 </Box>)}
                 {
-                    isLoading ? <LinearProgress /> : data ? <Expo data={data} exposure={gexTab == DexGexType.DEX ? 'dex' : 'gex'} symbol={props.symbol} dte={dte} skipAnimation={props.skipAnimation} /> : <div>no data...</div>
+                    isLoading ? <LinearProgress /> : data ? <Expo data={data} exposure={typeMap[gexTab]} symbol={props.symbol} dte={dte} skipAnimation={props.skipAnimation} /> : <div>no data...</div>
                 }
             </DialogContent>
             {!printMode && (<DialogActions>
