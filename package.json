@@ -7,6 +7,7 @@
     "pgen": "prisma generate",
     "pmigrate": "prisma migrate dev",
     "dev": "next dev",
+    "devtz": "TZ=utc next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

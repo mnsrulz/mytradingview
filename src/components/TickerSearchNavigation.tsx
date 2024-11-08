@@ -1,6 +1,6 @@
 'use client';
 import { TickerSearch } from '@/components/TickerSearch';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ITickerProps {
     basePath: string,
@@ -9,5 +9,12 @@ interface ITickerProps {
 
 export const TickerSearchNavigation = (props: ITickerProps) => {
     const router = useRouter();
-    return <TickerSearch onChange={(v) => router.push(`${props.basePath}/${v.symbol}`)} />
+    const searchParams = useSearchParams();
+    const searchQuery = searchParams.toString();
+
+    return <TickerSearch onChange={(v) => {
+        let pathToPush = `${props.basePath}/${v.symbol}`;
+        if (searchQuery) pathToPush = `${pathToPush}?${searchQuery}`
+        router.push(pathToPush);
+    }} />
 }

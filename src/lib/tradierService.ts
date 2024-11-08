@@ -7,6 +7,7 @@ const lookup = `${tradierBaseUri}v1/markets/lookup`;
 const historical = `${tradierBaseUri}v1/markets/history`;
 const optionsExpiration = `${tradierBaseUri}v1/markets/options/expirations`;
 const getQuotes = `${tradierBaseUri}v1/markets/quotes`;
+const calendars = `${tradierBaseUri}beta/markets/fundamentals/calendars`;
 
 type Symbol = {
     symbol: string,
@@ -17,6 +18,38 @@ type LookupSymbolResponse = {
     securities: {
         security: Symbol | Symbol[]
     }
+}
+
+interface CorporateCalendar {
+    company_id: string;
+    begin_date_time: string;
+    end_date_time: string;
+    event_type: number;
+    estimated_date_for_next_event: string;
+    event: string;
+    event_fiscal_year: number;
+    event_status: string;
+    time_zone: string;
+}
+
+interface Result {
+    type: string;
+    id: string;
+    tables: {
+        corporate_calendars: CorporateCalendar[];
+    };
+}
+
+interface Request {
+    request: string;
+    type: string;
+    results: Result[];
+}
+
+interface CorporateCalendarResponse {
+    request: string;
+    type: string;
+    results: Result[];
 }
 
 
@@ -102,17 +135,47 @@ export const getPriceAtDate = async (s: string, dt: string) => {
     throw new Error('unable to determine price');
 }
 
-export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly') => {
+export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly' | 'earnings') => {
     const years = parseInt(duration.substring(0, 1));
-    const startDay = dayjs().startOf('year').subtract(years, 'year').format('YYYY-MM-DD')
+    let startDay: string = '';
+    let endDay: string = '';
+
+    switch (interval) {
+        case 'daily':
+            startDay = dayjs().subtract(years, 'year').format('YYYY-MM-DD');
+            endDay = dayjs().format('YYYY-MM-DD');
+            break;
+        default:
+            startDay = dayjs().startOf('year').subtract(years, 'year').format('YYYY-MM-DD');
+            endDay = dayjs().startOf('month').format('YYYY-MM-DD')
+            break;
+    }
+
     const result = await client(historical, {
         searchParams: {
             'symbol': s,
             'interval': interval,
             'start': startDay,
-            'end': dayjs().startOf('month').format('YYYY-MM-DD'), //dayjs(dt.substring(0, 10)).add(1, 'days').format('YYYY-MM-DD'),
+            'end': endDay, //dayjs(dt.substring(0, 10)).add(1, 'days').format('YYYY-MM-DD'),
             'session_filter': 'all'
         }
     }).json<HistoricalDataResponse>();
     return result;
+}
+
+export const getEarningDates = async (symbol: string) => {
+    const calendar = await client(calendars, {
+        searchParams: {
+            'symbols': symbol
+        }
+    }).json<CorporateCalendarResponse[]>();
+    const earnings = calendar[0].results.flatMap(j => j.tables.corporate_calendars)
+        // .filter(j => j != null)
+        // .filter(j => j != undefined)
+        //.filter(j => j.event_type == 14)
+        .filter(j => j && j.event_status == 'Confirmed' && j.event.includes('Quarter Earnings Result'))  //should there a  better way to filter?        
+        .sort((j, k) => j.begin_date_time.localeCompare(k.begin_date_time))
+        .map(({ begin_date_time, event_type, event }) => ({ begin_date_time, event_type, event })); //9
+
+    return earnings;
 }

@@ -38,6 +38,10 @@ export type TradierOptionData = {
       option: {
         strike: number,
         open_interest: number,
+        bid: number,
+        ask: number,
+        last: number,
+        volume: number,
         expiration_date: string,
         option_type: 'put' | 'call',
         greeks: {
@@ -93,3 +97,19 @@ type HistoricalData = {
 export type HistoricalDataResponse = {
   history: HistoricalData;
 };
+
+export type EarningsSeason = {
+  open: number,
+  close: number,
+  closePercentage: number;
+  openPercentage: number;
+  nextClosePercentage?: number;
+  nextOpenPercentage?: number;
+  nextClose?: number;
+  nextOpen?: number;
+  date: string; 
+}
+
+export type ABCType = { ask: number, bid: number, last: number, volume: number, open_interest: number, strike: number, greeks: { delta: number, gamma: number } };
+export type minimap = { a: number, b: number, l: number, v: number, oi: number, s: number, g: { d: number, g: number } };
+export type XYZType = {date: string, dte: number, c: minimap[],  p: minimap[]};
