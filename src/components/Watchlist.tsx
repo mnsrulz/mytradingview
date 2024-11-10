@@ -2,7 +2,7 @@
 import * as React from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
-import { Button, Dialog, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import { Button, Dialog, DialogContent, DialogTitle, FormControl, MenuItem, Select } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
 import { StockTickerSymbolView, StockTickerView } from './StockTicker';
@@ -14,6 +14,7 @@ import { TickerSearch } from './TickerSearch';
 import { TradingViewWidgetDialog } from './TradingViewWidgetDialog';
 import { subscribeStockPriceBatchRequest } from '@/lib/socket';
 import collect from 'collect.js';
+import { useMyLocalWatchList } from '@/lib/hooks';
 
 interface IWatchlistProps {
   tickers: SearchTickerItem[]
@@ -23,18 +24,20 @@ interface IWatchlistProps {
 }
 
 export const Watchlist = (props: IWatchlistProps) => {
-  const { tickers, removFromWatchlist, loading, addToWatchlist } = props;
+  const { tickers, loading, addToWatchlist } = props;
+  const { wl , removeFromMyList, addToMyList} = useMyLocalWatchList(tickers);
+
   const apiRef = useGridApiRef();
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const [sortMode, setSortMode] = useState('symbol');
-
+  
   useEffect(() => {
     const interval = setInterval(() => {
-      subscribeStockPriceBatchRequest(tickers);
+      subscribeStockPriceBatchRequest(wl);
     }, 1000); //every one second just ping the server to resubscribe
 
     return () => clearInterval(interval);
-  }, [tickers]);
+  }, [wl]);
 
   const columns: GridColDef<SearchTickerItem>[] = [
     {
@@ -57,13 +60,13 @@ export const Watchlist = (props: IWatchlistProps) => {
       }, renderHeader: () => {
         return <>Sort <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }} size='small'>
           {/* <InputLabel id="sort-by-label">Sort by</InputLabel> */}
-          
+
           <Select
             labelId="sort-by-label"
             value={sortMode}
             onChange={(e) => setSortMode(e.target.value)}
             label="Sort by"
-            size='small'  
+            size='small'
             autoWidth
           >
             <MenuItem value="symbol">Ticker</MenuItem>
@@ -81,7 +84,8 @@ export const Watchlist = (props: IWatchlistProps) => {
           key='Remove'
           icon={<DeleteIcon />}
           label="Remove from my list"
-          onClick={() => removFromWatchlist(row)}
+          // onClick={() => removFromWatchlist(row)}
+          onClick={() => removeFromMyList(row)}
           showInMenu
         />,
         <GridLinkAction
@@ -123,13 +127,16 @@ export const Watchlist = (props: IWatchlistProps) => {
   const [openAddToWatchlist, setOpenAddToWatchlist] = useState(false);
 
   const handleCloseAddTrade = () => { setOpenAddTrade(false); };
-  const handleAddToWatchlist = (item: SearchTickerItem) => { addToWatchlist(item); setOpenAddToWatchlist(false); }
+  const handleAddToWatchlist = (item: SearchTickerItem) => {
+    addToWatchlist(item); setOpenAddToWatchlist(false);
+    addToMyList(item);
+  }
 
   return <div>
     {/* <Typography variant='body2'>Watchlist</Typography> */}
 
 
-    <DataGrid rows={collect(tickers).sortBy(sortMode).all()}
+    <DataGrid rows={collect(wl).sortBy(sortMode).all()}
       columns={columns}
       //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
       sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
