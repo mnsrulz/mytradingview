@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogTitle, FormControl, FormControlLabel, Grid
 import { useState } from 'react';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useMyLocalWatchList } from '@/lib/hooks';
 const D1 = (props: { dt: string, mytickersSymbols: string[], showAllSymbols: boolean }) => {
     const { dt, mytickersSymbols, showAllSymbols } = props;
     const { cachedSummarySymbolsData } = useCachedReleaseSymbolData(dt);
@@ -63,12 +64,13 @@ const D1 = (props: { dt: string, mytickersSymbols: string[], showAllSymbols: boo
 
 export default function Page() {
     const { mytickers, loading } = useMyStockList();
+    const { wl } = useMyLocalWatchList(mytickers);
     const [showAllSymbols, setShowAllSymbols] = useState(false);
     const { cachedSummaryData, isLoadingCachedSummaryData } = useCachedReleaseData();
     const [dataMode, setDataMode] = useState('');
     if (isLoadingCachedSummaryData || loading) return <LinearProgress />;
     const cachedDates = cachedSummaryData.map(j => j.name);
-    const mytickersSymbols = mytickers.map(r => r.symbol)
+    const mytickersSymbols = wl.map(r => r.symbol);
     const dt = dataMode || cachedDates.at(0) || '';
     return (
         <>
@@ -88,7 +90,7 @@ export default function Page() {
                 </Select>
             </FormControl>
             <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-                <FormControlLabel control={<Switch checked={showAllSymbols} title='Show all symbols available for a given date or limit to your watchlist' onChange={(e, v) => setShowAllSymbols(v)} />} label="Show all?" />
+                <FormControlLabel title='Show all symbols available for a given date or limit symbols available in your watchlist' control={<Switch checked={showAllSymbols}  onChange={(e, v) => setShowAllSymbols(v)} />} label="Show all?" />
             </FormControl>
             {/* <Link href='history/legacy'>Legacy Mode</Link> */}
             <Grid container>
