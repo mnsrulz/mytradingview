@@ -34,13 +34,14 @@ export async function POST(request: Request) {
 }
 
 //may be better to expose as a separte endoint??
-export async function DELETE(request: Request) {
-    const inputJson: AddToWatchlistRequest = await request.json();
-    const { symbol } = inputJson;
-    await prisma.watchlist.delete({
-        where: {
-            symbol
-        }
-    });
-    return NextResponse.json(inputJson);
-}
+//for now removing this endoint due to security reasons
+// export async function DELETE(request: Request) {
+//     const inputJson: AddToWatchlistRequest = await request.json();
+//     const { symbol } = inputJson;
+//     await prisma.watchlist.delete({
+//         where: {
+//             symbol
+//         }
+//     });
+//     return NextResponse.json(inputJson);
+// }
