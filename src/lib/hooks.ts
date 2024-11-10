@@ -22,8 +22,9 @@ export const useMyLocalWatchList = (initialState: SearchTickerItem[]) => {
 
     const addToMyList = (item: SearchTickerItem) => {
         setWl(v => {
-            v.push(item)
-            return v;
+            const items = v.filter((ticker) => ticker.symbol != item.symbol);   //ensuring we are not adding the same item again.
+            items.push(item);
+            return items;
         });
     }
 
