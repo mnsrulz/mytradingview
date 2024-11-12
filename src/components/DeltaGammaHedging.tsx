@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select, Tab, Tabs, Paper, Box } from "@mui/material";
+import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select, Tab, Tabs, Paper, Box, useMediaQuery, useTheme, DialogTitle, Divider } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { ChartsReferenceLine } from '@mui/x-charts';
 import { OptionsHedgingData, useCachedDates, useDeltaGammaHedging } from "@/lib/socket";
@@ -54,12 +54,12 @@ export const Expo = (props: IExpo) => {
         switch (props.exposure) {
             case 'dex':
                 return {
-                    gammaOrDelta: 'ABS Delta',
+                    gammaOrDelta: 'ABS Delta Hedging Exposure',
                     ds: data.deltaDataset
                 }
             case 'gex':
                 return {
-                    gammaOrDelta: 'NET Gamma',
+                    gammaOrDelta: 'NET Gamma Hedging Exposure',
                     ds: data.gammaDataset
                 }
 
@@ -80,7 +80,7 @@ export const Expo = (props: IExpo) => {
     // const { dataset, maxPosition } = props.exposure == 'dex' ? data.deltaDataset : data.gammaDataset;
     const { gammaOrDelta, ds } = fn();
     const { dataset, maxPosition } = ds;
-    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} Hedging Exposure (${dte} DTE)`;
+    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte} DTE)`;
     return <Paper><Typography variant="h6" align="center" gutterBottom>
         {title}
     </Typography><BarChart
@@ -103,7 +103,7 @@ export const Expo = (props: IExpo) => {
         xAxis={
             [
                 {
-                    label: `${gammaOrDelta} Hedging Exposure`,
+                    label: `${gammaOrDelta}`,
                     scaleType: 'linear',
                     min: -maxPosition * 1.05,  //5% extra to allow some spacing
                     max: maxPosition * 1.05,
@@ -163,13 +163,14 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     const [dataMode, setDataMode] = useState('Live');
     const { data, isLoading } = useDeltaGammaHedging(props.symbol, dte, strikeCounts, dataMode);
     const [gexTab, setGexTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
-
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
     // if (isLoading) return <LinearProgress />;
     // if (!data) return <div>No data to show!!!</div>;
 
     return (
-        <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" >
-            <DialogContent style={{ padding: '8px' }}>
+        <Dialog fullWidth={true} fullScreen={fullScreen} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" >
+            <DialogTitle style={{ padding: 8 }}>
                 {!printMode && (<Box>
                     <FormControl sx={{ marginTop: 1 }} size="small">
                         <InputLabel>DTE</InputLabel>
@@ -220,24 +221,26 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                             }
                         </Select>
                     </FormControl>
-                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                        <Tabs
-                            value={gexTab}
-                            onChange={(e, v) => setGexTab(v)}
-                            indicatorColor="secondary"
-                            textColor="inherit"
-                            variant="fullWidth"
-                            aria-label="full width tabs example"
-                        >
-                            <Tab label="Dex" value={'DEX'}></Tab>
-                            <Tab label="Gex" value={'GEX'}></Tab>
-                            <Tab label="Open Interest" value={'OI'}></Tab>
-                            <Tab label="Volume" value={'VOLUME'}></Tab>
-                        </Tabs>
-                    </Box>
                 </Box>)}
+            </DialogTitle>
+            <DialogContent style={{ minHeight: '480px', padding: 0 }} dividers={true}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs
+                        value={gexTab}
+                        onChange={(e, v) => setGexTab(v)}
+                        indicatorColor="secondary"
+                        textColor="inherit"
+                        variant="fullWidth"
+                        aria-label="full width tabs example"
+                    >
+                        <Tab label="Dex" value={'DEX'}></Tab>
+                        <Tab label="Gex" value={'GEX'}></Tab>
+                        <Tab label="OI" value={'OI'}></Tab>
+                        <Tab label="Volume" value={'VOLUME'}></Tab>
+                    </Tabs>
+                </Box>
                 {
-                    isLoading ? <LinearProgress /> : data ? <Expo data={data} exposure={typeMap[gexTab]} symbol={props.symbol} dte={dte} skipAnimation={props.skipAnimation} /> : <div>no data...</div>
+                    isLoading ? <LinearProgress /> : data ? <Box style={{ padding: 8 }}><Expo data={data} exposure={typeMap[gexTab]} symbol={props.symbol} dte={dte} skipAnimation={props.skipAnimation} /></Box> : <div>no data...</div>
                 }
             </DialogContent>
             {!printMode && (<DialogActions>
