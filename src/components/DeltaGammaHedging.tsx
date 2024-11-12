@@ -39,14 +39,20 @@ interface IExpo {
 
 export const Expo = (props: IExpo) => {
     const { data, dte, symbol, skipAnimation } = props;
-    const height = data.strikes.length * 15;
+    // const height = (data.strikes.length < 10 ? 100 : 0) + data.strikes.length * 15;
+    /*
+    some wierd calculation since there's no straight forward way to set the height of the bars. 
+    So 5px for both of the top and bottom margins, and 15px for each bar. Along with 20px for each expirations legends with max of 3 expirations.
+    */ 
+    const bufferHeight = 10 + 40 + ((data.expirations.length > 3 ? 3: data.expirations.length) * 20);   
+    const height = bufferHeight + (data.strikes.length * 15);
     const yaxisline = Math.max(...data.strikes.filter(j => j <= data.currentPrice));
     const series = data.expirations.flatMap(j => {
         return [{
-            dataKey: `${j}-call`, label: `${j}`, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
+            dataKey: `${j}-call`, label: `${j}`, barSize: 20, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
         },
         {
-            dataKey: `${j}-put`, label: `${j}`, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
+            dataKey: `${j}-put`, label: `${j}`, barSize: 20, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
         }]
     });
 
@@ -54,12 +60,12 @@ export const Expo = (props: IExpo) => {
         switch (props.exposure) {
             case 'dex':
                 return {
-                    gammaOrDelta: 'ABS Delta Hedging Exposure',
+                    gammaOrDelta: 'ABS Delta Exposure',
                     ds: data.deltaDataset
                 }
             case 'gex':
                 return {
-                    gammaOrDelta: 'NET Gamma Hedging Exposure',
+                    gammaOrDelta: 'NET Gamma Exposure',
                     ds: data.gammaDataset
                 }
 
@@ -88,6 +94,7 @@ export const Expo = (props: IExpo) => {
         dataset={dataset}
         series={series}
         skipAnimation={skipAnimation}
+
         tooltip={{
             trigger: 'none'
         }}
@@ -164,14 +171,14 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     const { data, isLoading } = useDeltaGammaHedging(props.symbol, dte, strikeCounts, dataMode);
     const [gexTab, setGexTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const theme = useTheme();
-    const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const fullScreen = useMediaQuery(theme.breakpoints.down('sm')) || printMode;
     // if (isLoading) return <LinearProgress />;
     // if (!data) return <div>No data to show!!!</div>;
 
     return (
         <Dialog fullWidth={true} fullScreen={fullScreen} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" >
-            <DialogTitle style={{ padding: 8 }}>
-                {!printMode && (<Box>
+            {!printMode && <DialogTitle style={{ padding: 8 }}>
+                <Box>
                     <FormControl sx={{ marginTop: 1 }} size="small">
                         <InputLabel>DTE</InputLabel>
                         <Select
@@ -221,10 +228,11 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                             }
                         </Select>
                     </FormControl>
-                </Box>)}
+                </Box>
             </DialogTitle>
+            }
             <DialogContent style={{ minHeight: '480px', padding: 0 }} dividers={true}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                {!printMode && <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs
                         value={gexTab}
                         onChange={(e, v) => setGexTab(v)}
@@ -239,6 +247,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                         <Tab label="Volume" value={'VOLUME'}></Tab>
                     </Tabs>
                 </Box>
+                }
                 {
                     isLoading ? <LinearProgress /> : data ? <Box style={{ padding: 8 }}><Expo data={data} exposure={typeMap[gexTab]} symbol={props.symbol} dte={dte} skipAnimation={props.skipAnimation} /></Box> : <div>no data...</div>
                 }
