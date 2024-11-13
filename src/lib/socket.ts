@@ -138,7 +138,8 @@ export type CachedReleasesType = {
 }
 
 export type CachedReleaseSymbolType = {
-    name: string
+    name: string,
+    assetUrl: string
 }
 
 export type OptionsHedgingData = {
@@ -248,16 +249,17 @@ export const useCachedReleaseData = () => {
     return { cachedSummaryData: data, isLoadingCachedSummaryData: isLoading };
 }
 
-export const useCachedReleaseSymbolData = (r: string) => {
+export const useCachedReleaseSymbolData = (dt: string) => {
     const [data, setOd] = useState<CachedReleaseSymbolType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setIsLoading(true);
-        ky(`https://mztrading-data.deno.dev/releases/symbols?r=${r}`).json<CachedReleaseSymbolType[]>().then(r => {
+        ky(`https://mztrading-data.deno.dev/releases/symbols?r=${dt}`).json<CachedReleaseSymbolType[]>().then(r => {
+            r.forEach(m => m.assetUrl = `https://mztrading-data.deno.dev/images?dt=${dt}&s=${m.name}`);
             setOd(r);
         }).finally(() => setIsLoading(false));
-    }, [r]);
+    }, [dt]);
 
     return { cachedSummarySymbolsData: data, isLoadingCachedSummaryData: isLoading };
 }
