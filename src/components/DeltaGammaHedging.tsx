@@ -87,14 +87,14 @@ export const Expo = (props: IExpo) => {
     const { gammaOrDelta, ds } = fn();
     const { dataset, maxPosition } = ds;
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte} DTE)`;
-    return <Paper><Typography variant="h6" align="center" gutterBottom>
+    return <Box><Typography variant="h6" align="center" gutterBottom>
         {title}
     </Typography><BarChart
         height={height}
         dataset={dataset}
         series={series}
         skipAnimation={skipAnimation}
-
+        
         tooltip={{
             trigger: 'none'
         }}
@@ -157,7 +157,7 @@ export const Expo = (props: IExpo) => {
                         fontSize: '8px'
                     }
                 } />
-        </BarChart></Paper>
+        </BarChart></Box>
 }
 
 
@@ -172,11 +172,12 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     const [gexTab, setGexTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm')) || printMode;
+    const scroll = printMode ? 'body': 'paper';
     // if (isLoading) return <LinearProgress />;
     // if (!data) return <div>No data to show!!!</div>;
 
     return (
-        <Dialog fullWidth={true} fullScreen={fullScreen} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" >
+        <Dialog fullWidth={true} fullScreen={fullScreen} open={true} onClose={onClose} aria-labelledby="delta-hedging-dialog" scroll={scroll} >
             {!printMode && <DialogTitle style={{ padding: 8 }}>
                 <Box>
                     <FormControl sx={{ marginTop: 1 }} size="small">
@@ -231,7 +232,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
                 </Box>
             </DialogTitle>
             }
-            <DialogContent style={{ minHeight: '480px', padding: 0 }} dividers={true}>
+            <DialogContent style={{ minHeight: '480px', padding: 0 }} dividers={!printMode}>
                 {!printMode && <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs
                         value={gexTab}
