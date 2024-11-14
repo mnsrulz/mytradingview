@@ -1,10 +1,9 @@
-'use client';
 import { StockOptionsView } from "@/components/StockOptionsView";
-import { useParams } from "next/navigation";
 
-export default function Page() {
-    const { symbol } = useParams<{ symbol: string }>()
+export default function Page({ params }: { params: { symbol: string } }) {
+    const { symbol } = params;
     return (
-        <StockOptionsView symbol={symbol} />
+        // <span>{JSON.stringify({symbol: decodeURIComponent(symbol).replace(/\W/g, '')})}</span>
+        <StockOptionsView symbol={decodeURIComponent(symbol).replace(/\W/g, '')} />
     );
 }

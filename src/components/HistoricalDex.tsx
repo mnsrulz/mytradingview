@@ -17,7 +17,7 @@ export const HistoricalDex = (props: { dt: string, showAllSymbols: boolean }) =>
     const matchesXs = useMediaQuery(theme.breakpoints.down("sm"));
     const matchesMd = useMediaQuery(theme.breakpoints.down("md"));
     const numberOfItemsToDisplay = matchesXs ? 2 : matchesMd ? 3 : 4;
-    const imgWidth = `${(100/numberOfItemsToDisplay)}%`;
+    const imgWidth = `${(100 / numberOfItemsToDisplay)}%`;
     const ts = cachedSummarySymbolsData.filter(r => showAllSymbols || mytickersSymbols.includes(r.name));    //make sure to load only those which are part of the watchlist.
 
     const [openDialog, setOpenDialog] = useState(false);
@@ -34,15 +34,15 @@ export const HistoricalDex = (props: { dt: string, showAllSymbols: boolean }) =>
 
 
     return <PhotoProvider>
-    {/* <PhotoView src="/1.jpg">
+        {/* <PhotoView src="/1.jpg">
       <img src="/1-thumbnail.jpg" alt="" />
     </PhotoView> */}
-    {ts.map((item) => (
+        {ts.map((item) => (
             <PhotoView key={item.assetUrl} src={item.assetUrl} >
-                <img src={item.assetUrl} width={imgWidth} style={{ objectFit: 'cover' }} alt={item.assetUrl}/>
+                <img loading='lazy' src={item.assetUrl} width={imgWidth} height="auto" style={{ objectFit: 'cover' }} alt={item.assetUrl} />
             </PhotoView>
         ))}
-  </PhotoProvider>
+    </PhotoProvider>
 
     // return <><ImageList cols={numberOfItemsToDisplay} gap={1}>
     //     {ts.map((item) => (

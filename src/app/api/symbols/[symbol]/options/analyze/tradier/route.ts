@@ -10,15 +10,16 @@ export async function GET(request: Request, p: { params: { symbol: string } }) {
   const strikeCountValue = parseInt(searchParams.get("sc") || '30');
   console.log(`calling with ${dteValue} dtes`);
   const { symbol } = p.params;
-  const currentPrice = await getCurrentPrice(symbol);
+  const cleanSymbol = symbol.replace(/\W/g, '');  //to support ^spx and other similar symbols
+  const currentPrice = await getCurrentPrice(cleanSymbol);
   if (!currentPrice) throw new Error('Unable to evaluate current price')
 
-  const expresp = await getOptionExpirations(symbol);
+  const expresp = await getOptionExpirations(cleanSymbol);
 
   const tillDate = dayjs().add(dteValue, 'days');
   console.log(`all expirations: ${expresp.expirations.date}`);
   const allDates = [...new Set(expresp.expirations.date.filter(j => dayjs(j).isBefore(tillDate)))];
-  const allOptionChains = await Promise.all(allDates.map(d => getOptionData(symbol, d)));
+  const allOptionChains = await Promise.all(allDates.map(d => getOptionData(cleanSymbol, d)));
 
   const allStrikes = getCalculatedStrikes(currentPrice, strikeCountValue, [...new Set(allOptionChains.flatMap(j => j.options.option.map(s => s.strike)))]);
   const finalResponse = calculateHedging(allOptionChains, allStrikes, allDates, currentPrice)
