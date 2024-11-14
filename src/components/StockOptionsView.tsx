@@ -1,4 +1,4 @@
-
+'use client';
 import * as React from 'react';
 import { useOptionTracker } from '../lib/socket';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';

@@ -1,3 +1,0 @@
-GET https://api.tradier.com/beta/markets/fundamentals/calendars?symbols=COIN
-Authorization: Bearer 18dpvoVoENkOaSGhGvec1q95jpMO
-Accept: application/json

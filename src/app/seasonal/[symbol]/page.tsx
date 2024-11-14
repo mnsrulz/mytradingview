@@ -7,9 +7,10 @@ export default async function Page({ params, searchParams }: { params: { symbol:
     const { symbol } = params;
     const p = await searchParams;
     const mode = p['mode'] as string || 'Daily';
-    const component = await getComponent(mode, symbol);
+    const cleanSymbol = decodeURIComponent(symbol).replace(/\W/g, '');
+    const component = await getComponent(mode, cleanSymbol);
     return <Box sx={{ mt: 1 }}>
-        <SeasonHeader symbol={symbol} mode={mode} />
+        <SeasonHeader symbol={cleanSymbol} mode={mode} />
         <Divider />
         {component}
     </Box>
