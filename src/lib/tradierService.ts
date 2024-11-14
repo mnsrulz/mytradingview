@@ -36,7 +36,7 @@ interface Result {
     type: string;
     id: string;
     tables: {
-        corporate_calendars: CorporateCalendar[];
+        corporate_calendars: CorporateCalendar[] | undefined;
     };
 }
 
@@ -50,6 +50,7 @@ interface CorporateCalendarResponse {
     request: string;
     type: string;
     results: Result[];
+    error: string
 }
 
 
@@ -169,7 +170,10 @@ export const getEarningDates = async (symbol: string) => {
             'symbols': symbol
         }
     }).json<CorporateCalendarResponse[]>();
-    const earnings = calendar[0].results.flatMap(j => j.tables.corporate_calendars)
+    if(calendar[0].error) {
+        return [];
+    }
+    const earnings = calendar[0].results.flatMap(j => j.tables.corporate_calendars || [])
         // .filter(j => j != null)
         // .filter(j => j != undefined)
         //.filter(j => j.event_type == 14)
