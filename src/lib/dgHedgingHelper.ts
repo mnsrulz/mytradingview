@@ -43,8 +43,8 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
             const cv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'call');
             const pv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'put');
 
-            const cv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.delta || 0) * 100 * currentPrice;
-            const pv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.delta || 0) * 100 * currentPrice;
+            const dcv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.delta || 0) * 100 * currentPrice;
+            const dpv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.delta || 0) * 100 * currentPrice;
 
             const gcv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.gamma || 0) * 100 * currentPrice;
             const gpv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.gamma || 0) * 100 * currentPrice;
@@ -58,8 +58,13 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
             const volumecv = cv_o?.volume || 0;
             const volumepv = pv_o?.volume || 0;
 
-            deltaExposure[`${dt}-call`] = -cv;
-            deltaExposure[`${dt}-put`] = -pv;
+/*
+Gamma values are always positive for both calls/puts, 
+while delta values are always positive for calls but negative for puts.
+*/
+
+            deltaExposure[`${dt}-call`] = -Math.abs(dcv);
+            deltaExposure[`${dt}-put`] = Math.abs(dpv);
 
             oi[`${dt}-call`] = -oicv;
             oi[`${dt}-put`] = oipv;
@@ -67,7 +72,7 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
             volume[`${dt}-call`] = -volumecv;
             volume[`${dt}-put`] = volumepv;
 
-            const gv = gcv - gpv;
+            const gv = Math.abs(gcv) - Math.abs(gpv);
 
             if (gv > 0) {
                 gammaExposure[`${dt}-call`] = -gv;
@@ -77,8 +82,8 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
                 gammaExposure[`${dt}-put`] = -gv;
             }
 
-            sumOfPv = sumOfPv + Math.abs(pv);
-            sumOfCv = sumOfCv + Math.abs(cv);
+            sumOfPv = sumOfPv + Math.abs(dpv);
+            sumOfCv = sumOfCv + Math.abs(dcv);
 
             sumOfGPv = sumOfGPv + Math.abs(gpv);
             sumOfGCv = sumOfGCv + Math.abs(gcv);
