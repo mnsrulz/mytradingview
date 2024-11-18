@@ -1,5 +1,8 @@
+'use client';
+import { TickerSearch } from "@/components/TickerSearch";
+import { useRouter } from 'next/navigation'
+
 export default function Page() {
-    return <div>
-        Screener
-    </div>
+    const router = useRouter();
+    return <TickerSearch onChange={(v) => router.push(`/screener/${v.symbol}`)} />
 }

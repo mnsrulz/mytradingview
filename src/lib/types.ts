@@ -1,79 +1,79 @@
 import { Trade } from "@prisma/client"
 
 export interface ITradeView extends Trade {
-    averageProfitPerDay: number
-    maximumProfit: number
-    maximumRisk: number
-    maxReturn: number
-    maxAnnualizedReturn: number
-    actualProfit: number
-    actualAnnualizedReturn: number
-    actualProfitPerDay: number
-    remainingProfitPerDay: number
-    buyCost: number,
-    sellCost: number,
-    isClosed: boolean,
-    contractCurrentPrice?: number
+  averageProfitPerDay: number
+  maximumProfit: number
+  maximumRisk: number
+  maxReturn: number
+  maxAnnualizedReturn: number
+  actualProfit: number
+  actualAnnualizedReturn: number
+  actualProfitPerDay: number
+  remainingProfitPerDay: number
+  buyCost: number,
+  sellCost: number,
+  isClosed: boolean,
+  contractCurrentPrice?: number
 }
 
 export type StockPriceData = {
-    item: SearchTickerItem,
-    quoteSummary: {
-        marketState: 'POST' | 'REGULAR' | 'POSTPOST' | 'PRE',
-        hasPrePostMarketData: boolean,
-        regularMarketPrice: number,
-        regularMarketChange: number,
-        regularMarketChangePercent: number,
-        postMarketPrice: number,
-        postMarketChange: number,
-        postMarketChangePercent: number,
-        preMarketPrice: number,
-        preMarketChange: number,
-        preMarketChangePercent: number
-    }
+  item: SearchTickerItem,
+  quoteSummary: {
+    marketState: 'POST' | 'REGULAR' | 'POSTPOST' | 'PRE',
+    hasPrePostMarketData: boolean,
+    regularMarketPrice: number,
+    regularMarketChange: number,
+    regularMarketChangePercent: number,
+    postMarketPrice: number,
+    postMarketChange: number,
+    postMarketChangePercent: number,
+    preMarketPrice: number,
+    preMarketChange: number,
+    preMarketChangePercent: number
+  }
 }
 
 export type TradierOptionData = {
-    options: {
-      option: {
-        strike: number,
-        open_interest: number,
-        bid: number,
-        ask: number,
-        last: number,
-        volume: number,
-        expiration_date: string,
-        option_type: 'put' | 'call',
-        greeks: {
-          delta: number,
-          gamma: number
-        }
-      }[]
-    }
+  options: {
+    option: {
+      strike: number,
+      open_interest: number,
+      bid: number,
+      ask: number,
+      last: number,
+      volume: number,
+      expiration_date: string,
+      option_type: 'put' | 'call',
+      greeks: {
+        delta: number,
+        gamma: number
+      }
+    }[]
   }
+}
 
 export type IOptionsGrid = {
-    id: string
+  id: string
 }
 
 export type NumberRange = { start: number, end: number }
 
 
 export type OptionsInnerData = {
-    c: Record<string, {
-        a: number,
-        b: number,
-        l: number,
-        oi: number,
-        v: number
-    }>,
-    p: Record<string, {
-        a: number,
-        b: number,
-        l: number,
-        oi: number,
-        v: number
-    }>
+  c: Record<string, {
+    a: number,
+    b: number,
+    l: number,
+    oi: number,
+    v: number
+  }>,
+  p: Record<string, {
+    a: number,
+    b: number,
+    l: number,
+    oi: number,
+    v: number
+  }>
 }
 
 export type SearchTickerResult = { items: SearchTickerItem[] };
@@ -107,9 +107,40 @@ export type EarningsSeason = {
   nextOpenPercentage?: number;
   nextClose?: number;
   nextOpen?: number;
-  date: string; 
+  date: string;
 }
 
 export type ABCType = { ask: number, bid: number, last: number, volume: number, open_interest: number, strike: number, greeks: { delta: number, gamma: number } };
 export type minimap = { a: number, b: number, l: number, v: number, oi: number, s: number, g: { d: number, g: number } };
-export type XYZType = {date: string, dte: number, c: minimap[],  p: minimap[]};
+export type XYZType = { date: string, dte: number, c: minimap[], p: minimap[] };
+
+
+type CallPut = {
+  contractSymbol: string;
+  strike: number;
+  // currency: string;
+  // lastPrice: number;
+  // change: number;
+  // percentChange: number;
+  // volume: number;
+  // openInterest: number;
+  // bid: number;
+  // ask: number;
+  // contractSize: string;
+  // expiration: string;
+  // lastTradeDate: string;
+  // impliedVolatility: number;
+  // inTheMoney: boolean;
+}
+export type YahooOptionsResponse = {
+  underlyingSymbol: string;
+  expirationDates: Date[];
+  strikes: number[];
+  hasMiniOptions: boolean;  
+  options: {
+    expirationDate: Date;
+    hasMiniOptions: boolean;
+    calls: CallPut[];
+    puts: CallPut[];
+  }[];
+};
