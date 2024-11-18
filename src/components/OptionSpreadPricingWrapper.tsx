@@ -111,6 +111,7 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
             getActions: ({ id }) => {
                 return [
                     <GridActionsCellItem
+                        key={'Delete'}
                         icon={<DeleteIcon />}
                         label="Delete"
                         onClick={handleDeleteClick(id)}
