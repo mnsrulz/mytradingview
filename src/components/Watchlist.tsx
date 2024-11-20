@@ -2,8 +2,8 @@
 import * as React from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
-import { Button, Dialog, DialogContent, DialogTitle, FormControl, MenuItem, Select } from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridColDef, useGridApiRef } from '@mui/x-data-grid';
+import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, MenuItem, Select } from '@mui/material';
+import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
 import { StockTickerSymbolView, StockTickerView } from './StockTicker';
 import AddTradeIcon from '@mui/icons-material/Add';
@@ -14,23 +14,17 @@ import { TickerSearch } from './TickerSearch';
 import { TradingViewWidgetDialog } from './TradingViewWidgetDialog';
 import { subscribeStockPriceBatchRequest } from '@/lib/socket';
 import collect from 'collect.js';
-import { useMyLocalWatchList } from '@/lib/hooks';
+import { useMyLocalWatchList } from "@/lib/hooks";
+import { useMyStockList } from '@/lib/hooks';
 
-interface IWatchlistProps {
-  tickers: SearchTickerItem[]
-  removFromWatchlist: (value: SearchTickerItem) => void,
-  addToWatchlist: (item: SearchTickerItem) => void,
-  loading: boolean
-}
+export const Watchlist = (props: { tickers: SearchTickerItem[] }) => {
+  const { tickers } = props;
+  const { addToWatchlist } = useMyStockList(tickers);
+  const { wl, removeFromMyList, addToMyList } = useMyLocalWatchList();
 
-export const Watchlist = (props: IWatchlistProps) => {
-  const { tickers, loading, addToWatchlist } = props;
-  const { wl , removeFromMyList, addToMyList} = useMyLocalWatchList(tickers);
-
-  const apiRef = useGridApiRef();
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const [sortMode, setSortMode] = useState('symbol');
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       subscribeStockPriceBatchRequest(wl);
@@ -56,7 +50,7 @@ export const Watchlist = (props: IWatchlistProps) => {
     {
       resizable: false,
       field: 'price', headerName: '', headerAlign: 'right', align: 'right', flex: 0.5, renderCell: (p) => {
-        return <StockTickerView item={p.row}></StockTickerView>
+        return <StockTickerView item={p.row} />
       }, renderHeader: () => {
         return <>Sort <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }} size='small'>
           {/* <InputLabel id="sort-by-label">Sort by</InputLabel> */}
@@ -79,7 +73,7 @@ export const Watchlist = (props: IWatchlistProps) => {
       field: 'actions',
       type: 'actions',
       width: 1,
-      getActions: ({ id, row }) => {
+      getActions: ({ row }) => {
         return [<GridActionsCellItem
           key='Remove'
           icon={<DeleteIcon />}
@@ -132,46 +126,43 @@ export const Watchlist = (props: IWatchlistProps) => {
     addToMyList(item);
   }
 
-  return <div>
-    {/* <Typography variant='body2'>Watchlist</Typography> */}
+  return <Grid container>
+    <Grid item xs={12} marginTop={1} marginBottom={1}>
+      <DataGrid rows={collect(wl).sortBy(sortMode).all()}
+        columns={columns}
+        //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+        sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+        // columnHeaderHeight={0}
+        // slots={{
+        //   columnHeaders: () => <div></div>,
+        // }}      
+        disableColumnMenu
+        disableColumnSorting
+        disableColumnSelector
+        disableColumnResize
+        rowHeight={72}
+        //apiRef={apiRef}
+        // rowSelection={true}
+        disableRowSelectionOnClick
+        hideFooter={true}
+        density='compact'
+        getRowId={(r) => `${r.symbol} - ${r.name}`} />
+      <AddTradeDialog onClose={handleCloseAddTrade}
+        open={openAddTrade}
+        ticker={currentStock} />
 
+      <Dialog
+        open={openAddToWatchlist}
+        fullWidth={true}
+        onClose={() => setOpenAddToWatchlist(false)}
+      >
+        <DialogTitle id="add-to-watchlist-dialog-title">Add to Watchlist</DialogTitle>
+        <DialogContent dividers={true}>
+          <TickerSearch onChange={handleAddToWatchlist} />
+        </DialogContent>
+      </Dialog>
 
-    <DataGrid rows={collect(wl).sortBy(sortMode).all()}
-      columns={columns}
-      //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
-      sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
-      // columnHeaderHeight={0}
-      // slots={{
-      //   columnHeaders: () => <div></div>,
-      // }}
-      loading={loading}
-      disableColumnMenu
-      disableColumnSorting
-      disableColumnSelector
-      disableColumnResize
-      rowHeight={72}
-      //apiRef={apiRef}
-      // rowSelection={true}
-      disableRowSelectionOnClick
-      hideFooter={true}
-      density='compact'
-      getRowId={(r) => `${r.symbol} - ${r.name}`} />
-    <AddTradeDialog onClose={handleCloseAddTrade}
-      open={openAddTrade}
-      ticker={currentStock} />
-
-    <Dialog
-      open={openAddToWatchlist}
-      fullWidth={true}
-      onClose={() => setOpenAddToWatchlist(false)}
-    >
-      <DialogTitle id="add-to-watchlist-dialog-title">Add to Watchlist</DialogTitle>
-      <DialogContent dividers={true}>
-        <TickerSearch onChange={handleAddToWatchlist} />
-      </DialogContent>
-    </Dialog>
-
-    {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
-  </div>
+      {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
+    </Grid>
+  </Grid>
 }
-

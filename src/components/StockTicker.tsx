@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import { useStockPrice } from '../lib/socket';
 import { SearchTickerItem } from '@/lib/types';

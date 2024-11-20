@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogActions, Button, Typography, LinearProgress, FormControl, InputLabel, MenuItem, Select, Tab, Tabs, Paper, Box, useMediaQuery, useTheme, DialogTitle, Divider } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { ChartsReferenceLine } from '@mui/x-charts';
-import { OptionsHedgingData, useCachedDates, useDeltaGammaHedging } from "@/lib/socket";
+import { OptionsHedgingData, useCachedDates, useDeltaGammaHedging } from "@/lib/hooks";
 import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
 import { useQueryState, parseAsInteger, parseAsStringEnum, parseAsBoolean } from "nuqs";

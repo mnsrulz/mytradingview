@@ -1,8 +1,9 @@
+import { getWatchlist } from "@/lib/dataService";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request, p: { params: { symbol: string } }) {
-    const resp = await prisma.watchlist.findMany();
+    const resp = await getWatchlist();
     return NextResponse.json({
         items: resp
     });

@@ -1,7 +1,7 @@
 import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import { useDebounce } from "@uidotdev/usehooks";
 import * as React from 'react';
-import { useTickerSearch } from '../lib/socket';
+import { useTickerSearch } from "@/lib/hooks";
 import { SearchTickerItem } from '@/lib/types';
 
 
