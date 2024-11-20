@@ -1,9 +1,8 @@
 import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import { useDebounce } from "@uidotdev/usehooks";
-import * as React from 'react';
 import { useTickerSearch } from "@/lib/hooks";
 import { SearchTickerItem } from '@/lib/types';
-
+import { useState } from 'react';
 
 interface ITickerProps {
     onChange: (value: SearchTickerItem) => void,
@@ -11,7 +10,7 @@ interface ITickerProps {
 }
 
 export const TickerSearch = (props: ITickerProps) => {
-    const [searchTerm, setSearchTerm] = React.useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     //const [options, setOptions] = useState<SearchTickerItem[]>([]);
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const { options, loading } = useTickerSearch(debouncedSearchTerm);
@@ -31,10 +30,10 @@ export const TickerSearch = (props: ITickerProps) => {
                 InputProps={{
                     ...params.InputProps,
                     endAdornment: (
-                        <React.Fragment>
+                        <>
                             {loading ? <CircularProgress color="inherit" size={20} /> : null}
                             {params.InputProps.endAdornment}
-                        </React.Fragment>
+                        </>
                     ),
                 }} />
         )}
