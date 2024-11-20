@@ -1,7 +1,6 @@
 'use client';
 import { FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Select, Switch } from '@mui/material';
 import { HistoricalDex } from '@/components/HistoricalDex';
-import { ClientOnly } from './ClientOnly';
 import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 
 export const History = (props: { cachedDates: string[] }) => {
@@ -9,7 +8,7 @@ export const History = (props: { cachedDates: string[] }) => {
     const [showAllSymbols, setShowAllSymbols] = useQueryState('all', parseAsBoolean.withDefault(false));
     const [dataMode, setDataMode] = useQueryState('dt', parseAsStringLiteral(cachedDates).withDefault(cachedDates.at(0) || ''));
 
-    return <ClientOnly>
+    return <>
         <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
             <InputLabel>Data Mode</InputLabel>
             <Select
@@ -32,6 +31,5 @@ export const History = (props: { cachedDates: string[] }) => {
         <Grid container>
             <HistoricalDex dt={dataMode} showAllSymbols={showAllSymbols} />
         </Grid>
-    </ClientOnly>
-
+    </>
 }
