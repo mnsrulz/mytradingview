@@ -98,6 +98,7 @@ export const Expo = (props: IExpo) => {
         tooltip={{
             trigger: 'none'
         }}
+        margin={ { left: 64, right: 20} }
         yAxis={[
             {
                 dataKey: 'strike',
