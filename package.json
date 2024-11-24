@@ -18,7 +18,7 @@
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",
-    "@mui/x-charts": "^7.18.0",
+    "@mui/x-charts": "^7.22.3",
     "@mui/x-data-grid": "7.3",
     "@mui/x-date-pickers": "^7.3.2",
     "@prisma/client": "^5.12.1",

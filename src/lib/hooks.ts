@@ -199,6 +199,45 @@ export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, da
     }, [symbol, dte, sc, dataMode]);
     return { data, isLoading };
 };
+
+export const useDeltaGammaHedgingV2 = (symbol: string, dte: number, sc: number, dataMode: string) => {
+    const [data, setOd] = useState<OptionsHedgingData>();
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        if (dataMode == 'Live') {
+            ky(`/api/symbols/${symbol}/options/analyze/tradier`, {
+                searchParams: {
+                    dte,
+                    sc
+                }
+            }).json<{ exposureData: OptionsHedgingData }>().then(r => {
+                setOd(r.exposureData);
+            }).finally(() => setIsLoading(false));
+        } else {
+            ky(`https://mztrading-data.deno.dev/data`, {
+                searchParams: {
+                    s: symbol,
+                    dt: dataMode
+                }
+            }).json<{ data: TradierOptionData[] }>().then(async r => {
+                const filteredData = r.data.filter(r => dayjs(r.options.option.at(0)?.expiration_date) <= dayjs(dataMode).add(dte, 'day'));
+                const allDates = [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.expiration_date)))];
+                const { price } = await ky(`/api/symbols/${symbol}/historical`, {
+                    searchParams: {
+                        dt: dataMode
+                    }
+                }).json<{ price: number }>();
+                const allStrikes = getCalculatedStrikes(price, sc, [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.strike)))]);
+                const finalResponse = calculateHedging(filteredData, allStrikes, allDates, price);
+                setOd(finalResponse.exposureData);
+            }).finally(() => setIsLoading(false));
+        }
+    }, [symbol, dte, sc, dataMode]);
+    return { data, isLoading };
+};
+
 export const useMyLocalWatchList = () => {
     const initialState = [
         {

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useOptionTracker } from '../lib/hooks';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link, IconButton, Dialog, DialogContent, DialogTitle, Input } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link, IconButton, Dialog, DialogContent, DialogTitle } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
@@ -11,11 +11,10 @@ import { PutCallRatio } from './PutCallRatio';
 import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
 import { DeltaGammaHedging } from './DeltaGammaHedging';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 import EditIcon from '@mui/icons-material/Edit';
 import { TickerSearch } from './TickerSearch';
-import he from 'he';
 
 interface ITickerProps {
     symbol: string
