@@ -16,7 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { signIn, signOut, useSession } from 'next-auth/react'
 
-const NonPrefetchLink = (props: any)=><Link prefetch={false} {...props} />
+const NonPrefetchLink = (props: any) => <Link prefetch={false} {...props} />
 
 /*
 <Button><Link href="/" className=''>Home</Link></Button>
@@ -164,12 +164,12 @@ export default function TabsRouter() {
                             </Menu>
                         </Box>
                         <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                            {pages.map((page) => (                                
+                            {pages.map((page) => (
                                 <Button
                                     key={page.title}
                                     // onClick={handleCloseNavMenu}
                                     href={page.href}
-                                    LinkComponent={NonPrefetchLink}                                    
+                                    LinkComponent={NonPrefetchLink}
                                     sx={{ my: 2, color: 'white', display: 'block' }}>
                                     {page.title}
                                 </Button>
@@ -197,7 +197,7 @@ export default function TabsRouter() {
                                 }}
                                 open={Boolean(anchorElUser)}
                                 onClose={handleCloseUserMenu}
-                            >
+                            >                                
                                 {session.status == 'authenticated' ? (
                                     <MenuItem key='signout' onClick={handleSignout}>
                                         <Typography textAlign="center">Sign Out</Typography>
@@ -206,7 +206,7 @@ export default function TabsRouter() {
                                     <MenuItem key='signout' onClick={() => signIn()}>
                                         <Typography textAlign="center">Sign In</Typography>
                                     </MenuItem>
-                                )}
+                                )}                                
                             </Menu>
                         </Box>
                     </Toolbar>
