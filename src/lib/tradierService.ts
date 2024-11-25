@@ -8,6 +8,7 @@ const historical = `${tradierBaseUri}v1/markets/history`;
 const optionsExpiration = `${tradierBaseUri}v1/markets/options/expirations`;
 const getQuotes = `${tradierBaseUri}v1/markets/quotes`;
 const calendars = `${tradierBaseUri}beta/markets/fundamentals/calendars`;
+const timesales = `${tradierBaseUri}v1/markets/timesales`;
 
 type Symbol = {
     symbol: string,
@@ -53,6 +54,8 @@ interface CorporateCalendarResponse {
     error: string
 }
 
+
+export interface TimeSalesResposne { series: { data: { time: Date, price: number, timestamp: number }[] }, symbol: string }
 
 
 const client = ky.create({
@@ -170,7 +173,7 @@ export const getEarningDates = async (symbol: string) => {
             'symbols': symbol
         }
     }).json<CorporateCalendarResponse[]>();
-    if(calendar[0].error) {
+    if (calendar[0].error) {
         return [];
     }
     const earnings = calendar[0].results.flatMap(j => j.tables.corporate_calendars || [])
@@ -182,4 +185,15 @@ export const getEarningDates = async (symbol: string) => {
         .map(({ begin_date_time, event_type, event }) => ({ begin_date_time, event_type, event })); //9
 
     return earnings;
+}
+
+export const getTimeAndSales = async (symbol: string) => {
+    return await client(timesales, {
+        searchParams: {
+            symbol,
+            interval: '5min',
+            start: dayjs().subtract(5, 'day').format('YYYY-MM-DD'),
+            end: dayjs().format('YYYY-MM-DD')
+        }
+    }).json<TimeSalesResposne>();
 }

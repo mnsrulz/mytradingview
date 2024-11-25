@@ -1,4 +1,4 @@
-import { OptionsHedgingDataset } from "./socket";
+import { OptionsHedgingDataset } from "./hooks";
 import { TradierOptionData } from "./types";
 
 ///responsible for returning the strikes which we have to return in response.

@@ -16,6 +16,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { signIn, signOut, useSession } from 'next-auth/react'
 
+const NonPrefetchLink = (props: any) => <Link prefetch={false} {...props} />
+
 /*
 <Button><Link href="/" className=''>Home</Link></Button>
             <Button><Link href="/trades" className=''>Trades</Link></Button>
@@ -154,7 +156,7 @@ export default function TabsRouter() {
                             >
                                 {pages.map((page) => (
                                     <MenuItem key={page.title} onClick={handleCloseNavMenu}>
-                                        <Button LinkComponent={Link} href={page.href}>
+                                        <Button LinkComponent={NonPrefetchLink} href={page.href}>
                                             <Typography textAlign="center">{page.title}</Typography>
                                         </Button>
                                     </MenuItem>
@@ -165,9 +167,9 @@ export default function TabsRouter() {
                             {pages.map((page) => (
                                 <Button
                                     key={page.title}
-                                    onClick={handleCloseNavMenu}
+                                    // onClick={handleCloseNavMenu}
                                     href={page.href}
-                                    LinkComponent={Link}
+                                    LinkComponent={NonPrefetchLink}
                                     sx={{ my: 2, color: 'white', display: 'block' }}>
                                     {page.title}
                                 </Button>
@@ -195,7 +197,7 @@ export default function TabsRouter() {
                                 }}
                                 open={Boolean(anchorElUser)}
                                 onClose={handleCloseUserMenu}
-                            >
+                            >                                
                                 {session.status == 'authenticated' ? (
                                     <MenuItem key='signout' onClick={handleSignout}>
                                         <Typography textAlign="center">Sign Out</Typography>
@@ -204,7 +206,7 @@ export default function TabsRouter() {
                                     <MenuItem key='signout' onClick={() => signIn()}>
                                         <Typography textAlign="center">Sign In</Typography>
                                     </MenuItem>
-                                )}
+                                )}                                
                             </Menu>
                         </Box>
                     </Toolbar>

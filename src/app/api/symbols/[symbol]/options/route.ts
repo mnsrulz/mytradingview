@@ -1,10 +1,8 @@
+import { getYfOptions } from "@/lib/yfOptions";
 import { NextResponse } from "next/server";
-import yf from 'yahoo-finance2';
 
 export async function GET(request: Request, p: { params: { symbol: string } }) {
-    const resp = await yf.options(p.params.symbol, {
-        
-    });
+    const resp = await getYfOptions(p.params.symbol)
     return NextResponse.json({
         resp
     });

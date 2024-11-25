@@ -1,6 +1,5 @@
 import { authOptions } from '@/lib/auth';
 import NextAuth from 'next-auth';
-import { NA } from "@/lib/auth"
 
 export default NextAuth(authOptions).auth;
 //export default NA.auth;
