@@ -95,10 +95,11 @@ function CurrentRoute() {
     );
 }
 
-export default function TabsRouter() {
+export default function TabsRouter(props: { isAuthenticated: boolean }) {
     const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-    const session = useSession();
+    // const session = useSession();
+    const { isAuthenticated } = props;
 
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
@@ -197,8 +198,9 @@ export default function TabsRouter() {
                                 }}
                                 open={Boolean(anchorElUser)}
                                 onClose={handleCloseUserMenu}
-                            >                                
-                                {session.status == 'authenticated' ? (
+                            >
+                                {/* {session.status == 'authenticated' ? ( */}
+                                {isAuthenticated ? (
                                     <MenuItem key='signout' onClick={handleSignout}>
                                         <Typography textAlign="center">Sign Out</Typography>
                                     </MenuItem>
@@ -206,7 +208,7 @@ export default function TabsRouter() {
                                     <MenuItem key='signout' onClick={() => signIn()}>
                                         <Typography textAlign="center">Sign In</Typography>
                                     </MenuItem>
-                                )}                                
+                                )}
                             </Menu>
                         </Box>
                     </Toolbar>
