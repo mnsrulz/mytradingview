@@ -11,3 +11,5 @@ export { GET, POST }
 
 
 // export { handler as GET, handler as POST }
+
+export const runtime = 'edge'
