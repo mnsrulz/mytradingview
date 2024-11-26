@@ -3,8 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import TabsRouter from "./routes";
 import { CssBaseline } from "@mui/material";
-import { NA } from '@/lib/auth';
-const { auth } = NA;
+import { auth } from '@/lib/auth';
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 

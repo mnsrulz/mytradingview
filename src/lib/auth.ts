@@ -35,7 +35,9 @@ export const authOptions = {
     ]
 } satisfies NextAuthConfig;
 
-export const NA = NextAuth(authOptions);
+export const { handlers, signIn, signOut, auth } = NextAuth(authOptions);
+
+// export const NA = NextAuth(authOptions);
 
 const authenticate = (user: string | undefined, pass: string | undefined) => {
     return user == userName && pass == secretPassword
