@@ -1,5 +1,5 @@
 import ky from "ky";
-import { HistoricalDataResponse, TradierOptionData } from "./types";
+import { HistoricalDataResponse, TradierOptionContractData, TradierOptionData } from "./types";
 import dayjs from "dayjs";
 const tradierBaseUri = process.env.TRADIER_BASE_URI || 'https://sandbox.tradier.com/';
 const optionsChain = `${tradierBaseUri}v1/markets/options/chains`;
@@ -9,6 +9,7 @@ const optionsExpiration = `${tradierBaseUri}v1/markets/options/expirations`;
 const getQuotes = `${tradierBaseUri}v1/markets/quotes`;
 const calendars = `${tradierBaseUri}beta/markets/fundamentals/calendars`;
 const timesales = `${tradierBaseUri}v1/markets/timesales`;
+const optionLookup = `${tradierBaseUri}v1/markets/options/lookup`;
 
 type Symbol = {
     symbol: string,
@@ -72,7 +73,6 @@ export const getOptionExpirations = (symbol: string) => {
             symbol
         }
     }).json<{ expirations: { date: string[] } }>();
-
 }
 
 export const getOptionData = (symbol: string, expiration: string) => {
@@ -196,4 +196,29 @@ export const getTimeAndSales = async (symbol: string) => {
             end: dayjs().format('YYYY-MM-DD')
         }
     }).json<TimeSalesResposne>();
+}
+
+export const getFullOptionChain = async (underlying: string) => {
+    const { symbols } = await client(optionLookup, {
+        searchParams: {
+            underlying
+        }
+    }).json<{
+        symbols: {
+            rootSymbol: string,
+            options: string[]
+        }[]
+    }>();
+    const formData = new FormData();
+    formData.append("symbols", symbols.flatMap(j => j.options).join(','));
+    formData.append("greeks", 'true');
+
+    const quotes = await client.post(getQuotes, {
+        body: formData
+    }).json<{
+        quotes: {
+            quote: TradierOptionContractData[]
+        }
+    }>();
+    return quotes.quotes.quote
 }

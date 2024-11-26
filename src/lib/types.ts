@@ -33,22 +33,24 @@ export type StockPriceData = {
   }
 }
 
+export type TradierOptionContractData = {
+  strike: number,
+  open_interest: number,
+  bid: number,
+  ask: number,
+  last: number,
+  volume: number,
+  expiration_date: string,
+  option_type: 'put' | 'call',
+  greeks: {
+    delta: number,
+    gamma: number
+  }
+}
+
 export type TradierOptionData = {
   options: {
-    option: {
-      strike: number,
-      open_interest: number,
-      bid: number,
-      ask: number,
-      last: number,
-      volume: number,
-      expiration_date: string,
-      option_type: 'put' | 'call',
-      greeks: {
-        delta: number,
-        gamma: number
-      }
-    }[]
+    option: TradierOptionContractData[]
   }
 }
 
@@ -136,7 +138,7 @@ export type YahooOptionsResponse = {
   underlyingSymbol: string;
   expirationDates: Date[];
   strikes: number[];
-  hasMiniOptions: boolean;  
+  hasMiniOptions: boolean;
   options: {
     expirationDate: Date;
     hasMiniOptions: boolean;
