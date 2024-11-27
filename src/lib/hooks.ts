@@ -6,7 +6,8 @@ import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
 
 export const searchTicker = async (searchTerm: string, signal?: AbortSignal) => {
-    const { items } = await ky('/api/symbols/search', {
+    //const { items } = await ky('/api/symbols/search',     //experimeting to avoid api call usage
+    const { items } = await ky('https://usstocksymbols.deno.dev/symbols', {
         searchParams: {
             q: searchTerm
         },
