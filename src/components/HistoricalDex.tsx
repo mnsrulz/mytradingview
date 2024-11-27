@@ -12,8 +12,8 @@ export const HistoricalDex = (props: { dt: string, showAllSymbols: boolean }) =>
     const { cachedSummarySymbolsData } = useCachedReleaseSymbolData(dt);
     const theme = useTheme();
     const matchesXs = useMediaQuery(theme.breakpoints.down("sm"));
-    const matchesMd = useMediaQuery(theme.breakpoints.down("md"));
-    const numberOfItemsToDisplay = matchesXs ? 2 : matchesMd ? 3 : 4;
+    // const matchesMd = useMediaQuery(theme.breakpoints.down("md"));
+    const numberOfItemsToDisplay = matchesXs ? 2 : 3;
     const imgWidth = `${(100 / numberOfItemsToDisplay)}%`;
     const ts = cachedSummarySymbolsData.filter(r => showAllSymbols || mytickersSymbols.includes(r.name));    //make sure to load only those which are part of the watchlist.
 

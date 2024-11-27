@@ -3,7 +3,7 @@ import { Expo, typeMap } from "@/components/Expo";
 import { TickerSearchDialog } from "@/components/TickerSearchDialog";
 import { calculateHedgingV2, getCalculatedStrikes } from "@/lib/dgHedgingHelper";
 import { DexGexType, MiniOptionContract } from "@/lib/types";
-import { FormControl, InputLabel, Select, MenuItem, Box, Tab, Tabs, Paper } from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem, Box, Tab, Tabs, Paper, Container } from "@mui/material";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
@@ -38,7 +38,7 @@ export const C = (props: { symbol: string, cachedDates: string[], dte: number, s
         return calculateHedgingV2(data, allStrikes, allDates, price)
     }, [dte, strikeCounts, allStrikes, allDates]);
     const router = useRouter();
-    return <Box>
+    return <Container maxWidth="md" sx={{ p: 0 }}>
         <Paper sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <FormControl sx={{ m: 1 }} size="small">
                 <TickerSearchDialog symbol={symbol} basePath='' />
@@ -113,5 +113,5 @@ export const C = (props: { symbol: string, cachedDates: string[], dte: number, s
             </Grid>
         </Grid> */}
         {/* </Paper> */}
-    </Box>
+    </Container>
 }

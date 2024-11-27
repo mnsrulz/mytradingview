@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import TabsRouter from "./routes";
-import { Container, CssBaseline } from "@mui/material";
+import { Box, Container, CssBaseline } from "@mui/material";
 import { auth } from '@/lib/auth';
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
@@ -25,12 +25,9 @@ export default async function RootLayout({
         <CssBaseline />
         <TabsRouter isAuthenticated={isAuthenticated} />
         {/* <Container maxWidth="lg"> */}
-        <div style={{
-          padding: '8px'
-        }}>
+        <Container maxWidth="xl" sx={{ px: 1, mt: 2 }}>
           {children}
-        </div>
-        {/* </Container> */}
+        </Container>
       </body>
     </html>
   );

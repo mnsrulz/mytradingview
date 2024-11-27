@@ -128,7 +128,7 @@ export const StockOptionsView = (props: ITickerProps) => {
         return o;
     }).filter(r => r);
 
-    return <Paper>
+    return <Paper sx={{ mx: 2 }}>
 
         Symbol: <IconButton onClick={() => { setOpenSearchTickerDialog(true) }} sx={{ p: 0 }} size='small' disableFocusRipple disableRipple>
             <EditIcon /> {decodeURIComponent(props.symbol)}

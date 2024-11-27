@@ -28,6 +28,7 @@ const pages = [
     { title: 'Home', href: '/' },
     { title: 'Trades', href: '/trades' },
     { title: 'Option analyzer', href: '/options/analyze' },
+    { title: 'Option pricing', href: '/options/pricing' },
     { title: 'History', href: '/history' },
     { title: 'Seasonal', href: '/seasonal' },
     { title: 'Calculator', href: '/calculator' }

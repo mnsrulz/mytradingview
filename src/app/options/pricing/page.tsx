@@ -5,5 +5,5 @@ import { useRouter } from 'next/navigation'
 
 export default function Page() {
     const router = useRouter();
-    return <TickerSearch onChange={(v) => router.push(`/options/analyze/${v.symbol}`)} />
+    return <TickerSearch onChange={(v) => router.push(`/options/pricing/${v.symbol}`)} />
 }
