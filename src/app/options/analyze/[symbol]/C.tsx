@@ -33,7 +33,7 @@ export const C = (props: { symbol: string, cachedDates: string[], dte: number, s
 
     const filteredData = useMemo(() => data.filter(r => dayjs(r.expiration_date) <= dayjs().add(dte, 'day')), [dte]);
     const allStrikes = useMemo(() => getCalculatedStrikes(price, strikeCounts, [...new Set(filteredData.flatMap(j => data.map(s => s.strike)))]), [strikeCounts]);
-    const allDates = useMemo(() => [...new Set(filteredData.map(j => j.expiration_date))], [dte]);
+    const allDates = useMemo(() => [...new Set(filteredData.map(j => j.expiration_date))].sort(), [dte]);
     const { exposureData } = useMemo(() => {
         return calculateHedgingV2(data, allStrikes, allDates, price)
     }, [dte, strikeCounts, allStrikes, allDates]);
