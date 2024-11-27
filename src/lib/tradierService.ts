@@ -1,6 +1,8 @@
 import ky from "ky";
 import { HistoricalDataResponse, TradierOptionContractData, TradierOptionData } from "./types";
 import dayjs from "dayjs";
+import chunks from 'lodash.chunk';
+import { LRUCache } from 'lru-cache'
 const tradierBaseUri = process.env.TRADIER_BASE_URI || 'https://sandbox.tradier.com/';
 const optionsChain = `${tradierBaseUri}v1/markets/options/chains`;
 const lookup = `${tradierBaseUri}v1/markets/lookup`;
@@ -199,6 +201,7 @@ export const getTimeAndSales = async (symbol: string) => {
 }
 
 export const getFullOptionChain = async (underlying: string) => {
+    console.time(`getFullOptionChain-${underlying}`)
     const { symbols } = await client(optionLookup, {
         searchParams: {
             underlying
@@ -209,16 +212,54 @@ export const getFullOptionChain = async (underlying: string) => {
             options: string[]
         }[]
     }>();
-    const formData = new FormData();
-    formData.append("symbols", symbols.flatMap(j => j.options).join(','));
-    formData.append("greeks", 'true');
 
-    const quotes = await client.post(getQuotes, {
-        body: formData
-    }).json<{
-        quotes: {
-            quote: TradierOptionContractData[]
+    const symbolChunks = chunks(symbols.flatMap(j => j.options), 5000);
+
+    const allSymbolResults = await Promise.all(symbolChunks.map(async s => {
+        console.time(`getFullOptionChain-${underlying}-${symbolChunks.indexOf(s)}`)
+        const formData = new FormData();
+        formData.append("symbols", s.join(','));
+        formData.append("greeks", 'true');
+
+        const quotes = await client.post(getQuotes, {
+            body: formData
+        }).json<{
+            quotes: {
+                quote: TradierOptionContractData[]
+            }
+        }>();
+        console.timeEnd(`getFullOptionChain-${underlying}-${symbolChunks.indexOf(s)}`)
+        return quotes.quotes.quote
+    }));
+    console.timeEnd(`getFullOptionChain-${underlying}`);
+    return allSymbolResults.flatMap(j => j);
+}
+
+
+export const getFullOptionChainV2 = async (underlying: string) => {
+    console.time(`getFullOptionChainV2-${underlying}`)
+    const allExpirations = await getOptionExpirations(underlying);
+    const allOptionChains = await Promise.all(allExpirations.expirations.date.map(expiration => getOptionData(underlying, expiration)));
+    console.timeEnd(`getFullOptionChainV2-${underlying}`)
+    return allOptionChains.flatMap(j => j.options.option);
+}
+
+export const getDexGexAnalysisView = async (symbol: string) => {
+    const optionChainPromise = getFullOptionChain(symbol);
+    const currentPricePromise = getCurrentPrice(symbol);
+
+    //TODO: implement in mem cache
+
+    await Promise.all([optionChainPromise, currentPricePromise]);
+    const optionChain = await optionChainPromise;
+    const currentPrice = await currentPricePromise;
+
+    const mappedOptions = optionChain.map(({ strike, expiration_date, greeks, open_interest, option_type, volume }) => ({
+        strike, expiration_date, open_interest, option_type, volume, greeks: {
+            delta: greeks?.delta || 0,
+            gamma: greeks?.gamma || 0,
         }
-    }>();
-    return quotes.quotes.quote
+    }));
+
+    return { mappedOptions, currentPrice }
 }
