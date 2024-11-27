@@ -6,14 +6,18 @@ import { DexGexType } from "@/lib/types";
 export default async function Page({ params, searchParams }: { params: { symbol: string }, searchParams: { [key: string]: string | number } }) {
     const search = searchParams;
     const { symbol } = params;
-    const strikeCountValue = (search['sc'] || 20) as number;
-    const dte = (search['dte'] || 30) as number;
+    const strikeCountValue = (search['sc'] || 30) as number;
+    const dte = (search['dte'] || 50) as number;
     const tab = (search['tab'] || 'DEX') as DexGexType;
     const dataMode = 'Live'
 
     const cachedDates: string[] = [];//await getCachedSummaryDatesBySymbol(symbol);
-    const optionChain = await getFullOptionChain(symbol);
-    const currentPrice = await getCurrentPrice(symbol);
+    const optionChainPromise = getFullOptionChain(symbol);
+    const currentPricePromise = getCurrentPrice(symbol);
+
+    await Promise.all([optionChainPromise, currentPricePromise]);
+    const optionChain = await optionChainPromise;
+    const currentPrice = await currentPricePromise;
 
     const mappedOptions = optionChain.map(({ strike, expiration_date, greeks, open_interest, option_type, volume }) => ({
         strike, expiration_date, open_interest, option_type, volume, greeks: {
