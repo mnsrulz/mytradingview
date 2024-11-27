@@ -1,5 +1,5 @@
 import { OptionsHedgingDataset } from "./hooks";
-import { TradierOptionContractData, TradierOptionData } from "./types";
+import { MiniOptionContract, TradierOptionContractData, TradierOptionData } from "./types";
 
 ///responsible for returning the strikes which we have to return in response.
 export const getCalculatedStrikes = (currentPrice: number, maxStrikes: number, strikes: number[]) => {
@@ -11,17 +11,7 @@ export const getCalculatedStrikes = (currentPrice: number, maxStrikes: number, s
     }
     return result.map(Number).sort((a, b) => a - b);
 }
-// type MiniOptionContract = {
-//     s: number,
-//     oi: number,
-//     v: number,
-//     e: string,
-//     option_type: 'put' | 'call',
-//     greeks: {
-//         delta: number,
-//         gamma: number
-//     }
-// }
+
 
 export const calculateHedging = (allOptionChains: TradierOptionData[], allStrikes: number[], allDates: string[], currentPrice: number) => {
     const allOp = allOptionChains.flatMap(j => j.options.option.map(s => s));
@@ -32,7 +22,7 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
     }
 }
 
-export const calculateHedgingV2 = (allOp: TradierOptionContractData[], allStrikes: number[], allDates: string[], currentPrice: number) => {
+export const calculateHedgingV2 = (allOp: MiniOptionContract[], allStrikes: number[], allDates: string[], currentPrice: number) => {
     //console.log(`Rendering with dates: ${allDates} and strikes: ${allStrikes}`);
     // const model: Record<number, { puts: number[], calls: number[], data: number[] }> = {};
     const dmodel: OptionsHedgingDataset[] = [];
@@ -82,8 +72,8 @@ export const calculateHedgingV2 = (allOp: TradierOptionContractData[], allStrike
             while delta values are always positive for calls but negative for puts.
             */
 
-            deltaExposure[`${dt}-call`] = -Math.abs(dcv);
-            deltaExposure[`${dt}-put`] = Math.abs(dpv);
+            deltaExposure[`${dt}-call`] = -Math.abs(Math.trunc(dcv));
+            deltaExposure[`${dt}-put`] = Math.abs(Math.trunc(dpv));
 
             oi[`${dt}-call`] = -oicv;
             oi[`${dt}-put`] = oipv;
@@ -94,11 +84,11 @@ export const calculateHedgingV2 = (allOp: TradierOptionContractData[], allStrike
             const gv = Math.abs(gcv) - Math.abs(gpv);
 
             if (gv > 0) {
-                gammaExposure[`${dt}-call`] = -gv;
+                gammaExposure[`${dt}-call`] = -Math.trunc(gv);
                 gammaExposure[`${dt}-put`] = 0;
             } else {
                 gammaExposure[`${dt}-call`] = 0;
-                gammaExposure[`${dt}-put`] = -gv;
+                gammaExposure[`${dt}-put`] = -Math.trunc(gv);
             }
 
             sumOfPv = sumOfPv + Math.abs(dpv);

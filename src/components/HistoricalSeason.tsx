@@ -44,7 +44,7 @@ enum DataMode {
 export const SeasonHeader = (props: { symbol: string, mode: string }) => {
     const { mode } = props;
     const { push } = useRouter();
-    return <><TickerSearchDialog {...props} />
+    return <><TickerSearchDialog {...props} basePath='/seasonal' />
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={mode} onChange={(e, v) => push(`?mode=${v}`)} variant="fullWidth" indicatorColor="secondary"
                 textColor="secondary">
@@ -79,7 +79,7 @@ export const EarningsSeasonComponent = (props: { data: EarningsSeason[], symbol:
                 returnValue += ` (${percentageFormatter(change)})`;
             }
         }
-        return returnValue;        
+        return returnValue;
     }
 
     const columns: GridColDef<EarningsSeason>[] = [

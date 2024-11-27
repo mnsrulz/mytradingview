@@ -13,7 +13,7 @@ export const TickerSearchNavigation = (props: ITickerProps) => {
     const searchQuery = searchParams.toString();
 
     return <TickerSearch onChange={(v) => {
-        let pathToPush = `${props.basePath}/${v.symbol}`;
+        let pathToPush = props.basePath ? `${props.basePath}/${v.symbol}` : v.symbol;
         if (searchQuery) pathToPush = `${pathToPush}?${searchQuery}`
         router.push(pathToPush);
     }} />

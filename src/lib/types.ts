@@ -48,6 +48,18 @@ export type TradierOptionContractData = {
   }
 }
 
+export type MiniOptionContract = {
+  strike: number,
+  open_interest: number,
+  volume: number,
+  expiration_date: string,
+  option_type: 'put' | 'call',
+  greeks: {
+    delta: number,
+    gamma: number
+  }
+}
+
 export type TradierOptionData = {
   options: {
     option: TradierOptionContractData[]
@@ -146,3 +158,10 @@ export type YahooOptionsResponse = {
     puts: CallPut[];
   }[];
 };
+
+export enum DexGexType {
+  'DEX' = 'DEX',
+  'GEX' = 'GEX',
+  'OI' = 'OI',
+  'VOLUME' = 'VOLUME'
+}
