@@ -1,5 +1,5 @@
 import { getHistoricalSnapshotsBySymbol } from "@/lib/mzDataService";
-import { Box, FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material"
+import { Box, FormControl, Grid, InputLabel, LinearProgress, MenuItem, Select } from "@mui/material"
 import { useEffect, useState } from "react";
 import { HistoricalSnapshotView } from "./HistoricalSnapshotView";
 import collect from 'collect.js';
@@ -7,10 +7,13 @@ import collect from 'collect.js';
 export const HistoryBySymbol = (props: { symbols: string[] }) => {
     const { symbols } = props;
     const [symbol, setSymbol] = useState(symbols[0]);
+    const [isLoading, setIsLoading] = useState(true);
     const [snapshots, setSnapshots] = useState<{ assetUrl: string, key: string }[]>([]);// 
     useEffect(() => {
+        setIsLoading(true);
         getHistoricalSnapshotsBySymbol(symbol)
-            .then(r => setSnapshots(r.items.map(k => ({ assetUrl: k.dex.hdAssetUrl, key: k.date }))));
+            .then(r => setSnapshots(r.items.map(k => ({ assetUrl: k.dex.hdAssetUrl, key: k.date }))))
+            .finally(() => setIsLoading(false));
     }, [symbol]);
     return <Box>
         <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
@@ -28,8 +31,6 @@ export const HistoryBySymbol = (props: { symbols: string[] }) => {
                 }
             </Select>
         </FormControl>
-        <Grid container>
-            <HistoricalSnapshotView items={collect(snapshots).sortByDesc('key').all()} />
-        </Grid>
+        <HistoricalSnapshotView isLoading={isLoading} key={symbol} items={collect(snapshots).sortByDesc('key').all()} />        
     </Box>
 }

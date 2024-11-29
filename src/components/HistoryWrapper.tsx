@@ -1,9 +1,8 @@
 'use client';
-import { Box, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Select, Switch, Tab, Tabs } from '@mui/material';
-import { HistoricalDex } from '@/components/HistoricalDex';
-import { parseAsBoolean, parseAsStringEnum, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { Box, Tab, Tabs } from '@mui/material';
+import { parseAsStringEnum, useQueryState } from 'nuqs';
 import { HistoryBySymbol } from './HistoryBySymbol';
-import { HistoryByDate } from './History';
+import { HistoryByDate } from './HistoryByDate';
 
 enum ModeEnum {
     'DATE' = 'DATE',
