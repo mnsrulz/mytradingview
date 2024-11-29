@@ -21,3 +21,19 @@ export const getCachedSummaryDatesBySymbol = async (symbol: string) => {
     }).json<{ symbol: string, dt: string }[]>();
     return response.map(j => j.dt);
 }
+
+export const getHistoricalSnapshotsBySymbol = (symbol: string) => {
+    return ky(`https://mztrading-data.deno.dev/symbols/${symbol}/historical/snapshots`, {
+        cache: "no-store"   //no cache for this data
+    }).json<{
+        items: {
+            date: string,
+            dex: {
+                hdAssetUrl: string
+            },
+            gex: {
+                hdAssetUrl: string
+            }
+        }[]
+    }>();
+}

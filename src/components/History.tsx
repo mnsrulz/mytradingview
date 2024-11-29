@@ -1,21 +1,22 @@
 'use client';
-import { FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Select, Switch } from '@mui/material';
+import { FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Select, Switch, Tab, Tabs } from '@mui/material';
 import { HistoricalDex } from '@/components/HistoricalDex';
-import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { parseAsBoolean, parseAsStringEnum, parseAsStringLiteral, useQueryState } from 'nuqs';
 
-export const History = (props: { cachedDates: string[] }) => {
+export const HistoryByDate = (props: { cachedDates: string[] }) => {
     const { cachedDates } = props;
     const [showAllSymbols, setShowAllSymbols] = useQueryState('all', parseAsBoolean.withDefault(false));
-    const [dataMode, setDataMode] = useQueryState('dt', parseAsStringLiteral(cachedDates).withDefault(cachedDates.at(0) || ''));
+    const [date, setDate] = useQueryState('dt', parseAsStringLiteral(cachedDates).withDefault(cachedDates.at(0) || ''));
 
     return <>
+       
         <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
             <InputLabel>Data Mode</InputLabel>
             <Select
                 id="data-mode"
-                value={dataMode}
+                value={date}
                 label="Data Mode"
-                onChange={(e) => setDataMode(e.target.value)}
+                onChange={(e) => setDate(e.target.value)}
             >
                 {
                     cachedDates.map(c => {
@@ -29,7 +30,7 @@ export const History = (props: { cachedDates: string[] }) => {
         </FormControl>
         {/* <Link href='history/legacy'>Legacy Mode</Link> */}
         <Grid container>
-            <HistoricalDex dt={dataMode} showAllSymbols={showAllSymbols} />
+            <HistoricalDex dt={date} showAllSymbols={showAllSymbols} />
         </Grid>
     </>
 }
