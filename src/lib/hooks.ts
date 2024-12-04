@@ -4,34 +4,7 @@ import { NumberRange, OptionsInnerData, SearchTickerItem, TradierOptionData } fr
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-
-export const searchTicker = async (searchTerm: string, signal?: AbortSignal) => {
-    // const { items } = await ky('https://usstocksymbols.deno.dev/symbols', {
-    const { items } = await ky('/api/symbols/search', {     //experimeting to avoid api call usage
-        searchParams: {
-            q: searchTerm
-        },
-        signal: signal
-    }).json<{
-        items: SearchTickerItem[]
-    }>();
-
-    return items;
-    // return items.quotes.filter(f => f.isYahooFinance).map(r => ({
-    //     symbol: r.symbol,
-    //     name: r.longname
-    // }));
-    // return new Promise<SearchTickerResult>((res, rej) => {
-    //     socket.emit('stock-list-request', {
-    //         q: searchTerm
-    //     });
-
-    //     socket.once(`stock-list-response`, (args: SearchTickerResult) => {
-    //         res(args);
-    //     });
-    // });
-}
-
+import { searchTicker } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -277,7 +250,9 @@ export const useMyLocalWatchList = () => {
     };
 
     return { wl, removeFromMyList, addToMyList };
-};export const useTickerSearch = (v: string) => {
+};
+
+export const useTickerSearch = (v: string) => {
     const [options, setOptions] = useState<SearchTickerItem[]>([]);
     const [loading, setLoading] = useState(false);
     useEffect(() => {

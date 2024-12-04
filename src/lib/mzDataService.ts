@@ -1,4 +1,5 @@
 import ky from "ky";
+import { SearchTickerItem } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -36,4 +37,14 @@ export const getHistoricalSnapshotsBySymbol = (symbol: string) => {
             }
         }[]
     }>();
+}
+
+export const searchTicker = async (searchTerm: string, signal?: AbortSignal) => {
+    const items = await ky('https://mztrading-data.deno.dev/symbols', {     //experimeting to avoid api call usage
+        searchParams: {
+            q: searchTerm
+        },
+        signal: signal
+    }).json<SearchTickerItem[]>();
+    return items;
 }
