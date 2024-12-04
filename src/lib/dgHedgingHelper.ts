@@ -21,6 +21,7 @@ export const calculateHedging = (allOptionChains: TradierOptionData[], allStrike
         ...dataToReturn
     }
 }
+type MyInternalType = { call: MiniOptionContract | null, put: MiniOptionContract | null }
 
 export const calculateHedgingV2 = (allOp: MiniOptionContract[], allStrikes: number[], allDates: string[], currentPrice: number) => {
     //console.log(`Rendering with dates: ${allDates} and strikes: ${allStrikes}`);
@@ -30,6 +31,18 @@ export const calculateHedgingV2 = (allOp: MiniOptionContract[], allStrikes: numb
     const oimodel: OptionsHedgingDataset[] = [];
     const volumemodel: OptionsHedgingDataset[] = [];
     let dmaxPosition = 0, gmaxPosition = 0, oimaxPosition = 0, volumemaxPosition = 0;
+    //debugger;
+    const indexedObject = allOp.reduce((previous, current) => {
+        previous[current.strike] = previous[current.strike] || {};
+        previous[current.strike][current.expiration_date] = previous[current.strike][current.expiration_date] || {};
+        if (current.option_type == 'call') {
+            previous[current.strike][current.expiration_date].call = current;
+        } else {
+            previous[current.strike][current.expiration_date]['put'] = current;
+        }
+        return previous;
+    }, {} as Record<string, Record<string, MyInternalType>>)
+    console.time(`start-dghelper-v1`);
     for (const sp of allStrikes) {
         const deltaExposure: OptionsHedgingDataset = { strike: sp };
         const gammaExposure: OptionsHedgingDataset = { strike: sp };
@@ -48,9 +61,11 @@ export const calculateHedgingV2 = (allOp: MiniOptionContract[], allStrikes: numb
         //   puts: [],
         //   data: []
         // }
+        
         for (const dt of allDates) {
-            const cv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'call');
-            const pv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'put');
+            // const cv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'call');
+            // const pv_o = allOp.find(j => j.strike == sp && j.expiration_date == dt && j.option_type == 'put');
+            const { call: cv_o, put: pv_o } = indexedObject[sp][dt] || {};
 
             const dcv = (cv_o?.open_interest || 0) * (cv_o?.greeks?.delta || 0) * 100 * currentPrice;
             const dpv = (pv_o?.open_interest || 0) * (pv_o?.greeks?.delta || 0) * 100 * currentPrice;
@@ -108,7 +123,7 @@ export const calculateHedgingV2 = (allOp: MiniOptionContract[], allStrikes: numb
         oimaxPosition = Math.max(oimaxPosition, sumOfOpenInterestPv, sumOfOpenInterestCv);
         volumemaxPosition = Math.max(volumemaxPosition, sumOfVolumePv, sumOfVolumeCv);
     }
-
+    console.timeEnd(`start-dghelper-v1`);
     const finalResponse = {
         exposureData: {
             expirations: allDates,
@@ -130,7 +145,7 @@ export const calculateHedgingV2 = (allOp: MiniOptionContract[], allStrikes: numb
                 dataset: volumemodel,
                 maxPosition: volumemaxPosition
             }
-        }        
+        }
     }
 
     return finalResponse;

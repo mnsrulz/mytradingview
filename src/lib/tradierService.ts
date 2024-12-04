@@ -247,19 +247,20 @@ export const getFullOptionChainV2 = async (underlying: string) => {
 export const getDexGexAnalysisView = async (symbol: string) => {
     const optionChainPromise = getFullOptionChain(symbol);
     const currentPricePromise = getCurrentPrice(symbol);
-
+    
     //TODO: implement in mem cache
-
+    
     await Promise.all([optionChainPromise, currentPricePromise]);
     const optionChain = await optionChainPromise;
     const currentPrice = await currentPricePromise;
-
+    
+    console.time(`getDexGexAnalysisView-mapping-${symbol}`)
     const mappedOptions = optionChain.map(({ strike, expiration_date, greeks, open_interest, option_type, volume }) => ({
         strike, expiration_date, open_interest, option_type, volume, greeks: {
             delta: greeks?.delta || 0,
             gamma: greeks?.gamma || 0,
         }
     }));
-
+    console.timeEnd(`getDexGexAnalysisView-mapping-${symbol}`)
     return { mappedOptions, currentPrice }
 }

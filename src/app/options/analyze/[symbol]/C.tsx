@@ -31,7 +31,10 @@ export const C = (props: { symbol: string, cachedDates: string[], dte: number, s
     const [dataMode, setDataMode] = useQueryState('dt', parseAsString.withDefault(props.dataMode));
     const [gexTab, setGexTab] = useQueryState<DexGexType>('tab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(props.tab));
 
-    const filteredData = useMemo(() => data.filter(r => dayjs(r.expiration_date) <= dayjs().add(dte, 'day')), [dte]);
+    const filteredData = useMemo(() => {
+        const tillDate = dayjs().add(dte, 'day');
+        return data.filter(r => dayjs(r.expiration_date) <= tillDate);
+    }, [dte]);
     const allStrikes = useMemo(() => getCalculatedStrikes(price, strikeCounts, [...new Set(filteredData.flatMap(j => data.map(s => s.strike)))]), [strikeCounts]);
     const allDates = useMemo(() => [...new Set(filteredData.map(j => j.expiration_date))].sort(), [dte]);
     const { exposureData } = useMemo(() => {
