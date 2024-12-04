@@ -1,4 +1,4 @@
-import { green, red, deepOrange, lime, cyan } from "@mui/material/colors";
+import { green, red, deepOrange, lime, cyan, deepPurple, blueGrey, brown } from "@mui/material/colors";
 
 const fn1 = (v: number) => {
     const v1 = v;
@@ -57,5 +57,23 @@ export const getColorPallete = () => {
         green[500],
         green[300],
         green[100],
+        
+        deepPurple[900],
+        deepPurple[700],
+        deepPurple[500],
+        deepPurple[300],
+        deepPurple[100],
+        
+        blueGrey[900],
+        blueGrey[700],
+        blueGrey[500],
+        blueGrey[300],
+        blueGrey[100],
+ 
+        brown[900],
+        brown[700],
+        brown[500],
+        brown[300],
+        brown[100],
     ]
 }
