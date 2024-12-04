@@ -25,7 +25,7 @@ export default async function RootLayout({
         <CssBaseline />
         <TabsRouter isAuthenticated={isAuthenticated} />
         {/* <Container maxWidth="lg"> */}
-        <Container maxWidth="xl" sx={{ px: 1, mt: 2 }}>
+        <Container maxWidth="xl" sx={{ px: 1, mt: 1 }}>
           {children}
         </Container>
       </body>
