@@ -141,9 +141,9 @@ export const Expo = (props: IExpo) => {
                 itemGap: 2,
             }
         }}>
-            <ChartsText y="5%" dx={250} fill="grey" text="CALLS" opacity="0.3" />
-            <ChartsText x="100%" y="5%" dx={-250} fill="grey" text="PUTS" opacity="0.3" />
-            <ChartsText x="100%" y="85%" fill="grey" text={ghUrl} opacity="0.2" style={{ textAnchor: 'end' }} fontSize={12} />
+            <ChartsText x="25%" y="5%" style={{ textAnchor: 'middle' }} fill="grey" text="CALLS" opacity="0.2" />
+            <ChartsText x="75%" y="5%" style={{ textAnchor: 'middle' }} fill="grey" text="PUTS" opacity="0.2" />
+            <ChartsText x="100%" y="85%" fill="grey" text={ghUrl} opacity="0.15" style={{ textAnchor: 'end' }} fontSize={10} />
 
             <ChartsReferenceLine x={0} />
             <ChartsReferenceLine y={yaxisline} label={"SPOT PRICE: $" + data.currentPrice}
