@@ -101,16 +101,15 @@ export const calculateHedgingV2 = (allOp: MiniOptionContract[], allStrikes: numb
             if (gv > 0) {
                 gammaExposure[`${dt}-call`] = -Math.trunc(gv);
                 gammaExposure[`${dt}-put`] = 0;
+                sumOfGCv = sumOfGCv + Math.abs(gv);
             } else {
                 gammaExposure[`${dt}-call`] = 0;
                 gammaExposure[`${dt}-put`] = -Math.trunc(gv);
+                sumOfGPv = sumOfGPv + Math.abs(gv);
             }
 
             sumOfPv = sumOfPv + Math.abs(dpv);
             sumOfCv = sumOfCv + Math.abs(dcv);
-
-            sumOfGPv = sumOfGPv + Math.abs(gpv);
-            sumOfGCv = sumOfGCv + Math.abs(gcv);
 
             sumOfOpenInterestCv = sumOfOpenInterestCv + Math.abs(oicv);
             sumOfOpenInterestPv = sumOfOpenInterestPv + Math.abs(oipv);

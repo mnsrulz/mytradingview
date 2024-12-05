@@ -1,10 +1,10 @@
 import { Typography, Box } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
-import { ChartsReferenceLine } from '@mui/x-charts';
+import { ChartsReferenceLine, ChartsText } from '@mui/x-charts';
 import { OptionsHedgingData } from "@/lib/hooks";
 import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
-
+const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 type OptionsDatasetType = "dex" | "gex" | "oi" | "volume"
 interface IExpo {
     data: OptionsHedgingData,
@@ -24,7 +24,14 @@ export const typeMap = {
 }
 
 
-
+const calculateLeftMargin = (maxStrikeValue: number) => {
+    if (maxStrikeValue < 100) {
+        return 48
+    } else if (maxStrikeValue < 1000) {
+        return 56
+    }
+    return 64
+}
 
 export const Expo = (props: IExpo) => {
     const { data, dte, symbol, skipAnimation } = props;
@@ -32,10 +39,12 @@ export const Expo = (props: IExpo) => {
     /*
     some wierd calculation since there's no straight forward way to set the height of the bars. 
     So 5px for both of the top and bottom margins, and 15px for each bar. Along with 20px for each expirations legends with max of 3 expirations.
-    */ 
-    const bufferHeight = 10 + 40 + ((data.expirations.length > 3 ? 3: data.expirations.length) * 20);   
+    */
+    const bufferHeight = 10 + 40 + ((data.expirations.length > 3 ? 3 : data.expirations.length) * 20);
     const height = bufferHeight + (data.strikes.length * 15);
     const yaxisline = Math.max(...data.strikes.filter(j => j <= data.currentPrice));
+    const maxStrike = Math.max(...data.strikes);
+    const leftMarginValue = calculateLeftMargin(maxStrike);
     const series = data.expirations.flatMap(j => {
         return [{
             dataKey: `${j}-call`, label: `${j}`, barSize: 20, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
@@ -77,18 +86,17 @@ export const Expo = (props: IExpo) => {
     const { dataset, maxPosition } = ds;
 
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte} DTE)`;
-    return <Box><Typography variant="h6" align="center" gutterBottom>
+    return <Box><Typography variant="h6" align="center">
         {title}
     </Typography><BarChart
         height={height}
         dataset={dataset}
         series={series}
         skipAnimation={skipAnimation}
-        
         tooltip={{
             trigger: 'none'
         }}
-        margin={ { left: 64, right: 20} }
+        margin={{ left: leftMarginValue, right: 0 }}
         yAxis={[
             {
                 dataKey: 'strike',
@@ -133,11 +141,15 @@ export const Expo = (props: IExpo) => {
                 itemGap: 2,
             }
         }}>
+            <ChartsText y="5%" dx={250} fill="grey" text="CALLS" opacity="0.3" />
+            <ChartsText x="100%" y="5%" dx={-250} fill="grey" text="PUTS" opacity="0.3" />
+            <ChartsText x="100%" y="85%" fill="grey" text={ghUrl} opacity="0.2" style={{ textAnchor: 'end' }} fontSize={12} />
 
             <ChartsReferenceLine x={0} />
             <ChartsReferenceLine y={yaxisline} label={"SPOT PRICE: $" + data.currentPrice}
                 labelAlign="start"
                 lineStyle={{
+                    strokeDasharray: '4',
                     color: 'red',
                     stroke: 'red'
                 }}
