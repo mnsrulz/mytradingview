@@ -24,6 +24,7 @@
     "@mui/x-date-pickers": "^7.3.2",
     "@prisma/client": "^5.12.1",
     "@uidotdev/usehooks": "^2.4.1",
+    "autosuggest-highlight": "^3.3.4",
     "collect.js": "^4.36.1",
     "core-js": "^3.38.1",
     "dayjs": "^1.11.10",
@@ -51,6 +52,7 @@
     "yahoo-finance2": "^2.12.3"
   },
   "devDependencies": {
+    "@types/autosuggest-highlight": "^3.2.3",
     "@types/core-js": "^2.5.8",
     "@types/he": "^1.2.3",
     "@types/lodash.chunk": "^4.2.9",
