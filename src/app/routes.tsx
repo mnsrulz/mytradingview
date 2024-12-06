@@ -11,12 +11,12 @@ import {
 
 import { StaticRouter } from 'react-router-dom/server';
 import { Button, AppBar, Container, IconButton, Menu, MenuItem, Toolbar, Tooltip } from '@mui/material';
-import { useState } from 'react';
+import { forwardRef, Ref, useState } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { signIn, signOut, useSession } from 'next-auth/react'
 
-const NonPrefetchLink = (props: any) => <Link prefetch={false} {...props} />
+const NonPrefetchLink = forwardRef((props: any, ref: Ref<HTMLAnchorElement>) => <Link ref={ref} prefetch={false} {...props} />);
 
 /*
 <Button><Link href="/" className=''>Home</Link></Button>
