@@ -240,7 +240,7 @@ export const StockOptionsView = (props: ITickerProps) => {
         >
             <DialogTitle id="search-ticker-dialog-title">Search</DialogTitle>
             <DialogContent dividers={true}>
-                <TickerSearch onChange={(v) => router.push(`/options/analyze/${v.symbol}`)} />
+                <TickerSearch onChange={(v) => router.push(`${v.symbol}`)} />
             </DialogContent>
         </Dialog>
 
