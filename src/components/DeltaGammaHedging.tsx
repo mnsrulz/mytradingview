@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogActions, Button, LinearProgress, FormControl, InputLabel, MenuItem, Select, Tab, Tabs, Box, useMediaQuery, useTheme, DialogTitle } from "@mui/material";
 import { useCachedDates, useDeltaGammaHedging } from "@/lib/hooks";
-import { useQueryState, parseAsInteger, parseAsStringEnum, parseAsBoolean } from "nuqs";
+import { useQueryState, parseAsInteger, parseAsStringEnum, parseAsBoolean, parseAsString } from "nuqs";
 import { useState } from "react";
 import { Expo, typeMap } from "./Expo";
 
@@ -23,7 +23,7 @@ export const DeltaGammaHedging = (props: ITickerProps) => {
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
     const { cachedDates } = useCachedDates(props.symbol);
-    const [dataMode, setDataMode] = useState('Live');
+    const [dataMode, setDataMode] = useQueryState('datamode', parseAsString.withDefault('Live'));
     const { data, isLoading } = useDeltaGammaHedging(props.symbol, dte, strikeCounts, dataMode);
     const [gexTab, setGexTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const theme = useTheme();

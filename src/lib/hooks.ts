@@ -157,16 +157,20 @@ export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, da
                     s: symbol,
                     dt: dataMode
                 }
-            }).json<{ data: TradierOptionData[] }>().then(async r => {
+            }).json<{ data: TradierOptionData[], price: number }>().then(async r => {
                 const filteredData = r.data.filter(r => dayjs(r.options.option.at(0)?.expiration_date) <= dayjs(dataMode).add(dte, 'day'));
                 const allDates = [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.expiration_date)))];
-                const { price } = await ky(`/api/symbols/${symbol}/historical`, {
-                    searchParams: {
-                        dt: dataMode
-                    }
-                }).json<{ price: number }>();
-                const allStrikes = getCalculatedStrikes(price, sc, [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.strike)))]);
-                const finalResponse = calculateHedging(filteredData, allStrikes, allDates, price);
+                let priceAtDate = r.price;  //it's possible that we won't receive the data from data service so fall back to netlify...
+                if(!priceAtDate) {
+                    const { price } = await ky(`/api/symbols/${symbol}/historical`, {
+                        searchParams: {
+                            dt: dataMode
+                        }
+                    }).json<{ price: number }>();
+                    priceAtDate = price;
+                }
+                const allStrikes = getCalculatedStrikes(priceAtDate, sc, [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.strike)))]);
+                const finalResponse = calculateHedging(filteredData, allStrikes, allDates, priceAtDate);
                 setOd(finalResponse.exposureData);
             }).finally(() => setIsLoading(false));
         }
