@@ -53,6 +53,7 @@ export const Expo = (props: IExpo) => {
             dataKey: `${j}-put`, label: `${j}`, barSize: 20, stack: `stack`, color: colorCodes[data.expirations.indexOf(j)]
         }]
     });
+    const isGex = props.exposure == 'gex' ? true : false;
 
     const fn = () => {
         switch (props.exposure) {
@@ -113,7 +114,7 @@ export const Expo = (props: IExpo) => {
                     scaleType: 'linear',
                     min: -maxPosition * 1.05,  //5% extra to allow some spacing
                     max: maxPosition * 1.05,
-                    valueFormatter: humanAbsCurrencyFormatter
+                    valueFormatter: (v) => (isGex && v > 0) ? `-${humanAbsCurrencyFormatter(v)}` : humanAbsCurrencyFormatter(v) //in case of net gex, the values on right should have negative ticks
                 }
             ]
         }

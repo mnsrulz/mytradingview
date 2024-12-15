@@ -40,7 +40,7 @@ export const C = (props: { symbol: string, cachedDates: string[], dte: number, s
     const { exposureData } = useMemo(() => {
         return calculateHedgingV2(data, allStrikes, allDates, price)
     }, [dte, strikeCounts, allStrikes, allDates]);
-    const router = useRouter();
+    //const router = useRouter();
     return <Container maxWidth="md" sx={{ p: 0 }}>
         <Paper sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <FormControl sx={{ m: 1 }} size="small">
