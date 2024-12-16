@@ -30,10 +30,12 @@ export const getHistoricalSnapshotsBySymbol = (symbol: string) => {
         items: {
             date: string,
             dex: {
-                hdAssetUrl: string
+                hdAssetUrl: string,
+                sdAssetUrl: string
             },
             gex: {
-                hdAssetUrl: string
+                hdAssetUrl: string,
+                sdAssetUrl: string
             }
         }[]
     }>();

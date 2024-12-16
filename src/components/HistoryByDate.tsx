@@ -44,6 +44,6 @@ export const HistoryByDate = (props: { cachedDates: string[] }) => {
         <FormControl sx={{ minWidth: 120 }} size="small">
             <FormControlLabel title='Show all symbols available for a given date or limit symbols available in your watchlist' control={<Switch checked={showAllSymbols} onChange={(e, v) => setShowAllSymbols(v)} />} label="Show all?" />
         </FormControl>
-        <HistoricalSnapshotView isLoading={isLoadingCachedSummaryData} items={ts.map(({ name, assetUrl }) => ({ key: name, assetUrl }))} />
+        <HistoricalSnapshotView isLoading={isLoadingCachedSummaryData} items={ts.map(({ name, assetUrl }) => ({ key: name, asset: { hdAssetUrl: assetUrl, sdAssetUrl: assetUrl } }))} />
     </Box>
 }

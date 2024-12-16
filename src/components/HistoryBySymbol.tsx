@@ -12,13 +12,13 @@ export const HistoryBySymbol = (props: { symbols: string[] }) => {
     const { symbols } = props;
     const [symbol, setSymbol] = useState(symbols[0]);
     const [isLoading, setIsLoading] = useState(true);
-    const [snapshots, setSnapshots] = useState<{ assetUrl: string, key: string }[]>([]);// 
+    const [snapshots, setSnapshots] = useState<{ asset: {sdAssetUrl: string, hdAssetUrl: string}, key: string }[]>([]);// 
     const [mode, setMode] = useQueryState('mode', parseAsStringLiteral(modes).withDefault(modes.at(0) || ''));
     useEffect(() => {
         if (!symbol) return;
         setIsLoading(true);
         getHistoricalSnapshotsBySymbol(symbol)
-            .then(r => setSnapshots(r.items.map(k => ({ assetUrl: mode == 'GEX' ? k.gex.hdAssetUrl : k.dex.hdAssetUrl, key: k.date }))))
+            .then(r => setSnapshots(r.items.map(k => ({ asset: mode == 'GEX' ? k.gex : k.dex, key: k.date }))))
             .finally(() => setIsLoading(false));
     }, [symbol, mode]);
     return <Box>
@@ -69,7 +69,7 @@ export const HistoryBySymbol = (props: { symbols: string[] }) => {
             </FormControl>
         </Box>
         {
-            symbol ? <HistoricalSnapshotView isLoading={isLoading} key={symbol} items={collect(snapshots).sortByDesc('key').all()} />
+            symbol ? <HistoricalSnapshotView showKeyOnOverlay={true} isLoading={isLoading} key={symbol} items={collect(snapshots).sortByDesc('key').all()} />
                 : <div></div>
         }
 
