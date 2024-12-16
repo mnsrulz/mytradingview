@@ -93,6 +93,21 @@ To deploy the application, follow these steps:
    netlify deploy --prod
    ```
 
+## Data Update Frequencies
+
+- **Delta/Gamma**
+  Based on [Tradier documentation](https://documentation.tradier.com/brokerage-api/markets/get-options-chains), greeks values (delta/gamma) are updated every hour.
+
+- **Open Interest**  
+  Open interest data is updated **overnight**.
+
+- **Volume**  
+  Volume is updated **live**.
+
+- **Spot Price**  
+  The spot price is **live** and updates in real time during market hours.  
+  - For **historical Delta/Gamma (DEX/GEX)** charts, the **last closing price** is used as the spot price.
+
 ## Contributing
 
 We welcome contributions to the project! If you have suggestions or improvements, please follow these steps:

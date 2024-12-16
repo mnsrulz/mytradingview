@@ -3,7 +3,7 @@ import { Expo, typeMap } from "@/components/Expo";
 import { TickerSearchDialog } from "@/components/TickerSearchDialog";
 import { calculateHedgingV2, getCalculatedStrikes } from "@/lib/dgHedgingHelper";
 import { DexGexType, MiniOptionContract } from "@/lib/types";
-import { FormControl, InputLabel, Select, MenuItem, Box, Tab, Tabs, Paper, Container } from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem, Box, Tab, Tabs, Paper, Container, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
@@ -35,8 +35,8 @@ export const C = (props: { symbol: string, cachedDates: string[], dte: number, s
         const tillDate = dayjs().add(dte, 'day');
         return data.filter(r => dayjs(r.expiration_date) <= tillDate);
     }, [dte]);
-    const allStrikes = useMemo(() => getCalculatedStrikes(price, strikeCounts, [...filteredData.reduce((p,c)=> p.add(c.strike) , new Set<number>())]), [strikeCounts]);
-    const allDates = useMemo(() => [...filteredData.reduce((p,c)=> p.add(c.expiration_date) , new Set<string>())].sort(), [dte]);
+    const allStrikes = useMemo(() => getCalculatedStrikes(price, strikeCounts, [...filteredData.reduce((p, c) => p.add(c.strike), new Set<number>())]), [strikeCounts]);
+    const allDates = useMemo(() => [...filteredData.reduce((p, c) => p.add(c.expiration_date), new Set<string>())].sort(), [dte]);
     const { exposureData } = useMemo(() => {
         return calculateHedgingV2(data, allStrikes, allDates, price)
     }, [dte, strikeCounts, allStrikes, allDates]);
@@ -80,6 +80,9 @@ export const C = (props: { symbol: string, cachedDates: string[], dte: number, s
                 <Expo data={exposureData} exposure={typeMap[gexTab]} symbol={props.symbol} dte={dte} skipAnimation={false} />
             </Box>
         </Paper>
+        <Box textAlign="right">
+            <Typography variant="caption" fontStyle={ "italic" }>Click <a href="https://github.com/mnsrulz/mytradingview#data-update-frequencies">here</a> to know more about when this data updates</Typography>
+        </Box>
         {/* <Paper sx={{ p: 0 }}> */}
 
         {/* <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
