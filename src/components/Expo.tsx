@@ -33,6 +33,13 @@ const calculateLeftMargin = (maxStrikeValue: number) => {
     return 64
 }
 
+const xAxixFormatter = (datasetType: OptionsDatasetType, v: number) => {
+    if (datasetType == 'gex' && v > 0) {
+        return `-${humanAbsCurrencyFormatter(v)}`;
+    }
+    return humanAbsCurrencyFormatter(v);
+}
+
 export const Expo = (props: IExpo) => {
     const { data, dte, symbol, skipAnimation } = props;
     // const height = (data.strikes.length < 10 ? 100 : 0) + data.strikes.length * 15;
@@ -114,7 +121,7 @@ export const Expo = (props: IExpo) => {
                     scaleType: 'linear',
                     min: -maxPosition * 1.05,  //5% extra to allow some spacing
                     max: maxPosition * 1.05,
-                    valueFormatter: (v) => (isGex && v > 0) ? `-${humanAbsCurrencyFormatter(v)}` : humanAbsCurrencyFormatter(v) //in case of net gex, the values on right should have negative ticks
+                    valueFormatter: (v: number) => xAxixFormatter(props.exposure, v)// (v) => (isGex && v > 0) ? `-${humanAbsCurrencyFormatter(v)}` : humanAbsCurrencyFormatter(v) //in case of net gex, the values on right should have negative ticks
                 }
             ]
         }
