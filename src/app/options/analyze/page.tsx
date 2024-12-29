@@ -1,6 +1,5 @@
 'use client';
 import { TickerSearch } from "@/components/TickerSearch";
-import { Container } from "@mui/material";
 import { useRouter } from 'next/navigation'
 
 export default function Page() {
