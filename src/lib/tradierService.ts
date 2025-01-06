@@ -189,13 +189,13 @@ export const getEarningDates = async (symbol: string) => {
     return earnings;
 }
 
-export const getTimeAndSales = async (symbol: string) => {
+export const getTimeAndSales = async (symbol: string, days: number) => {
     return await client(timesales, {
         searchParams: {
             symbol,
             interval: '5min',
-            start: dayjs().subtract(5, 'day').format('YYYY-MM-DD'),
-            end: dayjs().format('YYYY-MM-DD')
+            start: dayjs().subtract(days, 'day').format('YYYY-MM-DD'),
+            end: dayjs().add(1, 'day').format('YYYY-MM-DD')
         }
     }).json<TimeSalesResposne>();
 }
@@ -247,7 +247,7 @@ export const getFullOptionChainV2 = async (underlying: string) => {
 export const getDexGexAnalysisView = async (symbol: string) => {
     const optionChainPromise = getFullOptionChain(symbol);
     const currentPricePromise = getCurrentPrice(symbol);
-    
+
     //TODO: implement in mem cache
     
     await Promise.all([optionChainPromise, currentPricePromise]);
