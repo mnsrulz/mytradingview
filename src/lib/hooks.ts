@@ -473,7 +473,7 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
             return;
         }
         setLoaded(false);
-        const exposureResponse = DataModeType.HISTORICAL == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveCboeOptionExposure(symbol);
+        const exposureResponse = dataMode == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveCboeOptionExposure(symbol);
         exposureResponse.then(data => {
             setCache((prev) => { prev[cacheKey] = data; return prev; });
             setHistoricalData(data);
