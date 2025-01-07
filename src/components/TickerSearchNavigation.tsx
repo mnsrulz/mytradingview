@@ -4,7 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ITickerProps {
     basePath: string,
-    label?: string
+    label?: string,
+    clearQuery?: boolean
 }
 
 export const TickerSearchNavigation = (props: ITickerProps) => {
@@ -14,7 +15,7 @@ export const TickerSearchNavigation = (props: ITickerProps) => {
 
     return <TickerSearch onChange={(v) => {
         let pathToPush = props.basePath ? `${props.basePath}/${v.symbol}` : v.symbol;
-        if (searchQuery) pathToPush = `${pathToPush}?${searchQuery}`
+        if (searchQuery && !props.clearQuery) pathToPush = `${pathToPush}?${searchQuery}`
         router.push(pathToPush);
     }} />
 }

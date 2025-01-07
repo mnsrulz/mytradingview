@@ -5,7 +5,7 @@ import { useState } from "react";
 import { TickerSearchNavigation } from "./TickerSearchNavigation";
 import EditIcon from "@mui/icons-material/Edit";
 
-export const TickerSearchDialog = (props: { symbol: string, basePath: string }) => {
+export const TickerSearchDialog = (props: { symbol: string, basePath: string, clearQuery?: boolean }) => {
     const [openSearchTickerDialog, setOpenSearchTickerDialog] = useState(false);
 
     return <>
@@ -20,7 +20,7 @@ export const TickerSearchDialog = (props: { symbol: string, basePath: string }) 
             <DialogTitle id="search-ticker-dialog-title">Search</DialogTitle>
             <DialogContent dividers={true}>
                 {/* <TickerSearch onChange={(v) => router.push(`/options/analyze/${v.symbol}`)} /> */}
-                <TickerSearchNavigation {...props} />
+                <TickerSearchNavigation {...props}  />
             </DialogContent>
         </Dialog></>
 }

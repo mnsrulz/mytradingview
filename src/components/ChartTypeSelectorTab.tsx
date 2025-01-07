@@ -34,7 +34,7 @@ export const DteStrikeSelector = (props: { symbol: string, dte: number, strikeCo
     const dataModes = hasHistoricalData ? ['CBOE', 'TRADIER', 'HISTORICAL'] : ['CBOE', 'TRADIER'];
     return <Paper sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <FormControl sx={{ m: 1 }} size="small">
-            <TickerSearchDialog symbol={symbol} basePath='' />
+            <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
         </FormControl>
         <Box display="flex">
             <FormControl sx={{ m: 1, justifyItems: 'right' }} size="small">
