@@ -143,7 +143,7 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
         {currentStrategyLineItem && openAddNewStrategy && <StrategyPopup {...props} symbol={yf.underlyingSymbol} open={openAddNewStrategy} onClose={handleSaveStrategyItem} value={currentStrategyLineItem} />}
 
         <List dense={true}>
-            {strategies.map(j => <ListItem
+            {strategies.map(j => <ListItem key={j.id}
                 secondaryAction={
                     <div>
                         <IconButton edge="end" aria-label="delete" onClick={() => {
@@ -345,7 +345,7 @@ const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason:
                     <FormControl>
                         <InputLabel>Strategy</InputLabel>
                         <Select id="strategy" value={strategy} label="Strategy" onChange={(ev, v) => onChangeStrategy(ev.target.value)}>
-                            {strategies.map(j => <MenuItem value={j.id}>{j.label}</MenuItem>)}
+                            {strategies.map(j => <MenuItem key={j.id} value={j.id}>{j.label}</MenuItem>)}
                         </Select>
                     </FormControl>
                     <FormControl>
