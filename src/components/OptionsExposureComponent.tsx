@@ -10,16 +10,16 @@ import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsInteger, parseAsStringEnum, useQueryState } from "nuqs";
 import { GreeksExposureChart } from "./GreeksExposureChart";
 
-export const OptionsExposureComponent = (props: { symbol: string, dt: string, cachedDates: string[], dte: number, sc: number, analysisType: DexGexType, dataMode: DataModeType }) => {
-    const { dt, symbol, cachedDates } = props;
-    const [historicalDate, setHistoricalDate] = useState(dt);
-    const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(props.dte));
-    const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(props.sc));
-    const [exposureTab, setexposureTab] = useQueryState<DexGexType>('tab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(props.analysisType));
-    const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(props.dataMode));
+export const OptionsExposureComponent = (props: { symbol: string, cachedDates: string[] }) => {
+    const { symbol, cachedDates } = props;
+    const [historicalDate, setHistoricalDate] = useState(cachedDates[0] || '');
+    const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
+    const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
+    const [exposureTab, setexposureTab] = useQueryState<DexGexType>('tab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
+    const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoaded } = useOptionExposure(symbol, dte, strikeCounts, exposureTab, dataMode, historicalDate);
     if (!exposureData) return <LinearProgress />;
-  
+
     const startHistoricalAnimation = async () => {
         const delayMs = 1000;
         for (const d of cachedDates) {
@@ -35,13 +35,15 @@ export const OptionsExposureComponent = (props: { symbol: string, dt: string, ca
         <Paper sx={{ mt: 2 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
             <Box sx={{ m: 1 }}>
-                <GreeksExposureChart exposureData={exposureData} dte={dte} symbol={symbol} exposureType={exposureTab} />
+                <GreeksExposureChart exposureData={exposureData} dte={dte} symbol={symbol} exposureType={exposureTab} isLoaded={isLoaded} />
             </Box>
         </Paper>
-        {dataMode == DataModeType.HISTORICAL && <Stack direction={'row'} spacing={2} sx={{ alignItems: "center" }}>
-            <IconButton onClick={startHistoricalAnimation}><PlayIcon /></IconButton>
+        {dataMode == DataModeType.HISTORICAL && <Paper sx={{ px: 4 }}>
             <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
-        </Stack>
+            {/* <Stack direction={'row'} spacing={2} sx={{ alignItems: "center" }}>
+            </Stack> */}
+            {/* <IconButton onClick={startHistoricalAnimation}><PlayIcon /></IconButton> */}
+        </Paper>
         }
     </Container>
 }

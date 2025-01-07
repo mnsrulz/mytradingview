@@ -22,8 +22,8 @@ const GreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
-export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType }) => {
-    const { symbol, exposureType, dte, exposureData, skipAnimation } = props;
+export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoaded: boolean }) => {
+    const { symbol, exposureType, dte, exposureData, skipAnimation, isLoaded } = props;
     const { strikes, expirations, items, maxPosition, spotPrice } = exposureData;
     const height = calculateChartHeight(expirations, strikes);
     const yaxisline = Math.max(...strikes.filter(j => j <= spotPrice));
@@ -34,7 +34,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     return <Box>
         <Typography variant="h6" align="center">{title}</Typography>
         <BarChart
-            // loading={!isLoaded}
+            loading={!isLoaded}
             skipAnimation={skipAnimation}
             height={height}
             margin={{ left: leftMarginValue, right: 0 }}

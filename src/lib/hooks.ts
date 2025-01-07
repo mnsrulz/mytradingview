@@ -466,24 +466,19 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
 
     useEffect(() => {
-        if (dataMode == DataModeType.HISTORICAL) {
-            if (cacheStore[`${symbol}-${dt}`]) {
-                setHistoricalData(cacheStore[`${symbol}-${dt}`]);
-                setLoaded(true);
-                return;
-            }
-            setLoaded(false);
-            getHistoricalOptionExposure(symbol, dt).then(data => {
-                setCache((prev) => { prev[`${symbol}-${dt}`] = data; return prev; });
-                setHistoricalData(data);
-                setLoaded(true);
-            });
-        } else {
-            getLiveCboeOptionExposure(symbol).then(data=>{
-                setHistoricalData(data);
-                setLoaded(true);
-            })
+        const cacheKey = dataMode == DataModeType.HISTORICAL ? dt : `${dataMode}`;
+        if (cacheStore[cacheKey]) {
+            setHistoricalData(cacheStore[cacheKey]);
+            setLoaded(true);
+            return;
         }
+        setLoaded(false);
+        const exposureResponse = DataModeType.HISTORICAL == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveCboeOptionExposure(symbol);
+        exposureResponse.then(data => {
+            setCache((prev) => { prev[cacheKey] = data; return prev; });
+            setHistoricalData(data);
+            setLoaded(true);
+        })
     }, [symbol, dt, dataMode]);
 
     useEffect(() => {
@@ -550,6 +545,6 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
         exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
         setExposureData(exposureDataValue);
     }, [historicalData, chartType, dte, strikeCount]);
-    
+
     return { exposureData, isLoaded };
 }
