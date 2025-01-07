@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import ky from 'ky';
-import { NumberRange, OptionsInnerData, SearchTickerItem, TradierOptionData } from './types';
+import { DataModeType, DexGexType, NumberRange, OptionsInnerData, SearchTickerItem, TradierOptionData } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { searchTicker } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -36,7 +36,7 @@ type OptionsData = {
 }
 export type OptionsHedgingDataset = { strike: number, [x: string]: number; }
 
-type GammaDeltaDatasetType = {
+export type GammaDeltaDatasetType = {
     dataset: OptionsHedgingDataset[],
     maxPosition: number
 }
@@ -161,7 +161,7 @@ export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, da
                 const filteredData = r.data.filter(r => dayjs(r.options.option.at(0)?.expiration_date) <= dayjs(dataMode).add(dte, 'day'));
                 const allDates = [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.expiration_date)))];
                 let priceAtDate = r.price;  //it's possible that we won't receive the data from data service so fall back to netlify...
-                if(!priceAtDate) {
+                if (!priceAtDate) {
                     const { price } = await ky(`/api/symbols/${symbol}/historical`, {
                         searchParams: {
                             dt: dataMode
@@ -282,3 +282,274 @@ export const useTickerSearch = (v: string) => {
     return { options, loading };
 };
 
+// export const useHistoricalCacheData = (symbol: string, date: string) => {
+//     const [data, setData] = useState<MiniOptionContract[]>([]);
+//     const [loading, setLoading] = useState(false);
+
+//     useEffect(() => {
+//         if (!date || !symbol) {
+//             setData([]);
+//             return;
+//         }
+//         setLoading(true);
+//         getCachedDataForSymbolByDate(symbol, date).then(r => {
+//             setData(r.map(j => {
+//                 return {
+//                     expiration_date: j.expiration,
+//                     strike: j.strike,
+//                     option_type: j.option_type == 'C' ? 'call' : 'put',
+//                     open_interest: j.open_interest,
+//                     volume: j.volume,
+//                     greeks: {
+//                         delta: j.delta,
+//                         gamma: j.gamma,
+//                     }
+//                 }
+//             }));
+//             setLoading(false);
+//         })
+//     }, [symbol, date]);
+
+//     return { data, loading };
+// }
+
+// export const useCboeOptions = (symbol: string) => {
+//     const [data, setData] = useState<{ data: MiniOptionContract[], currentPrice: number }>({ data: [], currentPrice: 0 });
+//     const [loaded, setLoaded] = useState(false);
+//     useEffect(() => {
+//         getFullOptionChainCboe(symbol).then(data => {
+//             const mappedOptions = data.data.map(j => {
+//                 return {
+//                     expiration_date: j.expiration_date,
+//                     option_type: j.option_type,
+//                     strike: j.strike,
+//                     open_interest: j.open_interest,
+//                     volume: j.volume,
+//                     greeks: {
+//                         delta: j.delta,
+//                         gamma: j.gamma
+//                     }
+//                 }
+//             })
+//             setData({ data: mappedOptions, currentPrice: data.currentPrice });
+//             setLoaded(true);
+//         })
+//     }, [symbol]);
+//     return { data, loaded };
+// }
+
+// export const useCboeOptionsV2 = (symbol: string) => {
+//     const [spotPrice, setSpotPrice] = useState(0);
+//     const [indexedData, setIndexedData] = useState<IndexedOptionDataType>({});
+//     const [isLoaded, setLoaded] = useState(false)
+//     useEffect(() => {
+//         setLoaded(false);
+//         getFullOptionChainCboe(symbol).then(data => {
+//             const timingLogId = `indexing-${symbol}`;
+//             console.time(timingLogId);
+//             const indexedObject = data.data.reduce((previous, current) => {
+//                 previous[current.expiration_date] = previous[current.expiration_date] || {};
+//                 previous[current.expiration_date][current.strike] = previous[current.expiration_date][current.strike] || {};
+//                 //does it make sense to throw exception if delta/gamma values doesn't seem accurate? like gamma being negative or delta being greater than 1?
+//                 if (current.option_type == 'call') {
+//                     previous[current.expiration_date][current.strike].call = { oi: current.open_interest, volume: current.volume, delta: current.delta, gamma: current.gamma };
+//                 } else {
+//                     previous[current.expiration_date][current.strike].put = { oi: current.open_interest, volume: current.volume, delta: current.delta, gamma: current.gamma };
+//                 }
+//                 return previous;
+//             }, {} as Record<string, Record<string, MicroOptionContract>>)
+//             console.timeEnd(timingLogId);
+//             setIndexedData(indexedObject);
+//             setSpotPrice(data.currentPrice);
+//             setLoaded(true);
+//         });
+//     }, [symbol]);
+//     return { isLoaded, indexedData, spotPrice };
+// }
+
+// type MicroOptionContractItem = { oi: number, volume: number, delta: number, gamma: number }
+// type MicroOptionContract = { call: MicroOptionContractItem, put: MicroOptionContractItem }
+// type DexGexChartData = { expiration: string; data: number[]; }
+// type IndexedOptionDataType = Record<string, Record<string, MicroOptionContract>>
+
+
+// export const calculateChartData = (indexedData: IndexedOptionDataType, spotPrice: number, dte: number, strikeCount: number) => {
+//     const timingLogId = `calculateChartData`;
+//     console.time(timingLogId);
+
+//     const tillDate = dayjs().add(dte, 'day');
+//     const filteredData = Object.keys(indexedData).filter(r => dayjs(r) <= tillDate).reduce((prev, c) => {
+//         prev[c] = indexedData[c];
+//         return prev;
+//     }, {} as Record<string, Record<string, MicroOptionContract>>);
+//     const allAvailableStikesForFilteredExpirations = Object.values(filteredData).map(j => Object.keys(j)).reduce((prev, c) => {
+//         c.forEach(k => prev.add(Number(k)));
+//         return prev;
+//     }, new Set<number>());
+
+//     const strikes = getCalculatedStrikes(spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+//     const expirations = Object.keys(filteredData);
+//     const data = [] as { expiration: string; openInterestData: number[]; volumeData: number[], deltaData: number[], gammaData: number[] }[];
+
+//     for (const expiration of expirations) {
+//         const callOpenInterestData = new Array<number>(strikes.length).fill(0);
+//         const putOpenInterestData = new Array<number>(strikes.length).fill(0);
+
+//         const callVolumeData = new Array<number>(strikes.length).fill(0);
+//         const putVolumeData = new Array<number>(strikes.length).fill(0);
+
+//         const callDeltaData = new Array<number>(strikes.length).fill(0);
+//         const putDeltaData = new Array<number>(strikes.length).fill(0);
+
+//         const callGammaData = new Array<number>(strikes.length).fill(0);
+//         const putGammaData = new Array<number>(strikes.length).fill(0);
+
+//         for (let ix = 0; ix < strikes.length; ix++) {
+//             callOpenInterestData[ix] = -(filteredData[expiration][strikes[ix]]?.call?.oi || 0);
+//             putOpenInterestData[ix] = filteredData[expiration][strikes[ix]]?.put?.oi || 0;
+
+//             callVolumeData[ix] = -(filteredData[expiration][strikes[ix]]?.call?.volume || 0);
+//             putVolumeData[ix] = filteredData[expiration][strikes[ix]]?.put?.volume || 0;
+
+//             callDeltaData[ix] = -Math.trunc((filteredData[expiration][strikes[ix]]?.call?.delta || 0) * 100 * callOpenInterestData[ix] * spotPrice);
+//             putDeltaData[ix] = Math.trunc((filteredData[expiration][strikes[ix]]?.put?.volume || 0) * 100 * putOpenInterestData[ix] * spotPrice);
+
+//             const callGamma = (filteredData[expiration][strikes[ix]]?.call?.gamma || 0) * 100 * callOpenInterestData[ix] * spotPrice;
+//             const putGamma = (filteredData[expiration][strikes[ix]]?.put?.gamma || 0) * 100 * putOpenInterestData[ix] * spotPrice;
+//             const netGamma = Math.trunc(callGamma - putGamma);
+//             callGammaData[ix] = netGamma > 0 ? 0 : -netGamma;
+//             putGammaData[ix] = netGamma > 0 ? 0 : netGamma;
+//         }
+
+//         data.push({ openInterestData: callOpenInterestData, expiration, volumeData: callVolumeData, deltaData: callDeltaData, gammaData: callGammaData });
+//         data.push({ openInterestData: putOpenInterestData, expiration, volumeData: putVolumeData, deltaData: putDeltaData, gammaData: putGammaData });
+//     }
+//     console.timeEnd(timingLogId);
+//     return { data, strikes, expirations };
+// }
+
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number }
+
+const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
+    const nodes = new Array<number>(mp.size).fill(0);
+    for (let ix = 0; ix < skts.length; ix++) {
+        if (mp.has(Number(skts[ix]))) {
+            const nix = mp.get(Number(skts[ix]));
+            if (nix) {
+                nodes[nix] = values[ix];
+            }
+        }
+    }
+    return nodes;
+}
+
+const calcMaxValue = (len: number, data: number[][]) => {
+    const callData = new Array<number>(len).fill(0);
+    const putData = new Array<number>(len).fill(0);
+    for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < len; j++) {
+            if (data[i][j] > 0) {
+                callData[j] += data[i][j]
+            } else {
+                putData[j] += data[i][j]
+            }
+        }
+    }
+    const maxValue = Math.max(Math.abs(Math.max(...callData)), Math.abs(Math.min(...putData)));
+    return maxValue;
+}
+
+export const useOptionExposure = (symbol: string, dte: number, strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
+    const [historicalData, setHistoricalData] = useState<ExposureDataResponse>();
+    const [exposureData, setExposureData] = useState<ExposureDataType>();
+    const [isLoaded, setLoaded] = useState(false);
+    const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
+
+    useEffect(() => {
+        if (dataMode == DataModeType.HISTORICAL) {
+            if (cacheStore[`${symbol}-${dt}`]) {
+                setHistoricalData(cacheStore[`${symbol}-${dt}`]);
+                setLoaded(true);
+                return;
+            }
+            setLoaded(false);
+            getHistoricalOptionExposure(symbol, dt).then(data => {
+                setCache((prev) => { prev[`${symbol}-${dt}`] = data; return prev; });
+                setHistoricalData(data);
+                setLoaded(true);
+            });
+        } else {
+            getLiveCboeOptionExposure(symbol).then(data=>{
+                setHistoricalData(data);
+                setLoaded(true);
+            })
+        }
+    }, [symbol, dt, dataMode]);
+
+    useEffect(() => {
+        if (!historicalData) return;
+        const filteredData = historicalData.data.filter(j => j.dte <= dte);
+        const expirations = filteredData.map(j => j.expiration);
+
+        const allAvailableStikesForFilteredExpirations = filteredData.reduce((prev, c) => {
+            c.strikes.forEach(k => prev.add(Number(k)));
+            return prev;
+        }, new Set<number>());
+
+        const strikes = getCalculatedStrikes(historicalData.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+        const strikesIndexMap = new Map<number, number>();
+        strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: historicalData.spotPrice, maxPosition: 0, items: [] };
+
+        switch (chartType) {
+            case 'GEX':
+                exposureDataValue.items = filteredData.map(j => {
+                    return {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.netGamma)
+                    }
+                })
+                break;
+            case 'DEX':
+                exposureDataValue.items = filteredData.flatMap(j => {
+                    return [{
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.absDelta)
+                    }, {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.absDelta.map(v => v))
+                    }]
+                })
+                break;
+            case 'OI':
+                exposureDataValue.items = filteredData.flatMap(j => {
+                    return [{
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.openInterest)
+                    }, {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.openInterest.map(v => -v))
+                    }]
+                })
+                break;
+            case 'VOLUME':
+                exposureDataValue.items = filteredData.flatMap(j => {
+                    return [{
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.volume)
+                    }, {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.volume.map(v => -v))
+                    }]
+                })
+                break;
+            default:
+                throw new Error('invalid chart type');
+        }
+
+        exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
+        setExposureData(exposureDataValue);
+    }, [historicalData, chartType, dte, strikeCount]);
+    
+    return { exposureData, isLoaded };
+}

@@ -4,6 +4,7 @@ import { ChartsReferenceLine, ChartsText } from '@mui/x-charts';
 import { OptionsHedgingData } from "@/lib/hooks";
 import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
+import { calculateChartHeight, calculateLeftMargin } from "@/lib/utils";
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 type OptionsDatasetType = "dex" | "gex" | "oi" | "volume"
 interface IExpo {
@@ -23,16 +24,6 @@ export const typeMap = {
     'VOLUME': 'volume' as OptionsDatasetType
 }
 
-
-const calculateLeftMargin = (maxStrikeValue: number) => {
-    if (maxStrikeValue < 100) {
-        return 48
-    } else if (maxStrikeValue < 1000) {
-        return 56
-    }
-    return 64
-}
-
 const xAxixFormatter = (datasetType: OptionsDatasetType, v: number) => {
     if (datasetType == 'gex' && v > 0) {
         return `-${humanAbsCurrencyFormatter(v)}`;
@@ -43,12 +34,7 @@ const xAxixFormatter = (datasetType: OptionsDatasetType, v: number) => {
 export const Expo = (props: IExpo) => {
     const { data, dte, symbol, skipAnimation } = props;
     // const height = (data.strikes.length < 10 ? 100 : 0) + data.strikes.length * 15;
-    /*
-    some wierd calculation since there's no straight forward way to set the height of the bars. 
-    So 5px for both of the top and bottom margins, and 15px for each bar. Along with 20px for each expirations legends with max of 3 expirations.
-    */
-    const bufferHeight = 10 + 40 + ((data.expirations.length > 3 ? 3 : data.expirations.length) * 20);
-    const height = bufferHeight + (data.strikes.length * 15);
+    const height = calculateChartHeight(data.expirations, data.strikes);
     const yaxisline = Math.max(...data.strikes.filter(j => j <= data.currentPrice));
     const maxStrike = Math.max(...data.strikes);
     const leftMarginValue = calculateLeftMargin(maxStrike);

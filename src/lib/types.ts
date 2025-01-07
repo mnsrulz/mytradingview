@@ -165,3 +165,9 @@ export enum DexGexType {
   'OI' = 'OI',
   'VOLUME' = 'VOLUME'
 }
+
+export enum DataModeType {
+  'CBOE' = 'CBOE', 
+  'TRADIER' = 'TRADIER', 
+  'HISTORICAL' = 'HISTORICAL'
+}
