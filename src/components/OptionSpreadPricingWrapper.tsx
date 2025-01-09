@@ -128,7 +128,7 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
         const id = nanoid();
         const newStrategy = {
             id: id,
-            name: `strategy-${id}`,
+            name: getFriendlyName(defaultStrategyLineItems, 'COLLAR'),
             strategyType: 'COLLAR',
             items: defaultStrategyLineItems,
             hidden: false
@@ -162,10 +162,10 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
                         <IconButton edge="end" aria-label="enabled" title='Clone' onClick={() => {
                             const cloned = JSON.parse(JSON.stringify(j));
                             cloned.id = nanoid();
-                            setCurrentStrategyLineItem(cloned); 
+                            setCurrentStrategyLineItem(cloned);
                             setOpenAddNewStrategy(true);
                         }}>
-                            <FileCopyIcon />                            
+                            <FileCopyIcon />
                         </IconButton>
                         <IconButton edge="end" aria-label="enabled" title='Toggle visibility' onClick={() => handleVisibility(j.id, !j.hidden)}>
                             {j.hidden ? <VisibilityOffIcon /> : <VisibleIcon />}
@@ -188,6 +188,22 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
     </Paper>
 }
 
+const getFriendlyName = (newitems: LineItemModel[], strategy: string) => {
+    switch (strategy) {
+        case "COLLAR":
+            return (`COLLAR ${newitems[0].expiration} ${[newitems[0].strike, newitems[1].strike].sort((a, b) => a - b).join("/")}`);
+        case "CS":
+            return (`CALL SPREAD ${newitems[0].expiration} ${[newitems[0].strike, newitems[1].strike].sort((a, b) => a - b).join("/")}`);
+        case "PS":
+            return (`PUT SPREAD ${newitems[0].expiration} ${[newitems[0].strike, newitems[1].strike].sort((a, b) => a - b).join("/")}`);
+        case "SINGLE_LEG":
+            return (`${newitems[0].quantity} x ${newitems[0].type} ${newitems[0].mode} $${newitems[0].strike} ${newitems[0].expiration} `);
+        default:
+            break;
+    }
+
+}
+
 
 const buildCollar = (yf: YahooOptionsResponse) => {
     const e = `${yf.options[0].expirationDate.toISOString().substring(0, 10)}`;
@@ -206,7 +222,7 @@ const buildCollar = (yf: YahooOptionsResponse) => {
 }
 
 
-const buildPCS = (yf: YahooOptionsResponse) => {
+const buildPS = (yf: YahooOptionsResponse) => {
     const e = `${yf.options[0].expirationDate.toISOString().substring(0, 10)}`;
     const putSellOptionContract = yf.options[0].puts[Math.round(yf.options[0].puts.length / 2) + 1];
     const putBuyOptionContract = yf.options[0].puts[Math.round(yf.options[0].puts.length / 2)];
@@ -222,7 +238,7 @@ const buildPCS = (yf: YahooOptionsResponse) => {
     ] as LineItemModel[]
 }
 
-const buildCCS = (yf: YahooOptionsResponse) => {
+const buildCS = (yf: YahooOptionsResponse) => {
     const e = `${yf.options[0].expirationDate.toISOString().substring(0, 10)}`;
     const callSellOptionContract = yf.options[0].calls[Math.round(yf.options[0].calls.length / 2)]
     const callBuyOptionContract = yf.options[0].calls[Math.round(yf.options[0].calls.length / 2) + 1]
@@ -248,6 +264,8 @@ const buildNLeg = (yf: YahooOptionsResponse, numberOfLegs: number) => {
     } as LineItemModel))
 }
 
+
+
 type StraetgyBuilderCloseReason = 'cancel' | 'add';
 const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason: StraetgyBuilderCloseReason, value?: StrategyLineItem) => void, yf: YahooOptionsResponse, value: StrategyLineItem }) => {
     const { onClose, yf } = props;
@@ -256,11 +274,11 @@ const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason:
         id: 'COLLAR',
         label: 'COLLAR'
     }, {
-        id: 'PCS',
-        label: 'PCS'
+        id: 'PS',
+        label: 'Put Spread'
     }, {
-        id: 'CCS',
-        label: 'CCS'
+        id: 'CS',
+        label: 'Call Spread'
     }, {
         id: 'SINGLE_LEG',
         label: 'SINGLE LEG'
@@ -290,13 +308,13 @@ const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason:
 
         switch (v) {
             case 'COLLAR':
-                newLineItems = buildCollar(yf);
+                newLineItems = buildCollar(yf);                
                 break;
-            case 'PCS':
-                newLineItems = buildPCS(yf);
+            case 'PS':
+                newLineItems = buildPS(yf);
                 break;
-            case 'CCS':
-                newLineItems = buildCCS(yf);
+            case 'CS':
+                newLineItems = buildCS(yf);
                 break;
             case 'SINGLE_LEG':
                 newLineItems = buildNLeg(yf, 1);
@@ -311,18 +329,55 @@ const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason:
                 newLineItems = buildNLeg(yf, 4);
                 break;
         }
+        setName(getFriendlyName(newLineItems, v) || "");
         setItems(newLineItems);
     }
     const onChangeItem = (value: LineItemModel) => {
-        setItems(v => v.map(j => j.id == value.id ? value : j))
+        const newitems = items.map(j => j.id == value.id ? value : j);
+        switch (strategy) {
+            case "COLLAR":
+                newitems.forEach(j => {
+                    if (j.id == value.id) return value;
+                    j.expiration = value.expiration;
+                    j.quantity = value.quantity;
+                });
+
+                break;
+            case "CS":
+                newitems.forEach(j => {
+                    if (j.id == value.id) return value;
+                    j.expiration = value.expiration;
+                });
+                break;
+            case "PS":
+                newitems.forEach(j => {
+                    if (j.id == value.id) return value;
+                    j.expiration = value.expiration;
+                });
+                break;
+            default:
+                break;
+        }
+        setName(getFriendlyName(newitems, strategy) || name);
+        setItems(newitems);
     }
 
+    
     const handleSave = () => {
         for (const v of items) {
             const contractSymbol = getContractSymbol(yf, v.strike, v.expiration, v.type)
             if (!contractSymbol) throw new Error(`Error occurred`);
             v.contractSymbol = contractSymbol;
         }
+
+        // switch (strategy) {
+        //     case "COLLAR":
+        //     case "CS":
+        //     case "PS":
+        //     case default:
+
+        // }
+
         props.value.name = name;
         props.value.items = items;
         props.value.strategyType = strategy;
@@ -346,12 +401,12 @@ const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason:
                         </Select>
                     </FormControl>
                     <FormControl sx={{ flex: 1 }}>
-                        <TextField fullWidth size='small' label="Name" value={name} onChange={(ev) => setName(ev.target.value)} />
+                        <TextField fullWidth size='small' disabled={["COLLAR", "CS", "PS"].includes(strategy)} label="Name" value={name} onChange={(ev) => setName(ev.target.value)} />
                     </FormControl>
                 </Stack>
                 {
                     items.map(m => (
-                        <StrategyBuilderLineItem key={m.id} item={m} yf={yf} onChange={onChangeItem} />))
+                        <StrategyBuilderLineItem key={m.id} item={m} yf={yf} onChange={onChangeItem} strategy={strategy} />))
                 }
             </Stack>
         </DialogContent>
@@ -362,8 +417,8 @@ const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason:
     </Dialog>
 }
 
-const StrategyBuilderLineItem = (props: { item: LineItemModel, yf: YahooOptionsResponse, onChange: (value: LineItemModel) => void }) => {
-    const { item, yf, onChange } = props;
+const StrategyBuilderLineItem = (props: { item: LineItemModel, yf: YahooOptionsResponse, onChange: (value: LineItemModel) => void, strategy: string }) => {
+    const { item, yf, onChange, strategy } = props;
     const expirations = yf.expirationDates.map(j => `${j.toISOString().substring(0, 10)}`);
     const avaialbleoptiosn = yf.options.find(x => x.expirationDate.toISOString().substring(0, 10) == item.expiration);
     if (!avaialbleoptiosn) return <div>invalid data</div>
@@ -371,12 +426,19 @@ const StrategyBuilderLineItem = (props: { item: LineItemModel, yf: YahooOptionsR
     const { calls, puts } = avaialbleoptiosn;
     const strikes = item.type == 'CALL' ? calls.map(j => j.strike) : puts.map(j => j.strike)
 
+
     return <Box>
         <Stack spacing={2} direction={'row'}>
             <FormControl>
                 <InputLabel>{item.type.substring(0, 1)}</InputLabel>
-                <Select size='small' value={item.type} label="CP" onChange={(ev, v) => { item.type = (ev.target.value as 'CALL' | 'PUT'); onChange(item) }}>
+                <Select size='small' value={item.type} disabled={["COLLAR", "PS", "CS"].includes(strategy)} label="CP" onChange={(ev, v) => { item.type = (ev.target.value as 'CALL' | 'PUT'); onChange(item) }}>
                     {['CALL', 'PUT'].map(j => <MenuItem key={j} value={j}>{j.substring(0, 1)}</MenuItem>)}
+                </Select>
+            </FormControl>
+            <FormControl>
+                <InputLabel>{item.mode.substring(0, 1)}</InputLabel>
+                <Select size='small' value={item.mode} disabled={["COLLAR", "PS", "CS"].includes(strategy)} label="mode" onChange={(ev, v) => { item.mode = (ev.target.value as BuySell); onChange(item) }}>
+                    {['BUY', 'SELL'].map(j => <MenuItem key={j} value={j}>{j.substring(0, 1)}</MenuItem>)}
                 </Select>
             </FormControl>
             <FormControl>
@@ -389,12 +451,6 @@ const StrategyBuilderLineItem = (props: { item: LineItemModel, yf: YahooOptionsR
                 <InputLabel>Strike</InputLabel>
                 <Select size='small' value={item.strike} label="strike" onChange={(ev, v) => { item.strike = (Number(ev.target.value)); onChange(item) }}>
                     {strikes.map(j => <MenuItem key={j} value={j}>{j}</MenuItem>)}
-                </Select>
-            </FormControl>
-            <FormControl>
-                <InputLabel>{item.mode.substring(0, 1)}</InputLabel>
-                <Select size='small' value={item.mode} label="mode" onChange={(ev, v) => { item.mode = (ev.target.value as BuySell); onChange(item) }}>
-                    {['BUY', 'SELL'].map(j => <MenuItem key={j} value={j}>{j.substring(0, 1)}</MenuItem>)}
                 </Select>
             </FormControl>
             <FormControl>
