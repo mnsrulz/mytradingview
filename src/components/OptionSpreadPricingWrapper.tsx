@@ -6,6 +6,7 @@ import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogProp
 import { useEffect, useState } from "react";
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import EditIcon from '@mui/icons-material/Edit';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 import VisibleIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { YahooOptionsResponse } from "@/lib/types";
@@ -158,6 +159,14 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
             {strategies.map(j => <ListItem key={j.id}
                 secondaryAction={
                     <Box>
+                        <IconButton edge="end" aria-label="enabled" title='Clone' onClick={() => {
+                            const cloned = JSON.parse(JSON.stringify(j));
+                            cloned.id = nanoid();
+                            setCurrentStrategyLineItem(cloned); 
+                            setOpenAddNewStrategy(true);
+                        }}>
+                            <FileCopyIcon />                            
+                        </IconButton>
                         <IconButton edge="end" aria-label="enabled" title='Toggle visibility' onClick={() => handleVisibility(j.id, !j.hidden)}>
                             {j.hidden ? <VisibilityOffIcon /> : <VisibleIcon />}
                         </IconButton>
