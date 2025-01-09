@@ -21,7 +21,7 @@ export const mergeMultipleTimeSalesData = (allStrategies: number[][][]) => {
 
 
     for (let ix = 0; ix < allStrategies.length; ix++) {
-        debugger;
+        // debugger;
         dataset[ix + 1] = new Array<number>(sortedTimeseriesKeys.length);
         const myarray = dataset[ix + 1];
         let lastKnownValue = null;
@@ -31,7 +31,7 @@ export const mergeMultipleTimeSalesData = (allStrategies: number[][][]) => {
             const timeSeriesKey = sortedTimeseriesKeys[skIx]
             ix == 1 && console.log(`skIx: ${skIx}, svIx: ${svIx}`)
             if (strategyTimeSeriesKey == timeSeriesKey) {
-                console.log(`values are equal.. setting to ${allStrategies[ix][1][svIx]}`);
+                // console.log(`values are equal.. setting to ${allStrategies[ix][1][svIx]}`);
                 myarray[skIx] = allStrategies[ix][1][svIx]
                 lastKnownValue = myarray[skIx];
                 skIx++; svIx++;
@@ -40,10 +40,10 @@ export const mergeMultipleTimeSalesData = (allStrategies: number[][][]) => {
                 svIx++;
             } else {
                 if (lastKnownValue != null) {
-                    console.log(`value is greater but lastknowvalue present: ${lastKnownValue}`);
+                    // console.log(`value is greater but lastknowvalue present: ${lastKnownValue}`);
                     myarray[skIx] = lastKnownValue;
                 } else {
-                    console.log(`value is greater`);
+                    // console.log(`value is greater`);
                 }
                 skIx++;
             }

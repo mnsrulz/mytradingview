@@ -2,10 +2,12 @@
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { nanoid } from 'nanoid'
-import { Button, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle, FormControl, IconButton, InputLabel, LinearProgress, List, ListItem, ListItemText, MenuItem, Select, Stack, TextField } from "@mui/material";
+import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle, Divider, FormControl, IconButton, InputLabel, LinearProgress, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Paper, Select, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import EditIcon from '@mui/icons-material/Edit';
+import VisibleIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { YahooOptionsResponse } from "@/lib/types";
 import ky from "ky";
 import { OptionSpreadPricingTimeSeriesChart } from "./OptionSpreadPricingTimeSeriesChart";
@@ -16,7 +18,7 @@ import { mergeMultipleTimeSalesData } from '@/lib/tool';
 type BuySell = 'BUY' | 'SELL'
 type CallPut = 'CALL' | 'PUT'
 type LineItemModel = { id: string, expiration: string, strike: number, type: CallPut, mode: BuySell, quantity: number, contractSymbol: string };
-type StrategyLineItem = { id: string, name: string, strategyType: string, items: LineItemModel[] }
+type StrategyLineItem = { id: string, name: string, strategyType: string, items: LineItemModel[], hidden: boolean }
 
 const calculateStrategyData = (strategyLineItem: StrategyLineItem, timesales: TimeSalesResposne[]) => {
     const optionSymbols = new Set(strategyLineItem.items.map(j => j.contractSymbol));
@@ -25,7 +27,7 @@ const calculateStrategyData = (strategyLineItem: StrategyLineItem, timesales: Ti
         return iv;
     }, {} as Record<string, number>)
     const md: Record<number, number[]> = {};
-    timesales.filter(k=> optionSymbols.has(k.symbol)).forEach((j, ix) => {
+    timesales.filter(k => optionSymbols.has(k.symbol)).forEach((j, ix) => {
         const multiplier = orderBook[j.symbol] || 0;
         j.series.data.forEach(k => {
             md[k.timestamp] = md[k.timestamp] || Array<number>(Object.keys(orderBook).length).fill(0);  //initialize the array if not exists
@@ -58,39 +60,12 @@ const calculateStrategyData = (strategyLineItem: StrategyLineItem, timesales: Ti
 
 }
 
-export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) => {
-    const [strategies, setStrategies] = useState<StrategyLineItem[]>([]);
-    const { yf } = props;
-    const [openAddNewStrategy, setOpenAddNewStrategy] = useState(false);
-    const [timePeriod, setTimePeriod] = useState(3);
-    const [currentStrategyLineItem, setCurrentStrategyLineItem] = useState<StrategyLineItem | undefined>();
-    const [timeSeriesData, settimeSeriesData] = useState<number[][]>([]);
+const useTimeSalesData = (uniqueOptionContractSymbols: string, timePeriod: number) => {
+    const [data, setData] = useState<TimeSalesResposne[]>([]);
     const [loading, setLoading] = useState(false);
-    const getStrikes = (expiration: string, type: 'CALL' | 'PUT') => {
-        const k = yf.options.find(j => j.expirationDate.toISOString().substring(0, 10) == expiration);
-        if (k) {
-            return (type == 'CALL' ? k.calls : k.puts).map(o => o.strike);
-        }
-        return [];
-    }
-
-    const uniqueOptionContractSymbols = [...new Set(strategies.flatMap(j => j.items.map(k => k.contractSymbol)))].sort().join(',');  //fn();///`TSM241122C00190000,TSM241122C00200000`; //fn();
-    const handleSaveStrategyItem = (reason: StraetgyBuilderCloseReason, value?: StrategyLineItem) => {
-        setOpenAddNewStrategy(false);
-        if (!value) return;
-        setStrategies(v => {
-            if (v.some(j => j.id == value.id)) {
-                return v.map(k => k.id == value.id ? value : k);
-            }
-            v.push(value);
-            return v;
-        })
-        setCurrentStrategyLineItem(undefined);
-    };
-
     useEffect(() => {
         if (!uniqueOptionContractSymbols) {
-            settimeSeriesData([])
+            setData([])
             return
         };
         setLoading(true);
@@ -100,18 +75,52 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
                 p: timePeriod
             }
         }).json<TimeSalesResposne[]>().then((timesales) => {
-            const allStrategyData = strategies.map(j => calculateStrategyData(j, timesales));
-            const flattenedData = mergeMultipleTimeSalesData(allStrategyData);
-            // const flattenedData = allStrategyData.flatMap((k, ix) => {
-            //     if (ix == 0) {
-            //         return k
-            //     }
-            //     return [k[1]]
-            // })
-            settimeSeriesData(flattenedData)
+            setData(timesales);
             setLoading(false);
         })
     }, [uniqueOptionContractSymbols, timePeriod]);
+
+    return { data, loading }
+}
+
+export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) => {
+    const [strategies, setStrategies] = useState<StrategyLineItem[]>([]);
+    const { yf } = props;
+    const [openAddNewStrategy, setOpenAddNewStrategy] = useState(false);
+    const [timePeriod, setTimePeriod] = useState(3);
+    const [currentStrategyLineItem, setCurrentStrategyLineItem] = useState<StrategyLineItem | undefined>();
+    const [chartdataset, setchartdataset] = useState<{ legends: string[], data: any }>({ data: [], legends: [] });
+    const [] = useState([]);
+    const visibleStrategies = strategies.filter(j => !j.hidden)
+    const uniqueOptionContractSymbols = [...new Set(strategies.flatMap(j => j.items.map(k => k.contractSymbol)))].sort().join(',');  //fn();///`TSM241122C00190000,TSM241122C00200000`; //fn();
+    const { data, loading } = useTimeSalesData(uniqueOptionContractSymbols, timePeriod);
+    useEffect(() => {
+        const allStrategyData = visibleStrategies.map(j => calculateStrategyData(j, data));
+        const flattenedData = mergeMultipleTimeSalesData(allStrategyData);
+        setchartdataset({ data: flattenedData, legends: visibleStrategies.map(j => j.name) })
+    }, [data, strategies]);
+
+    const handleSaveStrategyItem = (reason: StraetgyBuilderCloseReason, value?: StrategyLineItem) => {
+        setOpenAddNewStrategy(false);
+        if (value) {
+            setStrategies(v => {
+                if (v.some(j => j.id == value.id)) {
+                    return v.map(k => k.id == value.id ? value : k);
+                }
+                v.push(value);
+                return v;
+            })
+        }
+        setCurrentStrategyLineItem(undefined);
+    };
+    const handleVisibility = (strategyId: string, enabled: boolean) => {
+        setStrategies(v => v.map(k => {
+            if (k.id == strategyId) {
+                k.hidden = enabled;
+            }
+            return k;
+        }))
+    }
 
     const handleAddNew = () => {
         const defaultStrategyLineItems = buildCollar(yf);
@@ -120,16 +129,16 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
             id: id,
             name: `strategy-${id}`,
             strategyType: 'COLLAR',
-            items: defaultStrategyLineItems
+            items: defaultStrategyLineItems,
+            hidden: false
         } as StrategyLineItem;
         setCurrentStrategyLineItem(newStrategy);
         setOpenAddNewStrategy(true);
     }
 
-    return <div>
-        <Link href={'/screener'}>Screener</Link>
-        <Stack direction={'row'} sx={{ justifyContent: 'space-between' }}>
-            <Button onClick={handleAddNew}  >Build new strategy</Button>
+    return <Paper sx={{ p: 1, my: 1 }}>
+        {/* <Link href={'/screener'}>Screener</Link> */}
+        <Stack direction={'row'} sx={{ justifyContent: 'right' }}>
             <FormControl size='small' sx={{ width: 200 }}>
                 <InputLabel>Period (D)</InputLabel>
                 <Select id="timePeriod" label="Period (D)" value={timePeriod} onChange={(ev, v) => setTimePeriod(Number(ev.target.value))}>
@@ -138,57 +147,36 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
             </FormControl>
         </Stack>
 
-        {loading && <LinearProgress />}
-        {(!loading && timeSeriesData.length > 0) && <OptionSpreadPricingTimeSeriesChart strategies={strategies.map(j => j.name)} data={timeSeriesData} />}
+        <OptionSpreadPricingTimeSeriesChart loading={loading} data={chartdataset.data} legends={chartdataset.legends} />
         {currentStrategyLineItem && openAddNewStrategy && <StrategyPopup {...props} symbol={yf.underlyingSymbol} open={openAddNewStrategy} onClose={handleSaveStrategyItem} value={currentStrategyLineItem} />}
-
-        <List dense={true}>
+        <Stack direction={'row'} sx={{ justifyContent: 'space-between' }}>
+            <Typography variant='h6'>Strategies</Typography>
+            <Button onClick={handleAddNew}>Add new strategy</Button>
+        </Stack>
+        <Divider />
+        <List dense>
             {strategies.map(j => <ListItem key={j.id}
                 secondaryAction={
-                    <div>
+                    <Box>
+                        <IconButton edge="end" aria-label="enabled" title='Toggle visibility' onClick={() => handleVisibility(j.id, !j.hidden)}>
+                            {j.hidden ? <VisibilityOffIcon /> : <VisibleIcon />}
+                        </IconButton>
                         <IconButton edge="end" aria-label="delete" onClick={() => {
-                            setCurrentStrategyLineItem(j); setOpenAddNewStrategy(true);
+                            setCurrentStrategyLineItem(JSON.parse(JSON.stringify(j))); setOpenAddNewStrategy(true);
                         }}>
                             <EditIcon />
                         </IconButton>
                         <IconButton edge="end" aria-label="delete" onClick={() => setStrategies(s => s.filter(k => k.id != j.id))}>
                             <DeleteIcon />
                         </IconButton>
-                    </div>
+                    </Box>
                 }
             >
-                {/* <ListItemAvatar>
-                    <Avatar>
-                        <FolderIcon />
-                    </Avatar>
-                </ListItemAvatar> */}
-                <ListItemText
-                    primary={j.name}
-                // secondary={secondary ? 'Secondary text' : null}
-                />
+                <ListItemText primary={j.name} />
             </ListItem>
             )}
         </List>
-        {/* <DataGrid
-            editMode="row"
-            density="compact"
-            rows={rows}
-            columns={columns}
-            disableRowSelectionOnClick
-            processRowUpdate={handleProcessRowUpdate}
-        /> */}
-        {/* <div>
-            {JSON.stringify(orderBook)}
-
-        </div> */}
-
-        {/* 
-        {JSON.stringify(rows)}
-        {uniqueOptionContractSymbols}
-        
-        <h1>{od.length}</h1> */}
-
-    </div>
+    </Paper>
 }
 
 
@@ -211,7 +199,7 @@ const buildCollar = (yf: YahooOptionsResponse) => {
 
 const buildPCS = (yf: YahooOptionsResponse) => {
     const e = `${yf.options[0].expirationDate.toISOString().substring(0, 10)}`;
-    const putSellOptionContract = yf.options[0].puts[Math.round(yf.options[0].puts.length / 2)];
+    const putSellOptionContract = yf.options[0].puts[Math.round(yf.options[0].puts.length / 2) + 1];
     const putBuyOptionContract = yf.options[0].puts[Math.round(yf.options[0].puts.length / 2)];
     if (!putSellOptionContract || !putBuyOptionContract) return [];
 
@@ -228,7 +216,7 @@ const buildPCS = (yf: YahooOptionsResponse) => {
 const buildCCS = (yf: YahooOptionsResponse) => {
     const e = `${yf.options[0].expirationDate.toISOString().substring(0, 10)}`;
     const callSellOptionContract = yf.options[0].calls[Math.round(yf.options[0].calls.length / 2)]
-    const callBuyOptionContract = yf.options[0].calls[Math.round(yf.options[0].calls.length / 2)]
+    const callBuyOptionContract = yf.options[0].calls[Math.round(yf.options[0].calls.length / 2) + 1]
     if (!callSellOptionContract || !callBuyOptionContract) return [];
 
     return [
@@ -341,15 +329,15 @@ const StrategyPopup = (props: { symbol: string, open: boolean, onClose: (reason:
         <DialogTitle>Strategy builder</DialogTitle>
         <DialogContent dividers={true}>
             <Stack spacing={2}>
-                <Stack spacing={2} direction={'row'} >
+                <Stack spacing={2} direction={'row'}>
                     <FormControl>
                         <InputLabel>Strategy</InputLabel>
-                        <Select id="strategy" value={strategy} label="Strategy" onChange={(ev, v) => onChangeStrategy(ev.target.value)}>
+                        <Select size='small' id="strategy" value={strategy} label="Strategy" onChange={(ev, v) => onChangeStrategy(ev.target.value)}>
                             {strategies.map(j => <MenuItem key={j.id} value={j.id}>{j.label}</MenuItem>)}
                         </Select>
                     </FormControl>
-                    <FormControl>
-                        <TextField label="Name" value={name} onChange={(ev) => setName(ev.target.value)} />
+                    <FormControl sx={{ flex: 1 }}>
+                        <TextField fullWidth size='small' label="Name" value={name} onChange={(ev) => setName(ev.target.value)} />
                     </FormControl>
                 </Stack>
                 {
@@ -374,33 +362,40 @@ const StrategyBuilderLineItem = (props: { item: LineItemModel, yf: YahooOptionsR
     const { calls, puts } = avaialbleoptiosn;
     const strikes = item.type == 'CALL' ? calls.map(j => j.strike) : puts.map(j => j.strike)
 
-    return <Stack spacing={2} direction={'row'}>
-        <FormControl>
-            <Select value={item.type} label="CP" onChange={(ev, v) => { item.type = (ev.target.value as 'CALL' | 'PUT'); onChange(item) }}>
-                {['CALL', 'PUT'].map(j => <MenuItem key={j} value={j}>{j.substring(0, 1)}</MenuItem>)}
-            </Select>
-        </FormControl>
-        <FormControl>
-            <Select value={item.expiration} label="expiration" onChange={(ev, v) => { item.expiration = ev.target.value; onChange(item) }}>
-                {expirations.map(j => <MenuItem key={j} value={j}>{j}</MenuItem>)}
-            </Select>
-        </FormControl>
-        <FormControl>
-            <Select value={item.strike} label="strike" onChange={(ev, v) => { item.strike = (Number(ev.target.value)); onChange(item) }}>
-                {strikes.map(j => <MenuItem key={j} value={j}>{j}</MenuItem>)}
-            </Select>
-        </FormControl>
-        <FormControl>
-            <Select value={item.mode} label="mode" onChange={(ev, v) => { item.mode = (ev.target.value as BuySell); onChange(item) }}>
-                {['BUY', 'SELL'].map(j => <MenuItem key={j} value={j}>{j.substring(0, 1)}</MenuItem>)}
-            </Select>
-        </FormControl>
-        <FormControl>
-            <Select value={item.quantity} label="quantity" onChange={(ev, v) => { item.quantity = (Number(ev.target.value)); onChange(item) }}>
-                {Array.from(Array(100).keys()).map(j => <MenuItem key={j} value={j}>{j}</MenuItem>)}
-            </Select>
-        </FormControl>
-    </Stack>
+    return <Box>
+        <Stack spacing={2} direction={'row'}>
+            <FormControl>
+                <InputLabel>{item.type.substring(0, 1)}</InputLabel>
+                <Select size='small' value={item.type} label="CP" onChange={(ev, v) => { item.type = (ev.target.value as 'CALL' | 'PUT'); onChange(item) }}>
+                    {['CALL', 'PUT'].map(j => <MenuItem key={j} value={j}>{j.substring(0, 1)}</MenuItem>)}
+                </Select>
+            </FormControl>
+            <FormControl>
+                <InputLabel>Expiry</InputLabel>
+                <Select size='small' value={item.expiration} label="expiration" onChange={(ev, v) => { item.expiration = ev.target.value; onChange(item) }}>
+                    {expirations.map(j => <MenuItem key={j} value={j}>{j}</MenuItem>)}
+                </Select>
+            </FormControl>
+            <FormControl>
+                <InputLabel>Strike</InputLabel>
+                <Select size='small' value={item.strike} label="strike" onChange={(ev, v) => { item.strike = (Number(ev.target.value)); onChange(item) }}>
+                    {strikes.map(j => <MenuItem key={j} value={j}>{j}</MenuItem>)}
+                </Select>
+            </FormControl>
+            <FormControl>
+                <InputLabel>{item.mode.substring(0, 1)}</InputLabel>
+                <Select size='small' value={item.mode} label="mode" onChange={(ev, v) => { item.mode = (ev.target.value as BuySell); onChange(item) }}>
+                    {['BUY', 'SELL'].map(j => <MenuItem key={j} value={j}>{j.substring(0, 1)}</MenuItem>)}
+                </Select>
+            </FormControl>
+            <FormControl>
+                <InputLabel>Size</InputLabel>
+                <Select size='small' value={item.quantity} label="Size" onChange={(ev, v) => { item.quantity = (Number(ev.target.value)); onChange(item) }}>
+                    {Array.from(Array(100).keys()).map(j => <MenuItem key={j} value={j}>{j}</MenuItem>)}
+                </Select>
+            </FormControl>
+        </Stack>
+    </Box>
 }
 
 const getContractSymbol = (yf: YahooOptionsResponse, strike: number, expiration: string, type: CallPut) => {

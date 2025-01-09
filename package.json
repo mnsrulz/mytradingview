@@ -46,6 +46,7 @@
     "react-hook-form": "^7.51.2",
     "react-hook-form-mui": "^7.0.0-beta.4",
     "react-photo-view": "^1.2.6",
+    "react-resize-detector": "^12.0.2",
     "react-router-dom": "^6.22.3",
     "socket.io-client": "^4.7.5",
     "sort-by": "^1.2.0",
