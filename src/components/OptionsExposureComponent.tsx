@@ -2,7 +2,7 @@
 import { useOptionExposure } from "@/lib/hooks";
 import { Box, Container, LinearProgress, Paper, Slider, Stack } from "@mui/material";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import PlayIcon from '@mui/icons-material/PlayArrow';
 import { IconButton } from "@mui/material";
 import { ChartTypeSelectorTab, DteStrikeSelector } from "./ChartTypeSelectorTab";
@@ -53,22 +53,29 @@ type IHistoricalDateSliderPorps = { dates: string[], currentValue?: string, onCh
 const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
     const { dates, onChange, currentValue } = props;
     const [value, setValue] = useState<number>(dates.indexOf(currentValue || ''));
-    const strikePriceMarks = dates.map((m, ix) => ({ value: ix, label: dayjs(m).format('D MMM') }));
-    const handleChange = (e: Event, v: number) => {
-        setValue(v);
-        onChange(dates[v]);
-    };
+    const strikePriceMarks = useMemo(() => {
+        const marks = dates.map((m, ix) => ({ value: ix, label: dayjs(m).format('D MMM') }));
+        const maxMarks = 5;
+        if (dates.length <= maxMarks) return marks;
+        const result = [];
+        const step = (marks.length - 1) / (maxMarks-1);
+        for (let i = 0; i < maxMarks; i++) {
+            result.push(marks[Math.round(i * step)]);
+        }
+        return result;
+    }, [dates]);
 
     return <Slider
         key={currentValue}
         value={value}
-        onChange={(e, v) => handleChange(e, v as number)}
+        onChange={(e, v) => setValue(v as number)}
+        onChangeCommitted={(e, v) => onChange(dates[v as number])}
         getAriaValueText={(v, ix) => dates[ix]}
         valueLabelDisplay="auto"
         valueLabelFormat={(v) => dayjs(dates[v]).format('D MMM')}
         marks={strikePriceMarks}
         min={0}
         max={dates.length - 1}
-        step={null} />
+        step={1} />
 };
 
