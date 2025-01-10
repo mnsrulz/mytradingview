@@ -7,6 +7,7 @@ import { FormControl, InputLabel, Select, MenuItem, Box, Tab, Tabs, Paper, Conta
 import dayjs from "dayjs";
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
 import { useMemo } from "react";
+import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 
 
 const dteOptions = [30,
@@ -78,9 +79,7 @@ export const OptionsAnalysisComponent = (props: { symbol: string, cachedDates: s
                 <Expo data={exposureData} exposure={typeMap[gexTab]} symbol={props.symbol} dte={dte} skipAnimation={false} />
             </Box>
         </Paper>
-        <Box textAlign="right">
-            <Typography variant="caption" fontStyle={ "italic" }>Click <a href="https://github.com/mnsrulz/mytradingview#data-update-frequencies">here</a> to know more about when this data updates</Typography>
-        </Box>
+        <UpdateFrequencyDisclaimer />
         {/* <Paper sx={{ p: 0 }}> */}
 
         {/* <FormControl sx={{ m: 1, minWidth: 120 }} size="small">

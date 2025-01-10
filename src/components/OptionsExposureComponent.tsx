@@ -1,6 +1,6 @@
 'use client';
 import { useOptionExposure } from "@/lib/hooks";
-import { Box, Container, LinearProgress, Paper, Slider, Stack } from "@mui/material";
+import { Box, Container, LinearProgress, Paper, Slider, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import PlayIcon from '@mui/icons-material/PlayArrow';
@@ -9,6 +9,7 @@ import { ChartTypeSelectorTab, DteStrikeSelector } from "./ChartTypeSelectorTab"
 import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsInteger, parseAsStringEnum, useQueryState } from "nuqs";
 import { GreeksExposureChart } from "./GreeksExposureChart";
+import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 
 export const OptionsExposureComponent = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
@@ -45,6 +46,7 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
             {/* <IconButton onClick={startHistoricalAnimation}><PlayIcon /></IconButton> */}
         </Paper>
         }
+        <UpdateFrequencyDisclaimer />
     </Container>
 }
 

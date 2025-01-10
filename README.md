@@ -95,18 +95,17 @@ To deploy the application, follow these steps:
 
 ## Data Update Frequencies
 
-- **Delta/Gamma**
-  Based on [Tradier documentation](https://documentation.tradier.com/brokerage-api/markets/get-options-chains), greeks values (delta/gamma) are updated every hour.
+| Data Type       | Source   | Update Frequency                                                                                   |
+|------------------|----------|---------------------------------------------------------------------------------------------------|
+| **Delta/Gamma** | Tradier  | Updates every **hour** ([Tradier documentation](https://documentation.tradier.com/brokerage-api/markets/get-options-chains)) |
+|                  | CBOE     | Updates every **15 minutes** ([CBOE site](https://www.cboe.com/delayed_quotes/nvda/quote_table))   |
+| **Open Interest**| -        | Updates **overnight**                                                                             |
+| **Volume**      | Tradier  | **live**                                                                                  |
+|                  | CBOE     | **15 minutes delay**                                                                                  |
+| **Spot Price**  | Tradier  | **Live** updates in real time during market hours                                                 |
+|                  | CBOE     | **15 minutes delayed** during market hours                                                       |
 
-- **Open Interest**  
-  Open interest data is updated **overnight**.
-
-- **Volume**  
-  Volume is updated **live**.
-
-- **Spot Price**  
-  The spot price is **live** and updates in real time during market hours.  
-  - For **historical Delta/Gamma (DEX/GEX)** charts, the **last closing price** is used as the spot price.
+*Note: For Historical mode, the **last closing price** is used as the spot price for **Delta/Gamma (DEX/GEX)** charts*
 
 ## Contributing
 
