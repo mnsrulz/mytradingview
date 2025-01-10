@@ -459,31 +459,44 @@ const calcMaxValue = (len: number, data: number[][]) => {
     return maxValue;
 }
 
+const getLiveExposure = (symbol: string, provider: 'CBOE' | 'TRADIER') => {
+    return provider == 'CBOE' ? getLiveCboeOptionExposure(symbol) : getLiveTradierOptionExposure(symbol)
+}
+
+const getLiveTradierOptionExposure = async (symbol: string) => {
+    return await ky(`/api/symbols/${symbol}/options/exposure`).json<ExposureDataResponse>();
+}
+
 export const useOptionExposure = (symbol: string, dte: number, strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
-    const [historicalData, setHistoricalData] = useState<ExposureDataResponse>();
+    const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoaded, setLoaded] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
 
     useEffect(() => {
+        setHasError(false);
         const cacheKey = dataMode == DataModeType.HISTORICAL ? dt : `${dataMode}`;
         if (cacheStore[cacheKey]) {
-            setHistoricalData(cacheStore[cacheKey]);
+            setRawExposureResponse(cacheStore[cacheKey]);
             setLoaded(true);
             return;
         }
         setLoaded(false);
-        const exposureResponse = dataMode == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveCboeOptionExposure(symbol);
+        const exposureResponse = dataMode == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveExposure(symbol, dataMode);
         exposureResponse.then(data => {
             setCache((prev) => { prev[cacheKey] = data; return prev; });
-            setHistoricalData(data);
+            setRawExposureResponse(data);
             setLoaded(true);
+        }).catch(() => {
+            setHasError(true);
         })
     }, [symbol, dt, dataMode]);
 
     useEffect(() => {
-        if (!historicalData) return;
-        const filteredData = historicalData.data.filter(j => j.dte <= dte);
+        if (!rawExposureResponse) return;
+        const start = performance.now();
+        const filteredData = rawExposureResponse.data.filter(j => j.dte <= dte);
         const expirations = filteredData.map(j => j.expiration);
 
         const allAvailableStikesForFilteredExpirations = filteredData.reduce((prev, c) => {
@@ -491,10 +504,10 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
             return prev;
         }, new Set<number>());
 
-        const strikes = getCalculatedStrikes(historicalData.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+        const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: historicalData.spotPrice, maxPosition: 0, items: [] };
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [] };
 
         switch (chartType) {
             case 'GEX':
@@ -544,7 +557,9 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
 
         exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
         setExposureData(exposureDataValue);
-    }, [historicalData, chartType, dte, strikeCount]);
+        const end = performance.now();
+        console.log(`exposure-calculation took ${end - start}ms`);
+    }, [rawExposureResponse, chartType, dte, strikeCount]);
 
-    return { exposureData, isLoaded };
+    return { exposureData, isLoaded, hasError };
 }

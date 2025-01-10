@@ -1,5 +1,5 @@
 import ky from "ky";
-import { MiniOptionContract, SearchTickerItem } from "./types";
+import { ExposureDataRequest, MiniOptionContract, SearchTickerItem,  } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -109,6 +109,7 @@ export type ExposureDataResponse = {
     }[],
     spotPrice: number
 }
+
 export const getHistoricalOptionExposure = async (symbol: string, dt: string) => {
     //https://mztrading-data.deno.dev/beta/symbols/tsm/historical/snapshots/2024-12-28/exposure
     return await client(`beta/symbols/${symbol}/historical/snapshots/${dt}/exposure`).json<ExposureDataResponse>();
@@ -118,3 +119,9 @@ export const getLiveCboeOptionExposure = async (symbol: string) => {
     return await client(`beta/symbols/${symbol}/exposure`).json<ExposureDataResponse>();
 }
 
+export const calculateExposureData = async (exposureDataRequest: ExposureDataRequest) => {
+    //https://mztrading-data.deno.dev/beta/symbols/tsm/historical/snapshots/2024-12-28/exposure
+    return await client.post(`beta/tools/exposure`, {
+        json: exposureDataRequest
+    }).json<ExposureDataResponse>();
+}

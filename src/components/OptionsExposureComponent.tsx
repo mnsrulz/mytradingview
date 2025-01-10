@@ -12,12 +12,12 @@ import { GreeksExposureChart } from "./GreeksExposureChart";
 
 export const OptionsExposureComponent = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
-    const [historicalDate, setHistoricalDate] = useState(cachedDates[0] || '');
+    const [historicalDate, setHistoricalDate] = useState(cachedDates.at(-1) || '');
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('tab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
-    const { exposureData, isLoaded } = useOptionExposure(symbol, dte, strikeCounts, exposureTab, dataMode, historicalDate);
+    const { exposureData, isLoaded, hasError } = useOptionExposure(symbol, dte, strikeCounts, exposureTab, dataMode, historicalDate);
     if (!exposureData) return <LinearProgress />;
 
     const startHistoricalAnimation = async () => {
@@ -35,7 +35,7 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
         <Paper sx={{ mt: 2 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
             <Box sx={{ m: 1 }}>
-                <GreeksExposureChart exposureData={exposureData} dte={dte} symbol={symbol} exposureType={exposureTab} isLoaded={isLoaded} />
+                {hasError ? <i>Error occurred! Please try again...</i> : <GreeksExposureChart exposureData={exposureData} dte={dte} symbol={symbol} exposureType={exposureTab} isLoaded={isLoaded} />}
             </Box>
         </Paper>
         {dataMode == DataModeType.HISTORICAL && <Paper sx={{ px: 4 }}>
@@ -58,7 +58,7 @@ const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
         const maxMarks = 5;
         if (dates.length <= maxMarks) return marks;
         const result = [];
-        const step = (marks.length - 1) / (maxMarks-1);
+        const step = (marks.length - 1) / (maxMarks - 1);
         for (let i = 0; i < maxMarks; i++) {
             result.push(marks[Math.round(i * step)]);
         }
