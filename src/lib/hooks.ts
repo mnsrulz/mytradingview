@@ -4,7 +4,7 @@ import { DataModeType, DexGexType, NumberRange, OptionsInnerData, SearchTickerIt
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker, getEmaDataForExpsoure } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -428,7 +428,7 @@ export const useTickerSearch = (v: string) => {
 //     return { data, strikes, expirations };
 // }
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number }
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string }
 
 const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
     const nodes = new Array<number>(mp.size).fill(0);
@@ -473,6 +473,12 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
     const [isLoaded, setLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
+    // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
+
+    // useEffect(() => {
+    //     if (emaData) return;
+    //     getEmaDataForExpsoure(symbol).then(setEmaData);
+    // }, [symbol]);
 
     useEffect(() => {
         setHasError(false);
@@ -507,10 +513,23 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [] };
-
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
         switch (chartType) {
             case 'GEX':
+                const callWallMap = {} as Record<string, number>;
+                const putWallMap = {} as Record<string, number>;
+
+                filteredData.forEach(k=> {
+                    k.strikes.forEach((s, ix)=> {
+                        const strike = Number(s);
+                        callWallMap[strike] = (callWallMap[strike] || 0) + k.call.absGamma[ix]
+                        putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix]
+                    })
+                })
+
+                exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b);
+                exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b);
+
                 exposureDataValue.items = filteredData.map(j => {
                     return {
                         expiration: j.expiration,
@@ -561,5 +580,8 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
         console.log(`exposure-calculation took ${end - start}ms`);
     }, [rawExposureResponse, chartType, dte, strikeCount]);
 
-    return { exposureData, isLoaded, hasError };
+    return { exposureData, isLoaded, hasError
+        // , emaData
+
+     };
 }

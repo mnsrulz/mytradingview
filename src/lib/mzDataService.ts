@@ -1,5 +1,5 @@
 import ky from "ky";
-import { ExposureDataRequest, MiniOptionContract, SearchTickerItem,  } from "./types";
+import { ExposureDataRequest, MiniOptionContract, SearchTickerItem, } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -94,11 +94,13 @@ export type ExposureDataResponse = {
     data: {
         call: {
             absDelta: number[],
+            absGamma: number[],
             openInterest: number[],
             volume: number[]
         },
         put: {
             absDelta: number[],
+            absGamma: number[],
             openInterest: number[],
             volume: number[]
         },
@@ -124,4 +126,8 @@ export const calculateExposureData = async (exposureDataRequest: ExposureDataReq
     return await client.post(`beta/tools/exposure`, {
         json: exposureDataRequest
     }).json<ExposureDataResponse>();
+}
+
+export const getEmaDataForExpsoure = async (symbol: string) => {
+    return await client(`symbols/${symbol}/indicators?q=ema21d,ema9d`).json<{ ema9d: number, ema21d: number }>();
 }
