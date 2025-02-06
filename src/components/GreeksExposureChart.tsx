@@ -41,23 +41,23 @@ const EmaIndicatorLine = (props: { strikes: number[], emaData?: { ema21d: number
     </>
 }
 
-const CallPutWallLine = (props: { callWall: number, putWall: number }) => {
-    const { callWall, putWall } = props;
+const CallPutWallLine = (props: { callWall: number, putWall: number, spotPriceLineValue: number }) => {
+    const { callWall, putWall, spotPriceLineValue } = props;
     debugger;
     if (callWall == putWall) {
         return <ChartsReferenceLine y={Number(callWall)} label={"WALL: $" + (callWall)}
-            labelAlign="start"
+            labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
             lineStyle={{ strokeDasharray: '4', color: 'violet', stroke: 'violet' }}
             labelStyle={{ stroke: 'violet', strokeWidth: 0.25, fontSize: '8px' }} />
     }
     return <>
         <ChartsReferenceLine y={Number(callWall)} label={"CALL WALL: $" + (callWall)}
-            labelAlign="start"
+            labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
             lineStyle={{ strokeDasharray: '4', color: 'green', stroke: 'green' }}
             labelStyle={{ stroke: 'green', strokeWidth: 0.25, fontSize: '8px' }} />
 
         <ChartsReferenceLine y={Number(putWall)} label={"PUT WALL: $" + (putWall)}
-            labelAlign={callWall == putWall ? "end" : "start"}
+            labelAlign={spotPriceLineValue == putWall ? "end" : "start"}
             lineStyle={{ strokeDasharray: '4', color: 'orange', stroke: 'orange' }}
             labelStyle={{ stroke: 'orange', strokeWidth: 0.25, fontSize: '8px' }} />
     </>
@@ -137,7 +137,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
                 labelStyle={{ stroke: 'red', strokeWidth: 0.25, fontSize: '8px' }} />
 
             {
-                exposureType == DexGexType.GEX && <CallPutWallLine callWall={Number(callWall)} putWall={Number(putWall)} />
+                exposureType == DexGexType.GEX && <CallPutWallLine callWall={Number(callWall)} putWall={Number(putWall)} spotPriceLineValue={yaxisline} />
             }
 
             {/* <EmaIndicatorLine strikes={strikes} emaData={emaData} /> */}
