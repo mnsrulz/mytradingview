@@ -31,6 +31,7 @@ const pages = [
     { title: 'Option pricing', href: '/options/pricing' },
     { title: 'History', href: '/history' },
     { title: 'Seasonal', href: '/seasonal' },
+    { title: 'Greeks Report', href: '/reports/OptionGreeksSummary' },
     { title: 'Calculator', href: '/calculator' }
 ];
 const settings = ['Profile', 'Logout'];

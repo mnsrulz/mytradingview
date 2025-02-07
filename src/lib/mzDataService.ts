@@ -1,5 +1,5 @@
 import ky from "ky";
-import { ExposureDataRequest, MiniOptionContract, SearchTickerItem, } from "./types";
+import { ExposureDataRequest, MiniOptionContract, OptionGreeksSummaryByDateResponse, SearchTickerItem, } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -130,4 +130,8 @@ export const calculateExposureData = async (exposureDataRequest: ExposureDataReq
 
 export const getEmaDataForExpsoure = async (symbol: string) => {
     return await client(`symbols/${symbol}/indicators?q=ema21d,ema9d`).json<{ ema9d: number, ema21d: number }>();
+}
+
+export const getHistoricalGreeksSummaryByDate = async (dt: string) => {
+    return await client(`beta/reports/optionsgreekssummary?dt=${dt}`).json<OptionGreeksSummaryByDateResponse[]>();
 }

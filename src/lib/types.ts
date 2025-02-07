@@ -176,3 +176,5 @@ export enum DataModeType {
 }
 
 export type ExposureDataRequest = { data: Record<string, Record<string, MicroOptionContract>>, spotPrice: number, spotDate: string }
+
+export type OptionGreeksSummaryByDateResponse = { option_symbol: string, call_volume: number, put_volume: number, call_oi: number, put_oi: number }
