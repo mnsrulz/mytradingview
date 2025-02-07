@@ -14,22 +14,22 @@ const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
         field: 'option_symbol', headerName: 'Symbol', flex: 1
     },
     {
-        field: 'call_delta', headerName: 'CALL Δ', type: 'number', flex: 1
+        field: 'call_delta', headerName: 'CALL Delta', type: 'number', flex: 1
     },
     {
-        field: 'put_delta', headerName: 'PUT Δ', type: 'number', flex: 1
+        field: 'put_delta', headerName: 'PUT Delta', type: 'number', flex: 1
     },
     {
         field: 'call_put_dex_ratio', headerName: 'CALL/PUT DEX', type: 'number', flex: 1
     },
     {
-        field: 'call_gamma', headerName: 'CALL γ', type: 'number', flex: 1
+        field: 'call_gamma', headerName: 'CALL y', type: 'number', flex: 1
     },
     {
-        field: 'put_gamma', headerName: 'PUT γ', type: 'number', flex: 1
+        field: 'put_gamma', headerName: 'PUT y', type: 'number', flex: 1
     },
     {
-        field: 'net_gamma', headerName: 'NET γ', type: 'number', flex: 1
+        field: 'net_gamma', headerName: 'NET y', type: 'number', flex: 1
     },
     {
         field: 'call_volume', headerName: 'Call Volume', type: 'number', flex: 1
@@ -77,7 +77,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
             <Stack direction="row" spacing={2} padding={1}>
                 <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
                     <InputLabel>Data Mode</InputLabel>
-                    <Select id="data-mode" value={date} label="Data Mode" onChange={(e) => setDate(e.target.value)}>
+                    <Select value={date} label="Data Mode" onChange={(e) => setDate(e.target.value)}>
                         {
                             cachedDates.map(c => {
                                 return <MenuItem key={c} value={c}>{c}</MenuItem>
@@ -87,7 +87,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
                 </FormControl>
                 <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
                     <InputLabel>Volume</InputLabel>
-                    <Select id="data-mode" value={minVolume} label="Volume" onChange={(e) => setMinVolume(e.target.value as number)}>
+                    <Select value={minVolume} label="Volume" onChange={(e) => setMinVolume(e.target.value as number)}>
                         {
                             [100, 500, 1000, 10000, 50000, 100000].map(c => {
                                 return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>
@@ -97,7 +97,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
                 </FormControl>
                 <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
                     <InputLabel>OI</InputLabel>
-                    <Select id="data-mode" value={minOpenInterest} label="OI" onChange={(e) => setMinOpenInterest(e.target.value as number)}>
+                    <Select value={minOpenInterest} label="OI" onChange={(e) => setMinOpenInterest(e.target.value as number)}>
                         {
                             [100, 500, 1000, 10000, 50000, 100000].map(c => {
                                 return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>

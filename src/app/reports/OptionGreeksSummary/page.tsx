@@ -1,13 +1,14 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
+import { Box } from '@mui/material';
 import { getCachedReleaseData } from '@/lib/mzDataService';
 import { OptionHistoricalGreeksSummaryByDate } from '@/components/OptionHistoricalGreeksSummaryByDate'
+import { ClientOnly } from '@/components/ClientOnly';
 
-export default async function Page({ params }: { params: { symbol: string } }) {
+export default async function Page() {
     const cachedSummaryData = await getCachedReleaseData();
     const cachedDates = cachedSummaryData.map(j => j.name);
 
-    return <Box sx={{ height: 400, width: '100%' }}>
-        <OptionHistoricalGreeksSummaryByDate cachedDates={cachedDates} />
+    return <Box>
+        <ClientOnly><OptionHistoricalGreeksSummaryByDate cachedDates={cachedDates} /></ClientOnly>
     </Box>
 }
