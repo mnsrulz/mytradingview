@@ -45,6 +45,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.51.2",
     "react-hook-form-mui": "^7.0.0-beta.4",
+    "react-papaparse": "^4.4.0",
     "react-photo-view": "^1.2.6",
     "react-resize-detector": "^12.0.2",
     "react-router-dom": "^6.22.3",
