@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useOptionTracker } from '../lib/hooks';
+import { useOptionTrackerV2 } from '../lib/hooks';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
 import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link, IconButton, Dialog, DialogContent, DialogTitle } from '@mui/material';
 import { useState } from 'react';
@@ -34,7 +34,7 @@ enum PutCallType {
 const numberFormatter = (v: string) => v && Number(v);
 const todaysDate = dayjs().format('YYYY-MM-DD');
 export const StockOptionsView = (props: ITickerProps) => {
-    const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis } = useOptionTracker(props.symbol);
+    const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis } = useOptionTrackerV2(props.symbol);
     const [openSearchTickerDialog, setOpenSearchTickerDialog] = useState(false);
     const router = useRouter();
 
@@ -132,13 +132,13 @@ export const StockOptionsView = (props: ITickerProps) => {
 
         Symbol: <IconButton onClick={() => { setOpenSearchTickerDialog(true) }} sx={{ p: 0 }} size='small' disableFocusRipple disableRipple>
             <EditIcon /> {decodeURIComponent(props.symbol)}
-        </IconButton>  - {data.currentPrice}
+        </IconButton>  - {data.spotPrice}
         <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button>
         {/* <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
             <BootstrapInput id="demo-customized-textbox" />
         </FormControl> */}
-        <StrikePriceSlider currentPrice={data.currentPrice}
+        <StrikePriceSlider currentPrice={data.spotPrice}
             allStrikePricesValues={allStrikePricesValues}
             onChange={setStrikePriceRange}
             strikePriceRange={strikePriceRange}
@@ -223,7 +223,7 @@ export const StockOptionsView = (props: ITickerProps) => {
             pcrSelectedData && <PutCallRatio
                 open={pcrOpen}
                 data={pcrSelectedData}
-                currentPrice={data.currentPrice}
+                currentPrice={data.spotPrice}
                 onClose={() => setPcrOpen(false)} />
         }
 

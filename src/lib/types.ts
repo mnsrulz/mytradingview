@@ -73,22 +73,6 @@ export type IOptionsGrid = {
 export type NumberRange = { start: number, end: number }
 
 
-export type OptionsInnerData = {
-  c: Record<string, {
-    a: number,
-    b: number,
-    l: number,
-    oi: number,
-    v: number
-  }>,
-  p: Record<string, {
-    a: number,
-    b: number,
-    l: number,
-    oi: number,
-    v: number
-  }>
-}
 
 export type SearchTickerResult = { items: SearchTickerItem[] };
 export type SearchTickerItem = { symbol: string, name: string }
@@ -178,3 +162,25 @@ export enum DataModeType {
 export type ExposureDataRequest = { data: Record<string, Record<string, MicroOptionContract>>, spotPrice: number, spotDate: string }
 
 export type OptionGreeksSummaryByDateResponse = { option_symbol: string, call_volume: number, put_volume: number, call_oi: number, put_oi: number }
+
+export type OptionsInnerData = {
+  c: Record<string, {
+    a: number,
+    b: number,
+    l: number,
+    oi: number,
+    v: number
+  }>,
+  p: Record<string, {
+    a: number,
+    b: number,
+    l: number,
+    oi: number,
+    v: number
+  }>
+}
+
+export type OptionsPricingDataResponse = {
+  spotPrice: number,
+  options: Record<string, OptionsInnerData>
+}

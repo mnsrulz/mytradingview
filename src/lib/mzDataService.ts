@@ -1,5 +1,5 @@
 import ky from "ky";
-import { ExposureDataRequest, MiniOptionContract, OptionGreeksSummaryByDateResponse, SearchTickerItem, } from "./types";
+import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionsPricingDataResponse, SearchTickerItem, } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -117,6 +117,7 @@ export const getHistoricalOptionExposure = async (symbol: string, dt: string) =>
     return await client(`beta/symbols/${symbol}/historical/snapshots/${dt}/exposure`).json<ExposureDataResponse>();
 }
 
+
 export const getLiveCboeOptionExposure = async (symbol: string) => {
     return await client(`beta/symbols/${symbol}/exposure`).json<ExposureDataResponse>();
 }
@@ -134,4 +135,8 @@ export const getEmaDataForExpsoure = async (symbol: string) => {
 
 export const getHistoricalGreeksSummaryByDate = async (dt: string) => {
     return await client(`beta/reports/optionsgreekssummary?dt=${dt}`).json<OptionGreeksSummaryByDateResponse[]>();
+}
+
+export const getOptionsPricing = async (symbol: string) => {
+    return await client(`beta/symbols/${symbol}/optionspricing`).json<OptionsPricingDataResponse>();
 }
