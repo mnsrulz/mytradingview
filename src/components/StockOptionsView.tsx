@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useOptionTrackerV2 } from '../lib/hooks';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link, IconButton, Dialog, DialogContent, DialogTitle } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link, IconButton, Dialog, DialogContent, DialogTitle, Stack } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 import EditIcon from '@mui/icons-material/Edit';
 import { TickerSearch } from './TickerSearch';
+import { TickerSearchDialog } from './TickerSearchDialog';
 
 interface ITickerProps {
     symbol: string
@@ -25,6 +26,10 @@ export type IStrikePriceSliderPorps = { allStrikePricesValues: number[], onChang
 
 type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE' | 'AVG_PRICE'
 type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN' | 'PCR' | 'VOLUME'
+
+enum PriceModeTypeEnum { 'LAST_PRICE' = 'LAST_PRICE', 'BID_PRICE' = 'BID_PRICE', 'ASK_PRICE' = 'ASK_PRICE', 'AVG_PRICE' = 'AVG_PRICE' }
+enum ValueModeTypeEnum { 'PRICE' = 'PRICE', 'ANNUAL_RETURN' = 'ANNUAL_RETURN', 'TOTAL_RETURN' = 'TOTAL_RETURN', 'PCR' = 'PCR', 'VOLUME' = 'VOLUME' }
+
 // type PutCallType = 'PUT' | 'CALL';
 enum PutCallType {
     'PUT' = 'PUT',
@@ -39,8 +44,8 @@ export const StockOptionsView = (props: ITickerProps) => {
     const router = useRouter();
 
     const [putCallTabValue, handleCallTabValue] = useQueryState<PutCallType>('tab', parseAsStringEnum<PutCallType>(Object.values(PutCallType)).withDefault(PutCallType.PUT));
-    const [priceMode, setPriceMode] = useState<PriceModeType>('AVG_PRICE');
-    const [valueMode, setValueMode] = useState<ValueModeType>('PRICE');
+    const [priceMode, setPriceMode] = useQueryState<PriceModeTypeEnum>('pricemode', parseAsStringEnum<PriceModeTypeEnum>(Object.values(PriceModeTypeEnum)).withDefault(PriceModeTypeEnum.BID_PRICE));
+    const [valueMode, setValueMode] = useQueryState<ValueModeTypeEnum>('valuemode', parseAsStringEnum<ValueModeTypeEnum>(Object.values(ValueModeTypeEnum)).withDefault(ValueModeTypeEnum.ANNUAL_RETURN));
     const [pcrSelectedData, setPcrSelectedData] = useState<OptionsInnerData | undefined>();
     const [pcrOpen, setPcrOpen] = useState(false);
     const [deltaHedgingOpen, setDeltaHedgingOpen] = useQueryState('showDexGex', parseAsBoolean);
@@ -129,11 +134,8 @@ export const StockOptionsView = (props: ITickerProps) => {
     }).filter(r => r);
 
     return <Paper sx={{ mx: 2 }}>
-
-        Symbol: <IconButton onClick={() => { setOpenSearchTickerDialog(true) }} sx={{ p: 0 }} size='small' disableFocusRipple disableRipple>
-            <EditIcon /> {decodeURIComponent(props.symbol)}
-        </IconButton>  - {data.spotPrice}
-        <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button>
+        <TickerSearchDialog symbol={props.symbol} basePath='' />  - ${data.spotPrice}
+        {/* <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button> */}
         {/* <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
             <BootstrapInput id="demo-customized-textbox" />
@@ -143,33 +145,37 @@ export const StockOptionsView = (props: ITickerProps) => {
             onChange={setStrikePriceRange}
             strikePriceRange={strikePriceRange}
         />
-        <FormControl sx={{ m: 1 }} variant="standard">
-            <InputLabel>Price Mode</InputLabel>
-            <Select value={priceMode} onChange={(e, v) => setPriceMode(e.target.value as PriceModeType)}            >
-                <MenuItem value="LAST_PRICE">LAST_PRICE</MenuItem>
-                <MenuItem value="BID_PRICE">BID_PRICE</MenuItem>
-                <MenuItem value="ASK_PRICE">ASK_PRICE</MenuItem>
-                <MenuItem value="AVG_PRICE">AVG_PRICE</MenuItem>
-            </Select>
-        </FormControl>
-        <FormControl sx={{ m: 1 }} variant="standard">
-            <InputLabel>Value Mode</InputLabel>
-            <Select value={valueMode} onChange={(e, v) => setValueMode(e.target.value as ValueModeType)}>
-                <MenuItem value="PRICE">PRICE</MenuItem>
-                <MenuItem value="ANNUAL_RETURN">ANNUAL_RETURN</MenuItem>
-                <MenuItem value="TOTAL_RETURN">TOTAL_RETURN</MenuItem>
-                <MenuItem value="PCR">PCR</MenuItem>
-                <MenuItem value="VOLUME">VOLUME</MenuItem>
-            </Select>
-        </FormControl>
-        <FormControl sx={{ m: 1 }} variant="standard">
-            <TextField label="Target price" variant="standard" value={targetPrice} onChange={v => setTargetPrice(Number(v.target.value))} type='number' />
-        </FormControl>
-        {putCallTabValue == PutCallType.CALL &&
-            <FormControl sx={{ m: 1 }} variant="standard">
-                <TextField label="Cost basis" variant="standard" value={costBasis} onChange={v => setCostBasis(Number(v.target.value))} type='number' />
+        <Stack direction={'row'} sx={{
+            alignItems: "center",
+        }}>
+            <FormControl sx={{ m: 1, width: 120 }} variant="standard">
+                <InputLabel>Price Mode</InputLabel>
+                <Select value={priceMode} label="Price Mode" onChange={(e, v) => setPriceMode(e.target.value as PriceModeTypeEnum)}            >
+                    <MenuItem value="LAST_PRICE">Last</MenuItem>
+                    <MenuItem value="BID_PRICE">Bid</MenuItem>
+                    <MenuItem value="ASK_PRICE">Ask</MenuItem>
+                    <MenuItem value="AVG_PRICE">Mid</MenuItem>
+                </Select>
             </FormControl>
-        }
+            <FormControl sx={{ m: 1, }} variant="standard">
+                <InputLabel>Value Mode</InputLabel>
+                <Select value={valueMode} onChange={(e, v) => setValueMode(e.target.value as ValueModeTypeEnum)}>
+                    <MenuItem value="PRICE">Price</MenuItem>
+                    <MenuItem value="ANNUAL_RETURN">Annaul Return</MenuItem>
+                    <MenuItem value="TOTAL_RETURN">Total Return</MenuItem>
+                    <MenuItem value="PCR">OI</MenuItem>
+                    <MenuItem value="VOLUME">Volume</MenuItem>
+                </Select>
+            </FormControl>
+            <FormControl sx={{ m: 1 }} variant="standard">
+                <TextField label="Target price" variant="standard" value={targetPrice} onChange={v => setTargetPrice(Number(v.target.value))} type='number' />
+            </FormControl>
+            {putCallTabValue == PutCallType.CALL &&
+                <FormControl sx={{ m: 1 }} variant="standard">
+                    <TextField label="Cost basis" variant="standard" value={costBasis} onChange={v => setCostBasis(Number(v.target.value))} type='number' />
+                </FormControl>
+            }
+        </Stack>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={putCallTabValue} onChange={(e, v) => handleCallTabValue(v)} variant="fullWidth" indicatorColor="secondary"
                 textColor="secondary">
