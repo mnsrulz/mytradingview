@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import ky from 'ky';
-import { DataModeType, DexGexType, NumberRange, OptionsInnerData, SearchTickerItem, TradierOptionData } from './types';
+import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, TradierOptionData } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker, getEmaDataForExpsoure } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker, getEmaDataForExpsoure, getOptionsPricing } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -30,10 +30,6 @@ export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => 
 }
 
 
-type OptionsData = {
-    currentPrice: number,
-    options: Record<string, OptionsInnerData>
-}
 export type OptionsHedgingDataset = { strike: number, [x: string]: number; }
 
 export type GammaDeltaDatasetType = {
@@ -61,7 +57,7 @@ export type OptionsHedgingData = {
 }
 
 export const useOptionTracker = (symbol: string) => {
-    const [data, setOd] = useState<OptionsData>();
+    const [data, setOd] = useState<OptionsPricingDataResponse>();
     const [isLoading, setIsLoading] = useState(true);
     const [targetPrice, setTargetPrice] = useState(0);
     const [costBasis, setCostBasis] = useState(0);
@@ -69,16 +65,16 @@ export const useOptionTracker = (symbol: string) => {
 
     useEffect(() => {
         setIsLoading(true);
-        ky(`/api/symbols/${symbol}/options/analyze`).json<OptionsData>().then(r => {
+        ky(`/api/symbols/${symbol}/options/analyze`).json<OptionsPricingDataResponse>().then(r => {
             setOd(r);
-            const { currentPrice } = r;
+            const { spotPrice: currentPrice } = r;
             const thresholdValue = currentPrice * 0.1;
             setStrikePriceRange({
                 start: Math.round(currentPrice - thresholdValue),
                 end: Math.round(currentPrice + thresholdValue)
             });
-            setTargetPrice(r.currentPrice);
-            setCostBasis(r.currentPrice);
+            setTargetPrice(r.spotPrice);
+            setCostBasis(r.spotPrice);
         }).finally(() => setIsLoading(false));
     }, [symbol]);
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis };
@@ -585,3 +581,30 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
 
      };
 }
+
+export const useOptionTrackerV2 = (symbol: string) => {
+    const [data, setOd] = useState<OptionsPricingDataResponse>();
+    const [isLoading, setIsLoading] = useState(true);
+    const [targetPrice, setTargetPrice] = useState(0);
+    const [costBasis, setCostBasis] = useState(0);
+    const [strikePriceRange, setStrikePriceRange] = useState<NumberRange>({ start: 0, end: Number.MAX_VALUE });
+
+    useEffect(() => {
+        setIsLoading(true);
+        
+        getOptionsPricing(symbol).then(r => {
+            setOd(r);
+            const { spotPrice } = r;
+            const thresholdValue = spotPrice * 0.1;
+            setStrikePriceRange({
+                start: Math.round(spotPrice - thresholdValue),
+                end: Math.round(spotPrice + thresholdValue)
+            });
+            setTargetPrice(spotPrice);
+            setCostBasis(spotPrice);
+        }).finally(() => setIsLoading(false));
+    }, [symbol]);
+    return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis };
+}
+
+
