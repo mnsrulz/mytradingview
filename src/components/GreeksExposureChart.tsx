@@ -43,7 +43,7 @@ const EmaIndicatorLine = (props: { strikes: number[], emaData?: { ema21d: number
 
 const CallPutWallLine = (props: { callWall: number, putWall: number, spotPriceLineValue: number }) => {
     const { callWall, putWall, spotPriceLineValue } = props;
-    debugger;
+    // debugger;
     if (callWall == putWall) {
         return <ChartsReferenceLine y={Number(callWall)} label={"WALL: $" + (callWall)}
             labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
@@ -74,7 +74,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const maxStrike = Math.max(...strikes);
     const leftMarginValue = calculateLeftMargin(maxStrike);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
-    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte} DTE)`;
+    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
     return <Box>
         <Typography variant="h6" align="center">{title}</Typography>
         <BarChart

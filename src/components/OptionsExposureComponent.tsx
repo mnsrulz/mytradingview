@@ -15,10 +15,11 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
     const { symbol, cachedDates } = props;
     const [historicalDate, setHistoricalDate] = useState(cachedDates.at(-1) || '');
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
+    const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('tab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
-    const { exposureData, isLoaded, hasError } = useOptionExposure(symbol, dte, strikeCounts, exposureTab, dataMode, historicalDate);
+    const { exposureData, isLoaded, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
     if (!exposureData) return <LinearProgress />;
 
     const startHistoricalAnimation = async () => {
@@ -32,7 +33,10 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
     }
 
     return <Container maxWidth="md" sx={{ p: 0 }}>
-        <DteStrikeSelector dte={dte} strikeCounts={strikeCounts} setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
+        <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
+            availableDates={expirationData.map(k => k.expiration)}
+            setCustomExpirations={setSelectedExpirations}
+            setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 2 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
             <Box sx={{ m: 1 }}>

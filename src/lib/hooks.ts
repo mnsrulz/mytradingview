@@ -463,12 +463,13 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
     return await ky(`/api/symbols/${symbol}/options/exposure`).json<ExposureDataResponse>();
 }
 
-export const useOptionExposure = (symbol: string, dte: number, strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
+export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoaded, setLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
+    const expirationData = rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
     // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
 
     // useEffect(() => {
@@ -498,7 +499,7 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
     useEffect(() => {
         if (!rawExposureResponse) return;
         const start = performance.now();
-        const filteredData = rawExposureResponse.data.filter(j => j.dte <= dte);
+        const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
         const expirations = filteredData.map(j => j.expiration);
 
         const allAvailableStikesForFilteredExpirations = filteredData.reduce((prev, c) => {
@@ -515,16 +516,15 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
                 const callWallMap = {} as Record<string, number>;
                 const putWallMap = {} as Record<string, number>;
 
-                filteredData.forEach(k=> {
-                    k.strikes.forEach((s, ix)=> {
+                filteredData.forEach(k => {
+                    k.strikes.forEach((s, ix) => {
                         const strike = Number(s);
                         callWallMap[strike] = (callWallMap[strike] || 0) + k.call.absGamma[ix]
                         putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix]
                     })
                 })
-
-                exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b);
-                exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b);
+                exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
+                exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
 
                 exposureDataValue.items = filteredData.map(j => {
                     return {
@@ -574,12 +574,13 @@ export const useOptionExposure = (symbol: string, dte: number, strikeCount: numb
         setExposureData(exposureDataValue);
         const end = performance.now();
         console.log(`exposure-calculation took ${end - start}ms`);
-    }, [rawExposureResponse, chartType, dte, strikeCount]);
+    }, [rawExposureResponse, chartType, dte, strikeCount, selectedExpirations]);
 
-    return { exposureData, isLoaded, hasError
+    return {
+        exposureData, isLoaded, hasError, expirationData
         // , emaData
 
-     };
+    };
 }
 
 export const useOptionTrackerV2 = (symbol: string) => {
@@ -591,7 +592,7 @@ export const useOptionTrackerV2 = (symbol: string) => {
 
     useEffect(() => {
         setIsLoading(true);
-        
+
         getOptionsPricing(symbol).then(r => {
             setOd(r);
             const { spotPrice } = r;
