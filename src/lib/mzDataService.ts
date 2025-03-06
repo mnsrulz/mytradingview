@@ -64,6 +64,12 @@ export const getCachedDataForSymbol = async (symbol: string) => {
     return await client(`beta/symbols/${symbol}/historical/snapshots`).json<{ dt: string }[]>();
 }
 
+export const getAvailableExposureDates = async () => {
+    return await client(`api/options/exposures/dates`).json<{ dt: string }[]>();
+}
+
+
+
 // export const getCachedDataForSymbolByDate = async (symbol: string, date: string) => {
 //     return await client(`beta/symbols/${symbol}/historical/snapshots/${date}`).json<{
 //         expiration: string,
@@ -133,8 +139,8 @@ export const getEmaDataForExpsoure = async (symbol: string) => {
     return await client(`symbols/${symbol}/indicators?q=ema21d,ema9d`).json<{ ema9d: number, ema21d: number }>();
 }
 
-export const getHistoricalGreeksSummaryByDate = async (dt: string) => {
-    return await client(`beta/reports/optionsgreekssummary?dt=${dt}`).json<OptionGreeksSummaryByDateResponse[]>();
+export const getHistoricalGreeksSummaryByDate = async (dt: string, dte: number) => {
+    return await client(`beta/reports/optionsgreekssummary?dt=${dt}&dte=${dte}`).json<OptionGreeksSummaryByDateResponse[]>();
 }
 
 export const getOptionsPricing = async (symbol: string) => {

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Stack, Box } from '@mui/material';
 import { DataGrid, GridColDef, GridDensity, GridToolbar } from '@mui/x-data-grid';
 import { getHistoricalGreeksSummaryByDate } from '@/lib/mzDataService';
-import { useQueryState, parseAsStringLiteral } from 'nuqs';
+import { useQueryState, parseAsStringLiteral, parseAsNumberLiteral } from 'nuqs';
 import { useEffect, useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import { OptionGreeksSummaryByDateResponse } from '@/lib/types';
@@ -50,6 +50,13 @@ const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
         field: 'call_put_oi_ratio', headerName: 'CALL/PUT OI', type: 'number'
     }
 ];
+const dteOptions = [7,
+    30,
+    50,
+    90,
+    180,
+    400,
+    1000];
 
 export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string[] }) => {
     const { cachedDates } = props;
@@ -58,7 +65,8 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
     const [hasLoaded, setHasLoaded] = useState(false);
     const [minVolume, setMinVolume] = useState(1000);
     const [minOpenInterest, setMinOpenInterest] = useState(10000);
-    const [gridDensity, setGridDensity] = useState<GridDensity>('compact');
+    const [dte, setDte] = useQueryState('dte', parseAsNumberLiteral(dteOptions).withDefault(50));
+    const [gridDensity, setGridDensity] = useState<GridDensity>('compact');    
     const filteredData = rows.filter(k => {
         if (minVolume && (k.call_volume + k.put_volume < minVolume)) return false;
         if (minOpenInterest && (k.call_oi + k.put_oi < minOpenInterest)) return false;
@@ -66,12 +74,12 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
     })
     useEffect(() => {
         setHasLoaded(false)
-        getHistoricalGreeksSummaryByDate(date).then(d => {
+        getHistoricalGreeksSummaryByDate(date, dte).then(d => {
             // debugger;
             setRows(d);
             setHasLoaded(true)
         })
-    }, [date])
+    }, [date, dte])
 
     return <Box>
         <Paper sx={{ my: 2 }}>
@@ -84,6 +92,12 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
                                 return <MenuItem key={c} value={c}>{c}</MenuItem>
                             })
                         }
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ m: 1, justifyItems: 'right' }} size="small">
+                    <InputLabel>DTE</InputLabel>
+                    <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
+                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}                        
                     </Select>
                 </FormControl>
                 <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
@@ -107,7 +121,6 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
                     </Select>
                 </FormControl>
             </Stack>
-
         </Paper>
         <DataGrid
             rows={filteredData}
