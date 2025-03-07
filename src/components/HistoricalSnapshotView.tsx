@@ -21,7 +21,7 @@ export const HistoricalSnapshotView = (props: { isLoading: boolean, showKeyOnOve
         <PhotoProvider overlayRender={(p) => showKeyOnOverlay && <OverlayRender v={items[p.index].key} />}>
             {items.map((item) => (
                 <PhotoView key={item.key} src={item.asset.hdAssetUrl}  >
-                    <img key={item.key} loading='lazy' src={item.asset.sdAssetUrl} width={imgWidth} height="auto" style={{ objectFit: 'cover' }} alt={item.asset.sdAssetUrl} />
+                    <img key={item.key} loading='lazy' src={item.asset.sdAssetUrl} width={imgWidth} height="auto" style={{ objectFit: 'cover', aspectRatio: '1' }} alt={item.asset.sdAssetUrl} />
                 </PhotoView>
             ))}
         </PhotoProvider>
