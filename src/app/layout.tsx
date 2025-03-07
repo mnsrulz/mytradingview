@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: f
 
 export const metadata: Metadata = {
   title: "My trading view app",
-  description: "My trading view app for viewing trade related stuff",
+  description: "An advanced platform for in-depth options data analysis.",
 };
 
 export default async function RootLayout({
