@@ -1,23 +1,23 @@
 'use client';
 
 import * as React from 'react';
-import { Stack, Box } from '@mui/material';
+import { Stack, Box, IconButton, Drawer, Dialog, useMediaQuery, useTheme } from '@mui/material';
 import { DataGrid, GridColDef, GridDensity, GridToolbar } from '@mui/x-data-grid';
 import { getHistoricalGreeksSummaryByDate } from '@/lib/mzDataService';
 import { useQueryState, parseAsStringLiteral, parseAsNumberLiteral } from 'nuqs';
 import { useEffect, useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import { OptionGreeksSummaryByDateResponse } from '@/lib/types';
-
+import FilterListIcon from '@mui/icons-material/FilterList';
 const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
     {
         field: 'option_symbol', headerName: 'Symbol'
     },
     {
-        field: 'call_delta', headerName: 'CALL Delta', type: 'number'
+        field: 'call_delta', headerName: 'CALL Δ', type: 'number'
     },
     {
-        field: 'put_delta', headerName: 'PUT Delta', type: 'number'
+        field: 'put_delta', headerName: 'PUT Δ', type: 'number'
     },
     {
         field: 'call_put_dex_ratio', headerName: 'CALL/PUT DEX', type: 'number'
@@ -66,12 +66,21 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
     const [minVolume, setMinVolume] = useState(1000);
     const [minOpenInterest, setMinOpenInterest] = useState(10000);
     const [dte, setDte] = useQueryState('dte', parseAsNumberLiteral(dteOptions).withDefault(50));
-    const [gridDensity, setGridDensity] = useState<GridDensity>('compact');    
+    const [gridDensity, setGridDensity] = useState<GridDensity>('compact');
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const filteredData = rows.filter(k => {
         if (minVolume && (k.call_volume + k.put_volume < minVolume)) return false;
         if (minOpenInterest && (k.call_oi + k.put_oi < minOpenInterest)) return false;
         return true;
     })
+    const [open, setOpen] = useState(false);
+
+    const toggleDrawer = (newOpen: boolean) => () => {
+        setOpen(newOpen);
+    };
+
     useEffect(() => {
         setHasLoaded(false)
         getHistoricalGreeksSummaryByDate(date, dte).then(d => {
@@ -81,47 +90,64 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
         })
     }, [date, dte])
 
+    const dteFilter = <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+        <InputLabel>DTE</InputLabel>
+        <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
+            {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+        </Select>
+    </FormControl>
+
+    const volumeFilter = <FormControl sx={{ m: 1 }} size="small">
+        <InputLabel>Volume</InputLabel>
+        <Select value={minVolume} label="Volume" onChange={(e) => setMinVolume(e.target.value as number)}>
+            {[100, 500, 1000, 10000, 50000, 100000].map(c => {
+                return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>
+            })}
+        </Select>
+    </FormControl>
+    const oiFilter = <FormControl sx={{ m: 1 }} size="small">
+        <InputLabel>OI</InputLabel>
+        <Select value={minOpenInterest} label="OI" onChange={(e) => setMinOpenInterest(e.target.value as number)}>
+            {
+                [100, 500, 1000, 10000, 50000, 100000].map(c => {
+                    return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>
+                })
+            }
+        </Select>
+    </FormControl>
+    const additionalFilter = <>
+        {dteFilter}
+        {volumeFilter}
+        {oiFilter}
+    </>
+    const dataGridTopFilter = <Paper sx={{ my: 2 }}>
+        <Stack direction="row" spacing={2} padding={1}>
+            {
+                isMobile && <><IconButton onClick={toggleDrawer(true)}>
+                    <FilterListIcon />
+                </IconButton>
+                    <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
+                        <Box sx={{ width: 250, padding: 2 }}>
+                            {additionalFilter}
+                        </Box>
+                    </Drawer>
+                </>
+            }
+            <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                <InputLabel>Data Mode</InputLabel>
+                <Select value={date} label="Data Mode" onChange={(e) => setDate(e.target.value)}>
+                    {
+                        cachedDates.map(c => {
+                            return <MenuItem key={c} value={c}>{c}</MenuItem>
+                        })
+                    }
+                </Select>
+            </FormControl>
+            {!isMobile && additionalFilter}
+        </Stack>
+    </Paper>
     return <Box>
-        <Paper sx={{ my: 2 }}>
-            <Stack direction="row" spacing={2} padding={1}>
-                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-                    <InputLabel>Data Mode</InputLabel>
-                    <Select value={date} label="Data Mode" onChange={(e) => setDate(e.target.value)}>
-                        {
-                            cachedDates.map(c => {
-                                return <MenuItem key={c} value={c}>{c}</MenuItem>
-                            })
-                        }
-                    </Select>
-                </FormControl>
-                <FormControl sx={{ m: 1, justifyItems: 'right' }} size="small">
-                    <InputLabel>DTE</InputLabel>
-                    <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
-                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}                        
-                    </Select>
-                </FormControl>
-                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-                    <InputLabel>Volume</InputLabel>
-                    <Select value={minVolume} label="Volume" onChange={(e) => setMinVolume(e.target.value as number)}>
-                        {
-                            [100, 500, 1000, 10000, 50000, 100000].map(c => {
-                                return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>
-                            })
-                        }
-                    </Select>
-                </FormControl>
-                <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-                    <InputLabel>OI</InputLabel>
-                    <Select value={minOpenInterest} label="OI" onChange={(e) => setMinOpenInterest(e.target.value as number)}>
-                        {
-                            [100, 500, 1000, 10000, 50000, 100000].map(c => {
-                                return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>
-                            })
-                        }
-                    </Select>
-                </FormControl>
-            </Stack>
-        </Paper>
+        {dataGridTopFilter}
         <DataGrid
             rows={filteredData}
             columns={columns}
