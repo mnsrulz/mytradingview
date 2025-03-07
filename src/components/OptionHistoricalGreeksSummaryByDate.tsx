@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Stack, Box, IconButton, Drawer, Dialog, useMediaQuery, useTheme } from '@mui/material';
-import { DataGrid, GridColDef, GridDensity, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridColumnGroupingModel, GridDensity, GridToolbar } from '@mui/x-data-grid';
 import { getHistoricalGreeksSummaryByDate } from '@/lib/mzDataService';
 import { useQueryState, parseAsStringLiteral, parseAsNumberLiteral } from 'nuqs';
 import { useEffect, useState } from 'react';
@@ -14,40 +14,40 @@ const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
         field: 'option_symbol', headerName: 'Symbol'
     },
     {
-        field: 'call_delta', headerName: 'CALL Δ', type: 'number'
+        field: 'call_delta', headerName: 'Calls', type: 'number'
     },
     {
-        field: 'put_delta', headerName: 'PUT Δ', type: 'number'
+        field: 'put_delta', headerName: 'Puts', type: 'number'
     },
     {
-        field: 'call_put_dex_ratio', headerName: 'CALL/PUT DEX', type: 'number'
+        field: 'call_put_dex_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
     },
     {
-        field: 'call_gamma', headerName: 'CALL y', type: 'number'
+        field: 'call_gamma', headerName: 'Calls', type: 'number'
     },
     {
-        field: 'put_gamma', headerName: 'PUT y', type: 'number'
+        field: 'put_gamma', headerName: 'Puts', type: 'number'
     },
     {
-        field: 'net_gamma', headerName: 'NET y', type: 'number'
+        field: 'net_gamma', headerName: 'NET', type: 'number'
     },
     {
-        field: 'call_volume', headerName: 'Call Volume', type: 'number'
+        field: 'call_volume', headerName: 'Calls', type: 'number'
     },
     {
-        field: 'put_volume', headerName: 'Put Volume', type: 'number'
+        field: 'put_volume', headerName: 'Puts', type: 'number'
     },
     {
-        field: 'call_put_volume_ratio', headerName: 'CALL/PUT Volume', type: 'number'
+        field: 'call_put_volume_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
     },
     {
-        field: 'call_oi', headerName: 'Call OI', type: 'number'
+        field: 'call_oi', headerName: 'Calls', type: 'number'
     },
     {
-        field: 'put_oi', headerName: 'Put OI', type: 'number'
+        field: 'put_oi', headerName: 'Puts', type: 'number'
     },
     {
-        field: 'call_put_oi_ratio', headerName: 'CALL/PUT OI', type: 'number'
+        field: 'call_put_oi_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
     }
 ];
 const dteOptions = [7,
@@ -146,11 +146,47 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
             {!isMobile && additionalFilter}
         </Stack>
     </Paper>
-    return <Box>
+    const columnGroupingModel: GridColumnGroupingModel = [
+        {
+            groupId: 'Delta Exposure',
+            description: '',
+            children: [
+                { field: 'call_delta' },
+                { field: 'put_delta' },
+                { field: 'call_put_dex_ratio' }
+            ],
+        },
+        {
+            groupId: 'Gamma Exposure',
+            children: [
+                { field: 'call_gamma' },
+                { field: 'put_gamma' },
+                { field: 'net_gamma' },
+            ],
+        },
+        {
+            groupId: 'Volume',
+            children: [
+                { field: 'call_volume' },
+                { field: 'put_volume' },
+                { field: 'call_put_volume_ratio' },
+            ],
+        },
+        {
+            groupId: 'Open Interest',
+            children: [
+                { field: 'call_oi' },
+                { field: 'put_oi' },
+                { field: 'call_put_oi_ratio' },
+            ],
+        },
+    ];
+    return <Box sx={{ mb: 1 }}>
         {dataGridTopFilter}
         <DataGrid
             rows={filteredData}
             columns={columns}
+            columnGroupingModel={columnGroupingModel}
             initialState={{
                 pagination: {
                     paginationModel: {
