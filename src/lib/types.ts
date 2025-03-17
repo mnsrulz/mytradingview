@@ -184,3 +184,21 @@ export type OptionsPricingDataResponse = {
   spotPrice: number,
   options: Record<string, OptionsInnerData>
 }
+
+export type OptionGreeksSummaryBySymbolResponse = {
+  dt: string;
+  price: number;
+  call_delta: number;
+  put_delta: number;
+  call_gamma: number;
+  put_gamma: number;
+  call_oi: number;
+  put_oi: number;
+  call_volume: number;
+  put_volume: number;
+  call_put_dex_ratio: number;
+  net_gamma: number;
+  call_put_oi_ratio: number;
+  call_put_volume_ratio: number;
+}
+

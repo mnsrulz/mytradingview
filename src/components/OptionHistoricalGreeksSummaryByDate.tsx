@@ -9,47 +9,8 @@ import { useEffect, useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import { OptionGreeksSummaryByDateResponse } from '@/lib/types';
 import FilterListIcon from '@mui/icons-material/FilterList';
-const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
-    {
-        field: 'option_symbol', headerName: 'Symbol'
-    },
-    {
-        field: 'call_delta', headerName: 'Calls', type: 'number'
-    },
-    {
-        field: 'put_delta', headerName: 'Puts', type: 'number'
-    },
-    {
-        field: 'call_put_dex_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
-    },
-    {
-        field: 'call_gamma', headerName: 'Calls', type: 'number'
-    },
-    {
-        field: 'put_gamma', headerName: 'Puts', type: 'number'
-    },
-    {
-        field: 'net_gamma', headerName: 'NET', type: 'number'
-    },
-    {
-        field: 'call_volume', headerName: 'Calls', type: 'number'
-    },
-    {
-        field: 'put_volume', headerName: 'Puts', type: 'number'
-    },
-    {
-        field: 'call_put_volume_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
-    },
-    {
-        field: 'call_oi', headerName: 'Calls', type: 'number'
-    },
-    {
-        field: 'put_oi', headerName: 'Puts', type: 'number'
-    },
-    {
-        field: 'call_put_oi_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
-    }
-];
+import { OptionsGreekReportBySymbolDialog } from './OptionsGreekReportBySymbol';
+
 const dteOptions = [7,
     30,
     50,
@@ -81,6 +42,55 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
         setOpen(newOpen);
     };
 
+
+    const [selectedSymbol, setSelectedSymbol] = useState('');
+    const [openSymbolSummaryDialog, setOpenSymbolSummaryDialog] = useState(false);
+    const handleCloseAddTrade = () => { setOpenSymbolSummaryDialog(false); };
+    const handleSymbolClick = (v: string) => {
+        setSelectedSymbol(v)
+        setOpenSymbolSummaryDialog(true);
+    }
+    const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
+        {
+            field: 'option_symbol', headerName: 'Symbol', renderCell: (v) => <a href='#' onClick={() => handleSymbolClick(v.value)}>{v.value}</a>
+        },
+        {
+            field: 'call_delta', headerName: 'Calls', type: 'number'
+        },
+        {
+            field: 'put_delta', headerName: 'Puts', type: 'number'
+        },
+        {
+            field: 'call_put_dex_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
+        },
+        {
+            field: 'call_gamma', headerName: 'Calls', type: 'number'
+        },
+        {
+            field: 'put_gamma', headerName: 'Puts', type: 'number'
+        },
+        {
+            field: 'net_gamma', headerName: 'NET', type: 'number'
+        },
+        {
+            field: 'call_volume', headerName: 'Calls', type: 'number'
+        },
+        {
+            field: 'put_volume', headerName: 'Puts', type: 'number'
+        },
+        {
+            field: 'call_put_volume_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
+        },
+        {
+            field: 'call_oi', headerName: 'Calls', type: 'number'
+        },
+        {
+            field: 'put_oi', headerName: 'Puts', type: 'number'
+        },
+        {
+            field: 'call_put_oi_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
+        }
+    ];
     useEffect(() => {
         setHasLoaded(false)
         getHistoricalGreeksSummaryByDate(date, dte).then(d => {
@@ -217,5 +227,8 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
             }}
         />
 
+        {openSymbolSummaryDialog && selectedSymbol && <OptionsGreekReportBySymbolDialog onClose={handleCloseAddTrade}
+            symbol={selectedSymbol}
+            open={openSymbolSummaryDialog} />}
     </Box>
 }

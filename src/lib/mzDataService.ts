@@ -1,5 +1,5 @@
 import ky from "ky";
-import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionsPricingDataResponse, SearchTickerItem, } from "./types";
+import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -145,4 +145,8 @@ export const getHistoricalGreeksSummaryByDate = async (dt: string, dte: number) 
 
 export const getOptionsPricing = async (symbol: string) => {
     return await client(`beta/symbols/${symbol}/optionspricing`).json<OptionsPricingDataResponse>();
+}
+
+export const getHistoricalGreeksSummaryBySymbol = async (symbol: string) => {
+    return await client(`api/options/${symbol}/report/greeks`).json<OptionGreeksSummaryBySymbolResponse[]>();
 }
