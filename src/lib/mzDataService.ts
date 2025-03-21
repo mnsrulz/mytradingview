@@ -1,5 +1,5 @@
 import ky from "ky";
-import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, } from "./types";
+import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -17,10 +17,6 @@ const client = ky.create({
 export const getCachedSummaryData = () => ky(`https://mztrading-data.deno.dev/summary`, {
     cache: "no-store"   //no cache for this data
 }).json<{ symbol: string, dt: string }[]>()
-
-export const getCachedReleaseData = () => ky(`https://mztrading-data.deno.dev/releases`, {
-    cache: "no-store"   //no cache for this data
-}).json<CachedReleasesType[]>();
 
 export const getCachedSummaryDatesBySymbol = async (symbol: string) => {
     const response = await ky(`https://mztrading-data.deno.dev/summary`, {
@@ -68,7 +64,13 @@ export const getAvailableExposureDates = async () => {
     return await client(`api/options/exposures/dates`).json<{ dt: string }[]>();
 }
 
+export const getAvailableExposureSnapshotDates = async () => {
+    return await client(`api/options/exposures/snapshot-dates`).json<{ dt: string }[]>();
+}
 
+export const getExposureSnapshotByDate = async (dt: string) => {
+    return await client(`api/options/exposures/snapshots?dt=${dt}`).json<ExposureSnapshotByDateResponse[]>();
+}
 
 // export const getCachedDataForSymbolByDate = async (symbol: string, date: string) => {
 //     return await client(`beta/symbols/${symbol}/historical/snapshots/${date}`).json<{

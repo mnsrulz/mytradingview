@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import ky from 'ky';
-import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, TradierOptionData } from './types';
+import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker, getEmaDataForExpsoure, getOptionsPricing } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -45,6 +45,8 @@ export type CachedReleaseSymbolType = {
     name: string,
     assetUrl: string
 }
+
+
 
 export type OptionsHedgingData = {
     expirations: string[],
@@ -117,16 +119,13 @@ export const useCachedDates = (symbol: string) => {
     return { cachedDates: data, isLoadingCachedDates: isLoading };
 }
 
-export const useCachedReleaseSymbolData = (dt: string) => {
-    const [data, setOd] = useState<CachedReleaseSymbolType[]>([]);
+export const useSnapshotImagesData = (dt: string) => {
+    const [data, setOd] = useState<ExposureSnapshotByDateResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setIsLoading(true);
-        ky(`https://mztrading-data.deno.dev/releases/symbols?r=${dt}`).json<CachedReleaseSymbolType[]>().then(r => {
-            r.forEach(m => m.assetUrl = `https://mztrading-data.deno.dev/images?dt=${dt}&s=${m.name}`);
-            setOd(r);
-        }).finally(() => setIsLoading(false));
+        getExposureSnapshotByDate(dt).then(setOd).finally(() => setIsLoading(false));
     }, [dt]);
 
     return { cachedSummarySymbolsData: data, isLoadingCachedSummaryData: isLoading };

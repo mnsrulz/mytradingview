@@ -154,8 +154,8 @@ export enum DexGexType {
 }
 
 export enum DataModeType {
-  'CBOE' = 'CBOE', 
-  'TRADIER' = 'TRADIER', 
+  'CBOE' = 'CBOE',
+  'TRADIER' = 'TRADIER',
   'HISTORICAL' = 'HISTORICAL'
 }
 
@@ -201,4 +201,7 @@ export type OptionGreeksSummaryBySymbolResponse = {
   call_put_oi_ratio: number;
   call_put_volume_ratio: number;
 }
+
+
+export type ExposureSnapshotByDateResponse = { symbol: string, dex: { hdAssetUrl: string, sdAssetUrl: string }, gex: { hdAssetUrl: string, sdAssetUrl: string } }
 
