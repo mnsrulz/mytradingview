@@ -154,8 +154,8 @@ export enum DexGexType {
 }
 
 export enum DataModeType {
-  'CBOE' = 'CBOE', 
-  'TRADIER' = 'TRADIER', 
+  'CBOE' = 'CBOE',
+  'TRADIER' = 'TRADIER',
   'HISTORICAL' = 'HISTORICAL'
 }
 
@@ -183,4 +183,47 @@ export type OptionsInnerData = {
 export type OptionsPricingDataResponse = {
   spotPrice: number,
   options: Record<string, OptionsInnerData>
+}
+
+export type OptionGreeksSummaryBySymbolResponse = {
+  dt: string;
+  price: number;
+  call_delta: number;
+  put_delta: number;
+  call_gamma: number;
+  put_gamma: number;
+  call_oi: number;
+  put_oi: number;
+  call_volume: number;
+  put_volume: number;
+  call_put_dex_ratio: number;
+  net_gamma: number;
+  call_put_oi_ratio: number;
+  call_put_volume_ratio: number;
+}
+
+
+export type ExposureSnapshotByDateResponse = { symbol: string, dex: { hdAssetUrl: string, sdAssetUrl: string }, gex: { hdAssetUrl: string, sdAssetUrl: string } }
+export type ExposureSnapshotBySymbolResponse = { date: string, dex: { hdAssetUrl: string, sdAssetUrl: string }, gex: { hdAssetUrl: string, sdAssetUrl: string } }
+
+export type ExposureDataResponse = {
+  data: {
+    call: {
+      absDelta: number[],
+      absGamma: number[],
+      openInterest: number[],
+      volume: number[]
+    },
+    put: {
+      absDelta: number[],
+      absGamma: number[],
+      openInterest: number[],
+      volume: number[]
+    },
+    netGamma: number[],
+    strikes: string[],
+    expiration: string,
+    dte: number
+  }[],
+  spotPrice: number
 }
