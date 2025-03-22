@@ -204,4 +204,26 @@ export type OptionGreeksSummaryBySymbolResponse = {
 
 
 export type ExposureSnapshotByDateResponse = { symbol: string, dex: { hdAssetUrl: string, sdAssetUrl: string }, gex: { hdAssetUrl: string, sdAssetUrl: string } }
+export type ExposureSnapshotBySymbolResponse = { date: string, dex: { hdAssetUrl: string, sdAssetUrl: string }, gex: { hdAssetUrl: string, sdAssetUrl: string } }
 
+export type ExposureDataResponse = {
+  data: {
+    call: {
+      absDelta: number[],
+      absGamma: number[],
+      openInterest: number[],
+      volume: number[]
+    },
+    put: {
+      absDelta: number[],
+      absGamma: number[],
+      openInterest: number[],
+      volume: number[]
+    },
+    netGamma: number[],
+    strikes: string[],
+    expiration: string,
+    dte: number
+  }[],
+  spotPrice: number
+}

@@ -1,26 +1,31 @@
 'use client';
 import { useOptionExposure } from "@/lib/hooks";
-import { Box, Container, LinearProgress, Paper, Slider, Stack, Typography } from "@mui/material";
+import { Box, Container, Dialog, LinearProgress, Paper, Slider } from "@mui/material";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
-import PlayIcon from '@mui/icons-material/PlayArrow';
-import { IconButton } from "@mui/material";
 import { ChartTypeSelectorTab, DteStrikeSelector } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
-import { parseAsInteger, parseAsStringEnum, useQueryState } from "nuqs";
+import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
 import { GreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 
 export const OptionsExposureComponent = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
-    const [historicalDate, setHistoricalDate] = useState(cachedDates.at(-1) || '');
+    const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
+    const [historicalDate, setHistoricalDate] = useQueryState('historical', parseAsString.withDefault(cachedDates.at(-1) || ''));
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
-    const [exposureTab, setexposureTab] = useQueryState<DexGexType>('tab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
+    const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoaded, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
     if (!exposureData) return <LinearProgress />;
+
+    if (printMode) {
+        return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body' >            
+            <GreeksExposureChart skipAnimation={true} exposureData={exposureData} dte={dte} symbol={symbol} exposureType={exposureTab} isLoaded={isLoaded} />
+        </Dialog>
+    }
 
     const startHistoricalAnimation = async () => {
         const delayMs = 1000;

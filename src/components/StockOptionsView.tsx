@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useOptionTrackerV2 } from '../lib/hooks';
 import { GridColDef, DataGrid, gridClasses } from '@mui/x-data-grid';
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Button, Link, IconButton, Dialog, DialogContent, DialogTitle, Stack } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Tab, Tabs, LinearProgress, TextField, Link, Dialog, DialogContent, DialogTitle, Stack } from '@mui/material';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
@@ -10,10 +10,8 @@ import { ConditionalFormattingBox } from './ConditionalFormattingBox';
 import { PutCallRatio } from './PutCallRatio';
 import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
-import { DeltaGammaHedging } from './DeltaGammaHedging';
 import { useRouter } from 'next/navigation';
-import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
-import EditIcon from '@mui/icons-material/Edit';
+import { useQueryState, parseAsStringEnum } from 'nuqs';
 import { TickerSearch } from './TickerSearch';
 import { TickerSearchDialog } from './TickerSearchDialog';
 
@@ -48,8 +46,7 @@ export const StockOptionsView = (props: ITickerProps) => {
     const [valueMode, setValueMode] = useQueryState<ValueModeTypeEnum>('valuemode', parseAsStringEnum<ValueModeTypeEnum>(Object.values(ValueModeTypeEnum)).withDefault(ValueModeTypeEnum.ANNUAL_RETURN));
     const [pcrSelectedData, setPcrSelectedData] = useState<OptionsInnerData | undefined>();
     const [pcrOpen, setPcrOpen] = useState(false);
-    const [deltaHedgingOpen, setDeltaHedgingOpen] = useQueryState('showDexGex', parseAsBoolean);
-
+    
     function handlePcrSelection(v: string) {
         const fss = data?.options[v];
         if (fss) {
@@ -231,12 +228,6 @@ export const StockOptionsView = (props: ITickerProps) => {
                 data={pcrSelectedData}
                 currentPrice={data.spotPrice}
                 onClose={() => setPcrOpen(false)} />
-        }
-
-        {
-            deltaHedgingOpen && <DeltaGammaHedging
-                symbol={props.symbol}
-                onClose={() => setDeltaHedgingOpen(false)} />
         }
 
         <Dialog
