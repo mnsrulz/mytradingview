@@ -348,7 +348,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
-    const [isLoaded, setLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
     const expirationData = rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
@@ -364,18 +364,17 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${dataMode}`;
         if (cacheStore[cacheKey]) {
             setRawExposureResponse(cacheStore[cacheKey]);
-            setLoaded(true);
+            setIsLoading(false);
             return;
         }
-        setLoaded(false);
+        setIsLoading(true);
         const exposureResponse = dataMode == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveExposure(symbol, dataMode);
         exposureResponse.then(data => {
             setCache((prev) => { prev[cacheKey] = data; return prev; });
             setRawExposureResponse(data);
-            setLoaded(true);
         }).catch(() => {
             setHasError(true);
-        })
+        }).finally(() => setIsLoading(false))
     }, [symbol, dt, dataMode]);
 
     useEffect(() => {
@@ -459,7 +458,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     }, [rawExposureResponse, chartType, dte, strikeCount, selectedExpirations]);
 
     return {
-        exposureData, isLoaded, hasError, expirationData
+        exposureData, isLoading, hasError, expirationData
         // , emaData
 
     };

@@ -20,8 +20,8 @@ export const HistoricalSnapshotView = (props: { isLoading: boolean, showKeyOnOve
     return <Grid container>
         <PhotoProvider overlayRender={(p) => showKeyOnOverlay && <OverlayRender v={items[p.index].key} />}>
             {items.map((item) => (
-                <PhotoView key={item.key} src={item.asset.hdAssetUrl}  >
-                    <img key={item.key} loading='lazy' src={item.asset.sdAssetUrl} width={imgWidth} height="auto" style={{ objectFit: 'cover', aspectRatio: '1' }} alt={item.key} />
+                <PhotoView key={item.asset.hdAssetUrl} src={item.asset.hdAssetUrl}  >
+                    <img key={item.asset.hdAssetUrl} loading='lazy' src={item.asset.sdAssetUrl} width={imgWidth} height="auto" style={{ objectFit: 'cover', aspectRatio: '1' }} alt={item.key} />
                 </PhotoView>
             ))}
         </PhotoProvider>
