@@ -19,14 +19,17 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoaded, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
-    if (!exposureData) return <LinearProgress />;
 
     if (printMode) {
-        return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body' >            
-            <GreeksExposureChart skipAnimation={true} exposureData={exposureData} dte={dte} symbol={symbol} exposureType={exposureTab} isLoaded={isLoaded} />
+        return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body' >
+            {
+                (exposureData && isLoaded) ? <GreeksExposureChart skipAnimation={true} exposureData={exposureData} dte={dte} symbol={symbol} exposureType={exposureTab} isLoaded={isLoaded} />
+                    : <LinearProgress />
+            }
         </Dialog>
     }
 
+    if (!exposureData) return <LinearProgress />;
     const startHistoricalAnimation = async () => {
         const delayMs = 1000;
         for (const d of cachedDates) {

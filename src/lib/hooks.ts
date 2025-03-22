@@ -361,7 +361,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
 
     useEffect(() => {
         setHasError(false);
-        const cacheKey = dataMode == DataModeType.HISTORICAL ? dt : `${dataMode}`;
+        const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${dataMode}`;
         if (cacheStore[cacheKey]) {
             setRawExposureResponse(cacheStore[cacheKey]);
             setLoaded(true);
