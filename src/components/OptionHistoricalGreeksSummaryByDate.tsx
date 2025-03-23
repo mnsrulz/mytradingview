@@ -71,7 +71,10 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
     }
     const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
         {
-            field: 'option_symbol', headerName: 'Symbol', renderCell: (v) => <a href='#' onClick={() => handleSymbolClick(v.value)}>{v.value}</a>
+            field: 'symbol', headerName: 'Symbol', renderCell: (v) => <a href='#' onClick={() => handleSymbolClick(v.value)}>{v.value}</a>
+        },
+        {
+            field: 'price', headerName: 'Price', type: 'number'
         },
         {
             field: 'call_delta', headerName: 'Calls', type: 'number'
@@ -222,7 +225,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
                 },
             }}
             loading={!hasLoaded}
-            getRowId={(r: OptionGreeksSummaryByDateResponse) => r.option_symbol}
+            getRowId={(r: OptionGreeksSummaryByDateResponse) => r.symbol}
             // pageSizeOptions={[5]}
             checkboxSelection={false}
             disableColumnFilter

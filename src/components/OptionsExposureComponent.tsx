@@ -39,7 +39,7 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
         )
     }</Box>
     if (printMode) {
-        <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body'>
+        return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body'>
             {exposureChartContent}
         </Dialog>
     }
