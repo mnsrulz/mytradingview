@@ -18,6 +18,25 @@ const dteOptions = [7,
     180,
     400,
     1000];
+const volumeOptions = [
+    { value: 100, display: '100' },
+    { value: 500, display: '500' },
+    { value: 1000, display: '1K' },
+    { value: 10000, display: '10K' },
+    { value: 50000, display: '50K' },
+    { value: 100000, display: '100K' }
+];
+
+const oiOptions = [
+    { value: 100, display: '100' },
+    { value: 500, display: '500' },
+    { value: 1000, display: '1K' },
+    { value: 10000, display: '10K' },
+    { value: 50000, display: '50K' },
+    { value: 100000, display: '100K' }
+];
+
+
 
 export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string[] }) => {
     const { cachedDates } = props;
@@ -100,7 +119,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
         })
     }, [date, dte])
 
-    const dteFilter = <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+    const dteFilter = <FormControl sx={{ m: 1, minWidth: 60 }} size="small">
         <InputLabel>DTE</InputLabel>
         <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
             {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
@@ -110,19 +129,17 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
     const volumeFilter = <FormControl sx={{ m: 1 }} size="small">
         <InputLabel>Volume</InputLabel>
         <Select value={minVolume} label="Volume" onChange={(e) => setMinVolume(e.target.value as number)}>
-            {[100, 500, 1000, 10000, 50000, 100000].map(c => {
-                return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>
+            {volumeOptions.map(c => {
+                return <MenuItem key={c.value} value={c.value}>{`${c.display}+`}</MenuItem>
             })}
         </Select>
     </FormControl>
     const oiFilter = <FormControl sx={{ m: 1 }} size="small">
         <InputLabel>OI</InputLabel>
         <Select value={minOpenInterest} label="OI" onChange={(e) => setMinOpenInterest(e.target.value as number)}>
-            {
-                [100, 500, 1000, 10000, 50000, 100000].map(c => {
-                    return <MenuItem key={c} value={c}>{`>=${c}`}</MenuItem>
-                })
-            }
+            {oiOptions.map(c => {
+                return <MenuItem key={c.value} value={c.value}>{`${c.display}+`}</MenuItem>
+            })}
         </Select>
     </FormControl>
     const additionalFilter = <>
