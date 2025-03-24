@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import ky from 'ky';
-import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, TradierOptionData } from './types';
+import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData, ExposureDataResponse } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, ExposureDataResponse, searchTicker, getEmaDataForExpsoure, getOptionsPricing } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -46,6 +46,8 @@ export type CachedReleaseSymbolType = {
     assetUrl: string
 }
 
+
+
 export type OptionsHedgingData = {
     expirations: string[],
     strikes: number[],
@@ -80,137 +82,17 @@ export const useOptionTracker = (symbol: string) => {
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis };
 }
 
-export const useCachedDatesData = (symbol: string, dt: string) => {
-    const [data, setOd] = useState<TradierOptionData[]>([]);
+export const useSnapshotImagesData = (dt: string) => {
+    const [data, setOd] = useState<ExposureSnapshotByDateResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setIsLoading(true);
-        ky(`https://mztrading-data.deno.dev/data`, {
-            searchParams: {
-                s: symbol,
-                dt
-            }
-        }).json<TradierOptionData[]>().then(r => {
-            setOd(r);
-        }).finally(() => setIsLoading(false));
-    }, [symbol, dt]);
-
-    return { cachedDatesData: data, isLoadingCachedDatesData: isLoading };
-}
-
-export const useCachedDates = (symbol: string) => {
-    const [data, setOd] = useState<CachedOptionSummaryType[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        setIsLoading(true);
-        ky(`https://mztrading-data.deno.dev/summary`, {
-            searchParams: {
-                s: symbol
-            }
-        }).json<{ symbol: string, dt: string }[]>().then(r => {
-            setOd(r);
-        }).finally(() => setIsLoading(false));
-    }, [symbol]);
-
-    return { cachedDates: data, isLoadingCachedDates: isLoading };
-}
-
-export const useCachedReleaseSymbolData = (dt: string) => {
-    const [data, setOd] = useState<CachedReleaseSymbolType[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        setIsLoading(true);
-        ky(`https://mztrading-data.deno.dev/releases/symbols?r=${dt}`).json<CachedReleaseSymbolType[]>().then(r => {
-            r.forEach(m => m.assetUrl = `https://mztrading-data.deno.dev/images?dt=${dt}&s=${m.name}`);
-            setOd(r);
-        }).finally(() => setIsLoading(false));
+        getExposureSnapshotByDate(dt).then(setOd).finally(() => setIsLoading(false));
     }, [dt]);
 
     return { cachedSummarySymbolsData: data, isLoadingCachedSummaryData: isLoading };
 }
-
-export const useDeltaGammaHedging = (symbol: string, dte: number, sc: number, dataMode: string) => {
-    const [data, setOd] = useState<OptionsHedgingData>();
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        setIsLoading(true);
-        if (dataMode == 'Live') {
-            ky(`/api/symbols/${symbol}/options/analyze/tradier`, {
-                searchParams: {
-                    dte,
-                    sc
-                }
-            }).json<{ exposureData: OptionsHedgingData }>().then(r => {
-                setOd(r.exposureData);
-            }).finally(() => setIsLoading(false));
-        } else {
-            ky(`https://mztrading-data.deno.dev/data`, {
-                searchParams: {
-                    s: symbol,
-                    dt: dataMode
-                }
-            }).json<{ data: TradierOptionData[], price: number }>().then(async r => {
-                const filteredData = r.data.filter(r => dayjs(r.options.option.at(0)?.expiration_date) <= dayjs(dataMode).add(dte, 'day'));
-                const allDates = [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.expiration_date)))];
-                let priceAtDate = r.price;  //it's possible that we won't receive the data from data service so fall back to netlify...
-                if (!priceAtDate) {
-                    const { price } = await ky(`/api/symbols/${symbol}/historical`, {
-                        searchParams: {
-                            dt: dataMode
-                        }
-                    }).json<{ price: number }>();
-                    priceAtDate = price;
-                }
-                const allStrikes = getCalculatedStrikes(priceAtDate, sc, [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.strike)))]);
-                const finalResponse = calculateHedging(filteredData, allStrikes, allDates, priceAtDate);
-                setOd(finalResponse.exposureData);
-            }).finally(() => setIsLoading(false));
-        }
-    }, [symbol, dte, sc, dataMode]);
-    return { data, isLoading };
-};
-
-export const useDeltaGammaHedgingV2 = (symbol: string, dte: number, sc: number, dataMode: string) => {
-    const [data, setOd] = useState<OptionsHedgingData>();
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        setIsLoading(true);
-        if (dataMode == 'Live') {
-            ky(`/api/symbols/${symbol}/options/analyze/tradier`, {
-                searchParams: {
-                    dte,
-                    sc
-                }
-            }).json<{ exposureData: OptionsHedgingData }>().then(r => {
-                setOd(r.exposureData);
-            }).finally(() => setIsLoading(false));
-        } else {
-            ky(`https://mztrading-data.deno.dev/data`, {
-                searchParams: {
-                    s: symbol,
-                    dt: dataMode
-                }
-            }).json<{ data: TradierOptionData[] }>().then(async r => {
-                const filteredData = r.data.filter(r => dayjs(r.options.option.at(0)?.expiration_date) <= dayjs(dataMode).add(dte, 'day'));
-                const allDates = [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.expiration_date)))];
-                const { price } = await ky(`/api/symbols/${symbol}/historical`, {
-                    searchParams: {
-                        dt: dataMode
-                    }
-                }).json<{ price: number }>();
-                const allStrikes = getCalculatedStrikes(price, sc, [...new Set(filteredData.flatMap(j => j.options.option.map(s => s.strike)))]);
-                const finalResponse = calculateHedging(filteredData, allStrikes, allDates, price);
-                setOd(finalResponse.exposureData);
-            }).finally(() => setIsLoading(false));
-        }
-    }, [symbol, dte, sc, dataMode]);
-    return { data, isLoading };
-};
 
 export const useMyLocalWatchList = () => {
     const initialState = [
@@ -466,7 +348,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
-    const [isLoaded, setLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
     const expirationData = rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
@@ -479,21 +361,20 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
 
     useEffect(() => {
         setHasError(false);
-        const cacheKey = dataMode == DataModeType.HISTORICAL ? dt : `${dataMode}`;
+        const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${dataMode}`;
         if (cacheStore[cacheKey]) {
             setRawExposureResponse(cacheStore[cacheKey]);
-            setLoaded(true);
+            setIsLoading(false);
             return;
         }
-        setLoaded(false);
+        setIsLoading(true);
         const exposureResponse = dataMode == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveExposure(symbol, dataMode);
         exposureResponse.then(data => {
             setCache((prev) => { prev[cacheKey] = data; return prev; });
             setRawExposureResponse(data);
-            setLoaded(true);
         }).catch(() => {
             setHasError(true);
-        })
+        }).finally(() => setIsLoading(false))
     }, [symbol, dt, dataMode]);
 
     useEffect(() => {
@@ -577,7 +458,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     }, [rawExposureResponse, chartType, dte, strikeCount, selectedExpirations]);
 
     return {
-        exposureData, isLoaded, hasError, expirationData
+        exposureData, isLoading, hasError, expirationData
         // , emaData
 
     };

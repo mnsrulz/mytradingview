@@ -18,7 +18,7 @@ export const HistoryBySymbol = (props: { symbols: string[] }) => {
         if (!symbol) return;
         setIsLoading(true);
         getHistoricalSnapshotsBySymbol(symbol)
-            .then(r => setSnapshots(r.items.map(k => ({ asset: mode == 'GEX' ? k.gex : k.dex, key: k.date }))))
+            .then(r => setSnapshots(r.map(k => ({ asset: mode == 'GEX' ? k.gex : k.dex, key: k.date }))))
             .finally(() => setIsLoading(false));
     }, [symbol, mode]);
     return <Box>
