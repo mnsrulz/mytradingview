@@ -37,7 +37,7 @@
     "lru-cache": "^11.0.2",
     "match-sorter": "^6.3.4",
     "nanoid": "^5.0.9",
-    "next": "14.2.2",
+    "next": "14.2.25",
     "next-auth": "^5.0.0-beta.16",
     "numeral": "^2.0.6",
     "nuqs": "^1.17.8",
