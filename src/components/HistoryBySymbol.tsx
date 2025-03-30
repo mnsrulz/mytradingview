@@ -60,7 +60,7 @@ export const HistoryBySymbol = (props: { symbols: string[] }) => {
                     }}
                 />
             </FormControl>
-            <FormControl sx={{ mr: 1, minWidth: 120 }} size="small">
+            <FormControl sx={{ mr: 1 }} size="small">
                 <InputLabel>Mode</InputLabel>
                 <Select id="mode" value={mode} label="Mode" onChange={(e) => setMode(e.target.value)} size="small">
                     <MenuItem key="DEX" value="DEX">DEX</MenuItem>
