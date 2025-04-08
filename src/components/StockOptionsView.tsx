@@ -158,7 +158,7 @@ export const StockOptionsView = (props: ITickerProps) => {
                 <InputLabel>Value Mode</InputLabel>
                 <Select value={valueMode} onChange={(e, v) => setValueMode(e.target.value as ValueModeTypeEnum)}>
                     <MenuItem value="PRICE">Price</MenuItem>
-                    <MenuItem value="ANNUAL_RETURN">Annaul Return</MenuItem>
+                    <MenuItem value="ANNUAL_RETURN">Annual Return</MenuItem>
                     <MenuItem value="TOTAL_RETURN">Total Return</MenuItem>
                     <MenuItem value="PCR">OI</MenuItem>
                     <MenuItem value="VOLUME">Volume</MenuItem>
