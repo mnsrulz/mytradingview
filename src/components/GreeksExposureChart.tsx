@@ -64,8 +64,8 @@ const CallPutWallLine = (props: { callWall: number, putWall: number, spotPriceLi
 }
 
 
-export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoaded: boolean }) => {
-    const { symbol, exposureType, dte, exposureData, skipAnimation, isLoaded } = props;
+export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
+    const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
     const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
@@ -78,7 +78,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     return <Box>
         <Typography variant="h6" align="center">{title}</Typography>
         <BarChart
-            loading={!isLoaded}
+            loading={isLoading}
             skipAnimation={skipAnimation}
             height={height}
             margin={{ left: leftMarginValue, right: 0 }}
