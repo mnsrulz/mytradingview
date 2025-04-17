@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Stack, Box, IconButton, Drawer, Dialog, useMediaQuery, useTheme } from '@mui/material';
+import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme } from '@mui/material';
 import { DataGrid, GridColDef, GridColumnGroupingModel, GridDensity, GridToolbar } from '@mui/x-data-grid';
 import { getHistoricalGreeksSummaryByDate } from '@/lib/mzDataService';
 import { useQueryState, parseAsStringLiteral, parseAsNumberLiteral } from 'nuqs';
@@ -10,6 +10,7 @@ import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material'
 import { OptionGreeksSummaryByDateResponse } from '@/lib/types';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { OptionsGreekReportBySymbolDialog } from './OptionsGreekReportBySymbol';
+import { currencyCompactFormatter, currencyFormatter, numberCompactFormatter } from '@/lib/formatters';
 
 const dteOptions = [7,
     30,
@@ -74,40 +75,40 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
             field: 'symbol', headerName: 'Symbol', renderCell: (v) => <a href='#' onClick={() => handleSymbolClick(v.value)}>{v.value}</a>
         },
         {
-            field: 'price', headerName: 'Price', type: 'number'
+            field: 'price', headerName: 'Price', type: 'number', valueFormatter: (v)=> currencyFormatter(v)
         },
         {
-            field: 'call_delta', headerName: 'Calls', type: 'number'
+            field: 'call_delta', headerName: 'Calls', type: 'number', valueFormatter: (v)=> currencyCompactFormatter(v)
         },
         {
-            field: 'put_delta', headerName: 'Puts', type: 'number'
+            field: 'put_delta', headerName: 'Puts', type: 'number', valueFormatter: (v)=> currencyCompactFormatter(v)
         },
         {
             field: 'call_put_dex_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
         },
         {
-            field: 'call_gamma', headerName: 'Calls', type: 'number'
+            field: 'call_gamma', headerName: 'Calls', type: 'number', valueFormatter: (v)=> currencyCompactFormatter(v)
         },
         {
-            field: 'put_gamma', headerName: 'Puts', type: 'number'
+            field: 'put_gamma', headerName: 'Puts', type: 'number', valueFormatter: (v)=> currencyCompactFormatter(v)
         },
         {
-            field: 'net_gamma', headerName: 'NET', type: 'number'
+            field: 'net_gamma', headerName: 'NET', type: 'number', valueFormatter: (v)=> currencyCompactFormatter(v)
         },
         {
-            field: 'call_volume', headerName: 'Calls', type: 'number'
+            field: 'call_volume', headerName: 'Calls', type: 'number', valueFormatter: (v)=> numberCompactFormatter(v)
         },
         {
-            field: 'put_volume', headerName: 'Puts', type: 'number'
+            field: 'put_volume', headerName: 'Puts', type: 'number', valueFormatter: (v)=> numberCompactFormatter(v)
         },
         {
             field: 'call_put_volume_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
         },
         {
-            field: 'call_oi', headerName: 'Calls', type: 'number'
+            field: 'call_oi', headerName: 'Calls', type: 'number', valueFormatter: (v)=> numberCompactFormatter(v)
         },
         {
-            field: 'put_oi', headerName: 'Puts', type: 'number'
+            field: 'put_oi', headerName: 'Puts', type: 'number', valueFormatter: (v)=> numberCompactFormatter(v)
         },
         {
             field: 'call_put_oi_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
