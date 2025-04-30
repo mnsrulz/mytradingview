@@ -1,8 +1,9 @@
 import { getYfOptions } from "@/lib/yfOptions";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request, p: { params: { symbol: string } }) {
-    const resp = await getYfOptions(p.params.symbol)
+export async function GET(request: NextRequest, p: { params: Promise<{ symbol: string }> }) {
+    const { symbol } = await p.params;
+    const resp = await getYfOptions(symbol)
     return NextResponse.json({
         resp
     });

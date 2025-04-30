@@ -44,6 +44,7 @@ const EmaIndicatorLine = (props: { strikes: number[], emaData?: { ema21d: number
 const CallPutWallLine = (props: { callWall: number, putWall: number, spotPriceLineValue: number }) => {
     const { callWall, putWall, spotPriceLineValue } = props;
     // debugger;
+    if(callWall == 0 && putWall == 0) return <></>
     if (callWall == putWall) {
         return <ChartsReferenceLine y={Number(callWall)} label={"WALL: $" + (callWall)}
             labelAlign={spotPriceLineValue == callWall ? "end" : "start"}

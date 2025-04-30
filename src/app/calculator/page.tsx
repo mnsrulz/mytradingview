@@ -19,10 +19,8 @@ const SubComp = (props: { mode: CalcModel }) => {
     const annualizedReturn = totalReturn / (duration / 365);
 
     return <Stack>
-        <Grid container>
-            <Grid item xs={12}>Total Return: {percentageFormatter(totalReturn)}</Grid>
-            <Grid item xs={12}>Annualized Return: {percentageFormatter(annualizedReturn)}</Grid>
-        </Grid>
+        <Stack direction="row" spacing={2}>Total Return: {percentageFormatter(totalReturn)}</Stack>
+        <Stack direction="row" spacing={2}>Annualized Return: {percentageFormatter(annualizedReturn)}</Stack>
     </Stack>
 }
 
@@ -40,14 +38,26 @@ export default function Page() {
             <Stack spacing={2}>
                 <Stack direction="row" spacing={2}>
                     <TextFieldElement name={'riskValue'} label={'Risk Value'} required fullWidth
-                        InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+                        slotProps={
+                            {
+                                input: {
+                                    startAdornment: <InputAdornment position="start">$</InputAdornment>
+                                }
+                            }
+                        } />
                 </Stack>
                 <Stack direction="row" spacing={2}>
                     <TextFieldElement name={'duration'} label={'Number of Days'} required fullWidth type='number' />
                 </Stack>
                 <Stack direction="row" spacing={2}>
                     <TextFieldElement name={'expectedProfit'} label={'Expected Profit'} required fullWidth
-                        InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+                        slotProps={
+                            {
+                                input: {
+                                    startAdornment: <InputAdornment position="start">$</InputAdornment>
+                                }
+                            }
+                        } />
                 </Stack>
                 <SubComp mode={dv} ></SubComp>
             </Stack>

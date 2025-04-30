@@ -16,8 +16,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { signIn, signOut, useSession } from 'next-auth/react'
 
-const NonPrefetchLink = forwardRef((props: any, ref: Ref<HTMLAnchorElement>) => <Link ref={ref} prefetch={false} {...props} />);
+const NonPrefetchLink = forwardRef<HTMLAnchorElement, React.ComponentPropsWithoutRef<typeof Link>>(
+    (props, ref) => <Link {...props} ref={ref} prefetch={false} />
+  );
 NonPrefetchLink.displayName = 'NonPrefetchLink';
+
 /*
 <Button><Link href="/" className=''>Home</Link></Button>
             <Button><Link href="/trades" className=''>Trades</Link></Button>

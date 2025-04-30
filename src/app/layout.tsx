@@ -4,6 +4,7 @@ import "./globals.css";
 import TabsRouter from "./routes";
 import { Box, Container, CssBaseline } from "@mui/material";
 import { auth } from '@/lib/auth';
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 
@@ -22,12 +23,14 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <CssBaseline />
-        <TabsRouter isAuthenticated={isAuthenticated} />
-        {/* <Container maxWidth="lg"> */}
-        <Container maxWidth="xl" sx={{ px: 1, mt: 1 }}>
-          {children}
-        </Container>
+        <NuqsAdapter>
+          <CssBaseline />
+          <TabsRouter isAuthenticated={isAuthenticated} />
+          {/* <Container maxWidth="lg"> */}
+          <Container maxWidth="xl" sx={{ px: 1, mt: 1 }}>
+            {children}
+          </Container>
+        </NuqsAdapter>
       </body>
     </html>
   );

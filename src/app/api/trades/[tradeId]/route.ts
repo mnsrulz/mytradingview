@@ -1,20 +1,20 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request, p: { params: { tradeId: string } }) {
+export async function GET(request: Request, p: { params: Promise<{ tradeId: string }> }) {
     const existingTrade = await prisma.trade.findFirst({
         where: {
-            id: p.params.tradeId
+            id: (await p.params).tradeId
         }
     });
 
     return NextResponse.json(existingTrade);
 }
 
-export async function DELETE(request: Request, p: { params: { tradeId: string } }) {
+export async function DELETE(request: Request, p: { params: Promise<{ tradeId: string }> }) {
     await prisma.trade.delete({
         where: {
-            id: p.params.tradeId
+            id: (await p.params).tradeId
         }
     });
 

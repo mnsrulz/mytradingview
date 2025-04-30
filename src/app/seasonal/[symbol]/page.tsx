@@ -3,9 +3,12 @@ import { getEarningDates, getSeasonalView } from '@/lib/tradierService';
 import { EarningsSeason } from '@/lib/types';
 import { Box, Divider } from '@mui/material';
 
-export default async function Page({ params, searchParams }: { params: { symbol: string }, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default async function Page(
+    props: { params: Promise<{ symbol: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }
+) {
+    const params = await props.params;
     const { symbol } = params;
-    const p = await searchParams;
+    const p = await props.searchParams;
     const mode = p['mode'] as string || 'Daily';
     const cleanSymbol = decodeURIComponent(symbol).replace(/\W/g, '');
     const component = await getComponent(mode, cleanSymbol);
