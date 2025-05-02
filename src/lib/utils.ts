@@ -1,4 +1,4 @@
-export const calculateLeftMargin = (maxStrikeValue: number) => {
+export const calculateYAxisTickWidth = (maxStrikeValue: number) => {
     if (maxStrikeValue < 100) {
         return 48
     } else if (maxStrikeValue < 1000) {

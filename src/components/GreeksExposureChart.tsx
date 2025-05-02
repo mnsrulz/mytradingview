@@ -2,9 +2,10 @@ import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
 import { ExposureDataType } from "@/lib/hooks";
 import { DexGexType } from "@/lib/types";
-import { calculateChartHeight, calculateLeftMargin } from "@/lib/utils";
-import { Box, Typography } from "@mui/material";
+import { calculateChartHeight, calculateYAxisTickWidth } from "@/lib/utils";
+import { Box, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
+import { legendClasses, ChartsLegend } from '@mui/x-charts/ChartsLegend';
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 const colorCodes = getColorPallete();
 
@@ -44,7 +45,7 @@ const EmaIndicatorLine = (props: { strikes: number[], emaData?: { ema21d: number
 const CallPutWallLine = (props: { callWall: number, putWall: number, spotPriceLineValue: number }) => {
     const { callWall, putWall, spotPriceLineValue } = props;
     // debugger;
-    if(callWall == 0 && putWall == 0) return <></>
+    if (callWall == 0 && putWall == 0) return <></>
     if (callWall == putWall) {
         return <ChartsReferenceLine y={Number(callWall)} label={"WALL: $" + (callWall)}
             labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
@@ -64,6 +65,32 @@ const CallPutWallLine = (props: { callWall: number, putWall: number, spotPriceLi
     </>
 }
 
+const ExposureChartLegends = (props: { expirations: string[], showLegendOnTop: boolean }) => {
+    //check back later on how to optimize it
+    const { expirations, showLegendOnTop } = props;
+    if (showLegendOnTop) {
+        return <Stack direction={'row'} sx={{ flexWrap: 'wrap' }} columnGap={1}>
+            {
+                expirations.map((e, ix) => <Stack key={ix} direction={'column'} justifyContent={'space-evenly'}>
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <Box width={16} height={8} sx={{ bgcolor: colorCodes[ix] }}></Box>
+                        <Typography variant="caption">{e}</Typography>
+                    </Stack>
+                </Stack>)
+            }
+        </Stack>
+    }
+    return <Stack direction={'column'} width={128}>
+        {
+            expirations.map((e, ix) => <Stack key={ix} direction={'column'} justifyContent={'space-evenly'}>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Box width={32} height={8} sx={{ bgcolor: colorCodes[ix] }}></Box>
+                    <Typography variant="caption">{e}</Typography>
+                </Stack>
+            </Stack>)
+        }
+    </Stack>
+}
 
 export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
     const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
@@ -73,58 +100,70 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const height = calculateChartHeight(expirations, strikes);
     const yaxisline = Math.max(...strikes.filter(j => j <= spotPrice));
     const maxStrike = Math.max(...strikes);
-    const leftMarginValue = calculateLeftMargin(maxStrike);
+    const leftMarginValue = calculateYAxisTickWidth(maxStrike);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
+
+    const theme = useTheme();
+    const showLegendOnTop = useMediaQuery(theme.breakpoints.down('sm'));
+
     return <Box>
         <Typography variant="h6" align="center">{title}</Typography>
         <BarChart
             loading={isLoading}
             skipAnimation={skipAnimation}
             height={height}
-            margin={{ left: leftMarginValue, right: 0 }}
-            tooltip={{
-                trigger: 'none'
-            }}
+            margin={{ right: 0, left: 0 }}
+            // tooltip={{
+            //     trigger: 'none'
+            // }}            
             series={items.map((j, ix) => {
-                return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)] }
+                return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar', labelMarkType: 'line' }
             })}
             yAxis={[{
                 data: strikes,
                 scaleType: 'band',
                 // label: 'Strikes',
                 reverse: true,
-                valueFormatter: (tick) => `$${Number(tick).toFixed(2)}`
+                valueFormatter: (tick) => `$${Number(tick).toFixed(2)}`,
+                width: leftMarginValue
             }]}
             xAxis={[{
                 min: -maxPosition * 1.1,
                 max: maxPosition * 1.1,
                 reverse: true,
                 label: `${gammaOrDelta}`,
+                barGapRatio: 0.1,
                 valueFormatter: (v: number) => xAxixFormatter(props.exposureType, v)
             }]}
             layout="horizontal"
+            slots={{
+                legend: () => <ExposureChartLegends expirations={expirations} showLegendOnTop={showLegendOnTop} />
+            }}
             slotProps={{
+                tooltip: {
+                    trigger: 'none'
+                },
                 legend: {
-                    seriesToDisplay: expirations.map(j => {
-                        return {
-                            id: j,
-                            color: colorCodes[expirations.indexOf(j)],
-                            label: j
-                        }
-                    }),
-                    direction: 'column',
+                    direction: showLegendOnTop ? 'horizontal' : 'vertical',
                     position: {
                         vertical: 'top',
-                        horizontal: 'right',
+                        horizontal: 'end'
                     },
-                    labelStyle: {
-                        fontSize: '0.75rem'
-                    },
-                    itemMarkWidth: 24,
-                    itemMarkHeight: 8,
-                    markGap: 2,
-                    itemGap: 2,
+
+                    // sx: {
+                    //     rowGap: 0.5,
+                    //     columnGap: 1,
+                    //     [legendClasses.mark]: {
+                    //         lineHeight: 16
+                    //     },
+                    //     ['.MuiChartsLegend-mark']: {
+                    //         width: 24,
+                    //         // height: 48,
+                    //         // lineHeight: 48
+                    //     }
+                    // },
+
                 }
             }}
         >

@@ -86,7 +86,7 @@ export const Watchlist = (props: { tickers: SearchTickerItem[] }) => {
           key='ViewOptionsData'
           icon={<InfoIcon />}
           label="View options data"
-          LinkComponent={Button}
+          // LinkComponent={Button}
           to={"/options/analyze/" + row.symbol}
           showInMenu
         />,
@@ -127,42 +127,39 @@ export const Watchlist = (props: { tickers: SearchTickerItem[] }) => {
   }
 
   return <Grid container>
-    <Grid item xs={12} marginTop={1} marginBottom={1}>
-      <DataGrid rows={collect(wl).sortBy(sortMode).all()}
-        columns={columns}
-        //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
-        sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
-        // columnHeaderHeight={0}
-        // slots={{
-        //   columnHeaders: () => <div></div>,
-        // }}      
-        disableColumnMenu
-        disableColumnSorting
-        disableColumnSelector
-        disableColumnResize
-        rowHeight={72}
-        //apiRef={apiRef}
-        // rowSelection={true}
-        disableRowSelectionOnClick
-        hideFooter={true}
-        density='compact'
-        getRowId={(r) => `${r.symbol} - ${r.name}`} />
-      <AddTradeDialog onClose={handleCloseAddTrade}
-        open={openAddTrade}
-        ticker={currentStock} />
+    <DataGrid rows={collect(wl).sortBy(sortMode).all()}
+      columns={columns}
+      //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+      sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+      // columnHeaderHeight={0}
+      // slots={{
+      //   columnHeaders: () => <div></div>,
+      // }}      
+      disableColumnMenu
+      disableColumnSorting
+      disableColumnSelector
+      disableColumnResize
+      rowHeight={72}
+      //apiRef={apiRef}
+      // rowSelection={true}
+      disableRowSelectionOnClick
+      hideFooter={true}
+      density='compact'
+      getRowId={(r) => `${r.symbol} - ${r.name}`} />
+    <AddTradeDialog onClose={handleCloseAddTrade}
+      open={openAddTrade}
+      ticker={currentStock} />
 
-      <Dialog
-        open={openAddToWatchlist}
-        fullWidth={true}
-        onClose={() => setOpenAddToWatchlist(false)}
-      >
-        <DialogTitle id="add-to-watchlist-dialog-title">Add to Watchlist</DialogTitle>
-        <DialogContent dividers={true}>
-          <TickerSearch onChange={handleAddToWatchlist} />
-        </DialogContent>
-      </Dialog>
-
-      {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
-    </Grid>
+    <Dialog
+      open={openAddToWatchlist}
+      fullWidth={true}
+      onClose={() => setOpenAddToWatchlist(false)}
+    >
+      <DialogTitle id="add-to-watchlist-dialog-title">Add to Watchlist</DialogTitle>
+      <DialogContent dividers={true}>
+        <TickerSearch onChange={handleAddToWatchlist} />
+      </DialogContent>
+    </Dialog>
+    {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
   </Grid>
 }

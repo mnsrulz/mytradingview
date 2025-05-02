@@ -35,12 +35,12 @@ const SubComp = (props: { t: Trade }) => {
         <>
             <Stack>
                 <Grid container>
-                    <Grid item xs={12}><TickerName trade={t1} /></Grid>
-                    <Grid item xs={6}>Max Profit: {fixedCurrencyFormatter(t1.maximumProfit)}</Grid>
-                    <Grid item xs={6}>Expected Profit per day: {currencyFormatter(t1.averageProfitPerDay)}</Grid>
-                    <Grid item xs={12}>Expected TotalReturn/Annual Return: {percentageFormatter(t1.maxReturn)}/{percentageFormatter(t1.maxAnnualizedReturn)}</Grid>
+                    <Grid size={12}><TickerName trade={t1} /></Grid>
+                    <Grid size={6}>Max Profit: {fixedCurrencyFormatter(t1.maximumProfit)}</Grid>
+                    <Grid size={6}>Expected Profit per day: {currencyFormatter(t1.averageProfitPerDay)}</Grid>
+                    <Grid size={12}>Expected TotalReturn/Annual Return: {percentageFormatter(t1.maxReturn)}/{percentageFormatter(t1.maxAnnualizedReturn)}</Grid>
                     <Grid>Estimated Profit: {fixedCurrencyFormatter(t1.actualProfit)}</Grid>
-                    <Grid item xs={12}>Estimated Annualized Returns: {percentageFormatter(t1.actualAnnualizedReturn)}</Grid>
+                    <Grid size={12}>Estimated Annualized Returns: {percentageFormatter(t1.actualAnnualizedReturn)}</Grid>
                     <Grid>Estimated profit per day: {fixedCurrencyFormatter(t1.actualProfitPerDay)}</Grid>
                 </Grid>
             </Stack>
@@ -121,7 +121,13 @@ export const CloseTradeDialog = (props: ITickerProps) => {
                         <DatePickerElement label="Transaction End Date" name="transactionEndDate" required disableFuture={false} disablePast={false} />
 
                         <TextFieldElement name={'contractPriceAtClose'} label={'Contract Price at close'} required
-                            InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+                            slotProps={{
+                                input: {
+                                    startAdornment: <InputAdornment position="start">$</InputAdornment>
+                                }
+                            }}
+                            // InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} 
+                            />
                         <TextareaAutosizeElement label="Notes" name="notes" rows={5} />
                     </LocalizationProvider>
 

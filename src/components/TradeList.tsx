@@ -6,7 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import dayjs from 'dayjs';
 import { CloseTradeCloseDialogReason, CloseTradeDialog } from "./CloseTradeDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { Box, Button, Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Switch, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, FormControlLabel, Grid, LinearProgress, Paper, Stack, Switch, Typography } from "@mui/material";
 
 import { ConditionalFormattingBox } from "./ConditionalFormattingBox";
 import { useTrades } from "@/lib/useTrades";
@@ -147,32 +147,32 @@ export const TradeList = () => {
     return isLoading ? <LinearProgress /> : <div>
         <Card>
             <CardContent>
-                <Grid container >
-                    <Grid item xs={4} md={3}>
+                <Stack direction="row" spacing={2} justifyContent="space-between">
+                    <Box>
                         <Typography color="text.secondary" gutterBottom>
                             Risk
                         </Typography>
                         <Typography variant="h5">
                             {humanFormat(totalRisk)}
                         </Typography>
-                    </Grid>
-                    <Grid item xs={4} md={3}>
+                    </Box>
+                    <Box>
                         <Typography color="text.secondary" gutterBottom>
                             Max Profit
                         </Typography>
                         <Typography variant="h5">
                             {humanFormat(potentialProfit)}
                         </Typography>
-                    </Grid>
-                    <Grid item xs={4} md={3}>
+                    </Box>
+                    <Box>
                         <Typography color="text.secondary" gutterBottom>
                             PnL
                         </Typography>
                         <Typography variant="h5">
                             {humanFormat(openTradesGainAndLoss)}
                         </Typography>
-                    </Grid>
-                </Grid>
+                    </Box>
+                </Stack>
             </CardContent>
         </Card>
         <FormControlLabel control={<Switch checked={showCloseTrades} onChange={(e, v) => toggleShowCloseTrades(v)} />} label="Show closed trades?" />
