@@ -69,11 +69,11 @@ const ExposureChartLegends = (props: { expirations: string[], showLegendOnTop: b
     //check back later on how to optimize it
     const { expirations, showLegendOnTop } = props;
     if (showLegendOnTop) {
-        return <Stack direction={'row'} sx={{ flexWrap: 'wrap' }} columnGap={1}>
+        return <Stack direction={'row'} sx={{ flexWrap: 'wrap' }} columnGap={2}>
             {
                 expirations.map((e, ix) => <Stack key={ix} direction={'column'} justifyContent={'space-evenly'}>
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <Box width={16} height={8} sx={{ bgcolor: colorCodes[ix] }}></Box>
+                    <Stack direction="row" alignItems="center" columnGap={1} >
+                        <Box width={24} height={8} sx={{ bgcolor: colorCodes[ix] }}></Box>
                         <Typography variant="caption">{e}</Typography>
                     </Stack>
                 </Stack>)
@@ -105,10 +105,10 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
 
     const theme = useTheme();
-    const showLegendOnTop = useMediaQuery(theme.breakpoints.down('sm'));
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     return <Box>
-        <Typography variant="h6" align="center">{title}</Typography>
+        <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
         <BarChart
             loading={isLoading}
             skipAnimation={skipAnimation}
@@ -138,14 +138,14 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
             }]}
             layout="horizontal"
             slots={{
-                legend: () => <ExposureChartLegends expirations={expirations} showLegendOnTop={showLegendOnTop} />
+                legend: () => <ExposureChartLegends expirations={expirations} showLegendOnTop={isSmallScreen} />
             }}
             slotProps={{
                 tooltip: {
                     trigger: 'none'
                 },
                 legend: {
-                    direction: showLegendOnTop ? 'horizontal' : 'vertical',
+                    direction: isSmallScreen ? 'horizontal' : 'vertical',
                     position: {
                         vertical: 'top',
                         horizontal: 'end'
