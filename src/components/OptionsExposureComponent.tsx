@@ -22,7 +22,7 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
 
     const exposureChartContent = <Box sx={{ m: 1 }} minHeight={400}>{
         (isLoading && !exposureData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
-            <LinearProgress />            
+            <LinearProgress />
         ) : hasError ? (
             <i>Error occurred! Please try again...</i>
         ) : (
@@ -54,12 +54,12 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
         }
     }
 
-    return <Container maxWidth="md" sx={{ p: 0 }}>
+    return <Container maxWidth="md">
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
             setCustomExpirations={setSelectedExpirations}
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
-        <Paper sx={{ mt: 2 }}>
+        <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
             {exposureChartContent}
         </Paper>

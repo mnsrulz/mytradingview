@@ -130,7 +130,7 @@ export const StockOptionsView = (props: ITickerProps) => {
         return o;
     }).filter(r => r);
 
-    return <Paper sx={{ mx: 2 }}>
+    return <Paper>
         <TickerSearchDialog symbol={props.symbol} basePath='' />  - ${data.spotPrice}
         {/* <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button> */}
         {/* <FormControl sx={{ m: 1 }} variant="standard">
