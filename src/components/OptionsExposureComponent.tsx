@@ -54,7 +54,7 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
         }
     }
 
-    return <Container maxWidth="md">
+    return <Container maxWidth="md" sx={{ p: 0 }}>
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
             setCustomExpirations={setSelectedExpirations}

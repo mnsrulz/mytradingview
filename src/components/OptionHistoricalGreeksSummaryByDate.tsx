@@ -190,7 +190,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
         {volumeFilter}
         {oiFilter}
     </>
-    const dataGridTopFilter = <Paper sx={{ my: 2 }}>
+    const dataGridTopFilter = <Paper sx={{ mb: 1 }}>
         <Stack direction="row" spacing={2} padding={1}>
             {
                 isMobile && <><IconButton onClick={toggleDrawer(true)}>
