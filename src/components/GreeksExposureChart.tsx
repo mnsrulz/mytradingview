@@ -5,7 +5,7 @@ import { DexGexType } from "@/lib/types";
 import { calculateChartHeight, calculateYAxisTickWidth } from "@/lib/utils";
 import { Box, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
-import { legendClasses, ChartsLegend } from '@mui/x-charts/ChartsLegend';
+import { useMemo } from "react";
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 const colorCodes = getColorPallete();
 
@@ -97,12 +97,15 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
-    const height = calculateChartHeight(expirations, strikes);
-    const yaxisline = Math.max(...strikes.filter(j => j <= spotPrice));
-    const maxStrike = Math.max(...strikes);
-    const leftMarginValue = calculateYAxisTickWidth(maxStrike);
+    const height = useMemo(() => calculateChartHeight(expirations, strikes), [expirations, strikes]);
+    const yaxisline = useMemo(() => Math.max(...strikes.filter(j => j <= spotPrice)), [strikes, spotPrice]);
+    const maxStrike = useMemo(() => Math.max(...strikes), [strikes]);
+    const leftMarginValue = useMemo(() => calculateYAxisTickWidth(maxStrike), [maxStrike]);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
+    // const series = items.map((j, ix) => {
+    //     return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar', labelMarkType: "line" as "line" }
+    // })
 
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -117,9 +120,9 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
             // tooltip={{
             //     trigger: 'none'
             // }}            
-            series={items.map((j, ix) => {
+            series={useMemo(() => items.map((j, ix) => {
                 return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar', labelMarkType: 'line' }
-            })}
+            }), [items, expirations])}
             yAxis={[{
                 data: strikes,
                 scaleType: 'band',
