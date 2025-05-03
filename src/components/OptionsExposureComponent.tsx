@@ -1,13 +1,15 @@
 'use client';
 import { useOptionExposure } from "@/lib/hooks";
-import { Box, Container, Dialog, LinearProgress, Paper, Skeleton, Slider } from "@mui/material";
+import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper, Skeleton, Slider, Stack } from "@mui/material";
 import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChartTypeSelectorTab, DteStrikeSelector } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
 import { GreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
+import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
 
 export const OptionsExposureComponent = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
@@ -54,6 +56,20 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
         }
     }
 
+    const hasPrevious = cachedDates.indexOf(historicalDate) > 0;
+    const hasNext = cachedDates.indexOf(historicalDate) < cachedDates.length - 1;
+    const handlePreviousClick = () => {
+        const currentIx = cachedDates.indexOf(historicalDate);
+        const nextValue = cachedDates.at(currentIx - 1);
+        nextValue && setHistoricalDate(nextValue);
+    }
+
+    const handleNextClick = () => {
+        const currentIx = cachedDates.indexOf(historicalDate);
+        const nextValue = cachedDates.at(currentIx + 1);
+        nextValue && setHistoricalDate(nextValue);
+    }
+
     return <Container maxWidth="md" sx={{ p: 0 }}>
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
@@ -63,11 +79,22 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
             {exposureChartContent}
         </Paper>
-        {dataMode == DataModeType.HISTORICAL && <Paper sx={{ px: 4 }}>
-            <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
-            {/* <Stack direction={'row'} spacing={2} sx={{ alignItems: "center" }}>
-            </Stack> */}
-            {/* <IconButton onClick={startHistoricalAnimation}><PlayIcon /></IconButton> */}
+        {dataMode == DataModeType.HISTORICAL && <Paper sx={{}}>
+            <Grid container>
+                <Grid>
+                    <IconButton disabled={!hasPrevious} onClick={handlePreviousClick}>
+                        <SkipPreviousIcon />
+                    </IconButton>
+                </Grid>
+                <Grid size="grow">
+                    <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
+                </Grid>
+                <Grid>
+                    <IconButton disabled={!hasNext} onClick={handleNextClick}>
+                        <SkipNextIcon />
+                    </IconButton>
+                </Grid>
+            </Grid>
         </Paper>
         }
         <UpdateFrequencyDisclaimer />
@@ -91,8 +118,14 @@ const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
         return result;
     }, [dates]);
 
+    useEffect(() => {
+        if (currentValue && dates.indexOf(currentValue)) {
+            setValue(dates.indexOf(currentValue));
+        }
+    }, [currentValue]);
+
     return <Slider
-        key={currentValue}
+        // key={currentValue}
         value={value}
         onChange={(e, v) => setValue(v as number)}
         onChangeCommitted={(e, v) => onChange(dates[v as number])}
@@ -102,6 +135,7 @@ const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
         marks={strikePriceMarks}
         min={0}
         max={dates.length - 1}
+        size="small"
         step={1} />
 };
 
