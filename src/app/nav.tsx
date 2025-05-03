@@ -78,6 +78,11 @@ export const NAVIGATION: Navigation = [
         segment: 'seasonal',
         title: 'Seasonal',
         icon: <CalendarMonthIcon />,
+    },    
+    {
+        segment: 'history',
+        title: 'History',
+        icon: <AssessmentIcon />,
     },
     {
         segment: 'calculator',
