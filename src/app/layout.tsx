@@ -8,13 +8,14 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Container } from "@mui/material";
+import { Metadata } from "next";
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 
-// export const metadata: Metadata = {
-//   title: "My trading view app",
-//   description: "An advanced platform for in-depth options data analysis.",
-// };
+export const metadata: Metadata = {
+  title: "My trading view app",
+  description: "An advanced platform for in-depth options data analysis.",
+};
 const AUTHENTICATION = {
   signIn,
   signOut,
