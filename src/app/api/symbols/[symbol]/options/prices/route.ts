@@ -2,8 +2,8 @@ import { getOptionPrice } from "@/lib/optionPriceHelper";
 import dayjs from "dayjs";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, p: { params: { symbol: string } }) {
-    const { symbol } = p.params
+export async function GET(request: NextRequest, p: { params: Promise<{ symbol: string }> }) {
+    const { symbol } = await p.params
     const [strikePrice, type, expiryDate] = [Number(request.nextUrl.searchParams.get('strike')), request.nextUrl.searchParams.get('type')?.toUpperCase(), dayjs(request.nextUrl.searchParams.get('expiry'), {
         format: 'yyyy-MM-dd'
     })]

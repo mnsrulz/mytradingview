@@ -74,6 +74,15 @@ export const OptionsGreekReportBySymbolDialog = (props: { symbol: string, onClos
 
 }
 
+//"call_put_oi_ratio" | "net_gamma" | "call_put_dex_ratio" | "call_put_volume_ratio"
+const MetricLabel = {
+    'call_put_oi_ratio': 'Call Put Open Interest Ratio',
+    'net_gamma': 'NET GAMMA $',
+    'call_put_dex_ratio': 'Call Put Delta Exposure Ratio',
+    'call_put_volume_ratio': 'Call Put Volume Ratio',
+
+}
+
 export const OptionsGreekReportBySymbol = (props: { symbol: string, selectedOption: SelectedOptionType }) => {
     const { symbol, selectedOption } = props;
     const [ds, setDs] = useState<OptionGreeksSummaryBySymbolResponse[]>([]);
@@ -114,7 +123,7 @@ export const OptionsGreekReportBySymbol = (props: { symbol: string, selectedOpti
                     return selectedOption == 'net_gamma' ? currencyCompactFormatter(v) : numberFormatter(v)
                 }}
                 label={{
-                    value: 'Metric Value',
+                    value: MetricLabel[selectedOption],
                     position: 'insideRight',
                     angle: 90,
                     style: { textAnchor: 'middle' }

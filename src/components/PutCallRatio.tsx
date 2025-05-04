@@ -1,5 +1,5 @@
 import { IOptionsGrid, NumberRange, OptionsInnerData } from "@/lib/types";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Grid } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Grid, Stack } from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { StrikePriceSlider } from "./StrikePriceSlider";
 import { axisClasses } from '@mui/x-charts';
@@ -62,24 +62,24 @@ export const PutCallRatio = (props: ITickerProps) => {
         <Dialog fullWidth={true} fullScreen={true} open={open} onClose={onClose} aria-labelledby="pcr-dialog">
             {/* <DialogTitle id="pcr-dialog">Put Call Ratio</DialogTitle> */}
             <DialogContent>
-                <Grid container >
-                    <Grid item xs={6}>
+                <Stack direction="row" justifyContent={"space-evenly"}>
+                    <Stack>
                         <Typography color="text.secondary" gutterBottom>
                             Current Stock Price
                         </Typography>
                         <Typography variant="h5">
                             {currentPrice}
                         </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
+                    </Stack>
+                    <Stack >
                         <Typography color="text.secondary" gutterBottom>
                             Put Call Ratio
                         </Typography>
                         <Typography variant="h5">
                             {pcr.toFixed(2)} {sentiment}
                         </Typography>
-                    </Grid>
-                </Grid>
+                    </Stack>
+                </Stack>
                 <StrikePriceSlider currentPrice={currentPrice}
                     allStrikePricesValues={allStrikePricesValues}
                     onChange={setStrikePriceRange}

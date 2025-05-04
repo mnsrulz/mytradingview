@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc';
 import isToday from 'dayjs/plugin/isToday';
 import timezone from 'dayjs/plugin/timezone';
 
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import yf from 'yahoo-finance2';
 import 'dayjs/locale/en';
 
@@ -12,18 +12,18 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isToday);
 
-export async function GET(request: Request, p: { params: { symbol: string, dt: string } }) {
-    const { symbol } = p.params;
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ symbol: string }> }) {
+    const { symbol } = await params;
     const { searchParams } = new URL(request.url);
     const dt = searchParams.get("dt");
-    if (!dt) return NextResponse.json({ error: 'dt is null' }, { status: 400 });
+    if (!dt) return NextResponse.json({ error: "dt is null" }, { status: 400 });
     const resp = await getPriceAtDate(symbol, dt);
     return NextResponse.json({
         price: resp,
-        symbol: p.params.symbol
+        symbol: symbol,
     });
 }
-
 
 const getPriceAtDate = async (symbol: string, dt: string) => {
     const start = dayjs(dt.substring(0, 10)).format('YYYY-MM-DD');

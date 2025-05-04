@@ -1,12 +1,12 @@
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentPrice, getFullOptionChain } from '@/lib/tradierService';
 import { MicroOptionContract } from "@/lib/types";
 import { calculateExposureData } from "@/lib/mzDataService";
 import dayjs from "dayjs";
 
-export async function GET(request: Request, p: { params: { symbol: string } }) {
-    const { symbol } = p.params;
+export async function GET(request: NextRequest, p: { params: Promise<{ symbol: string }> }) {
+    const { symbol } = await p.params;
     const fullOptionChain = await getFullOptionChain(symbol);
     const spotPrice = await getCurrentPrice(symbol);
 

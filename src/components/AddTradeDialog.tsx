@@ -1,123 +1,213 @@
 'use client';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, InputAdornment } from '@mui/material';
-import { FormContainer, SelectElement, SliderElement, TextFieldElement, TextareaAutosizeElement } from 'react-hook-form-mui';
-import { DatePickerElement } from 'react-hook-form-mui/date-pickers';
+import { ChangeEvent, useState } from 'react';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    Stack,
+    InputAdornment,
+    TextField,
+    Select,
+    MenuItem,
+    Slider,
+    TextareaAutosize,
+} from '@mui/material';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import ky from 'ky';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import type { DialogProps, SelectChangeEvent } from '@mui/material';
+import { SearchTickerItem } from '@/lib/types';
 
 export type AddTradeCloseDialogReason = 'cancel' | 'add';
 
 interface ITickerProps {
-    //onChange: (value: SearchTickerItem) => void,
-    open: boolean,
-    onClose: (reason: AddTradeCloseDialogReason) => void,
-    ticker: SearchTickerItem | null
+    open: boolean;
+    onClose: (reason: AddTradeCloseDialogReason) => void;
+    ticker: SearchTickerItem | null;
 }
 
-// export const AddTrade = (props: ITickerProps) => {
-//     const [open, setOpen] = useState(false);
-//     const handleClose = () => {
-//         setOpen(false);
-//     };
+const options = [
+    { id: 'PUT_SELL', label: 'PUT_SELL' },
+    { id: 'PUT_BUY', label: 'PUT_BUY' },
+    { id: 'CALL_SELL', label: 'CALL_SELL' },
+    { id: 'CALL_BUY', label: 'CALL_BUY' },
+];
 
-//     return <GridActionsCellItem
-//         key='AddTrade'
-//         icon={<AddTradeIcon />}
-//         label="Add trade"
-//         onClick={() => {
-//             // setCurrentStock(row);
-//             // setOpen(true);
-//         }} />
-// }
-
-type FormValues = {
-    symbol: string
-    currentPrice: string
-    email: string
-}
-
-const options = [{
-    id: 'PUT_SELL',
-    label: 'PUT_SELL'
-}, {
-    id: 'PUT_BUY',
-    label: 'PUT_BUY'
-}, {
-    id: 'CALL_SELL',
-    label: 'CALL_SELL'
-},
-{
-    id: 'CALL_BUY',
-    label: 'CALL_BUY'
-}];
-import type { DialogProps } from "@mui/material";
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs, { Dayjs } from 'dayjs';
-import ky from 'ky';
-import { SearchTickerItem } from '@/lib/types';
 export const AddTradeDialog = (props: ITickerProps) => {
     const { onClose, open, ticker } = props;
     const theme = useTheme();
     const showFullScreenDialog = useMediaQuery(theme.breakpoints.down('sm'));
 
-    if (!open) return <div></div>
-    const handleSubmit = async (data: any) => {
-        await ky.post('/api/trades', {
-            json: data
-        }).json<{ id: string }>();
-        onClose('add');
-    }
-
-    const onCloseRequest: DialogProps["onClose"] = (event, reason) => {
-        if (reason && reason === "backdropClick")
-            return;
-        onClose('cancel');
-    }
-
-    const dv = {
-        symbol: ticker?.symbol,
+    const [formValues, setFormValues] = useState({
+        symbol: ticker?.symbol || '',
         numberOfContracts: 1,
         contractType: 'PUT_SELL',
         transactionStartDate: dayjs(),
         expiryDate: dayjs().add(7, 'days'),
-    }
+        strikePrice: '',
+        contractPrice: '',
+        approxStockPriceAtPurchase: '',
+        notes: '',
+    });
 
-    return <Dialog
-        open={open}
-        // maxWidth={'md'}
-        fullScreen={showFullScreenDialog}
-        fullWidth={true}
-        onClose={onCloseRequest}>
-        <FormContainer onSuccess={handleSubmit} defaultValues={dv}>
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
+        const { name, value } = e.target;
+        setFormValues((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleSliderChange = (e: Event, value: number | number[]) => {
+        setFormValues((prev) => ({
+            ...prev,
+            numberOfContracts: value as number,
+        }));
+    };
+
+    const handleDateChange = (name: string, value: Dayjs | null) => {
+        setFormValues((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    // const handleContractTypeChange = (event: SelectChangeEvent) => {
+    //     const value = event.target.value as string;
+    //     setFormValues((prev) => ({
+    //         ...prev,
+    //         contractType: value,
+    //     }));
+    // };
+
+    const handleSubmit = async () => {
+        await ky.post('/api/trades', {
+            json: formValues,
+        }).json<{ id: string }>();
+        onClose('add');
+    };
+
+    const onCloseRequest: DialogProps['onClose'] = (event, reason) => {
+        if (reason && reason === 'backdropClick') return;
+        onClose('cancel');
+    };
+
+    if (!open) return null;
+
+    return (
+        <Dialog
+            open={open}
+            fullScreen={showFullScreenDialog}
+            fullWidth={true}
+            onClose={onCloseRequest}
+        >
             <DialogTitle id="scroll-dialog-title">Add trade</DialogTitle>
             <DialogContent dividers={true}>
-                {/* Hi I am in add trade: {ticker.symbol} */}
-                <Stack spacing={2}  >
+                <Stack spacing={2}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <TextFieldElement name={'symbol'} label={'Symbol'} required />
-                        <SelectElement name={'contractType'} label={'Type'} options={options} fullWidth />
-                        <SliderElement name={"numberOfContracts"} label='Number of contracts' max={100} min={1} />
+                        <TextField
+                            name="symbol"
+                            label="Symbol"
+                            required
+                            value={formValues.symbol}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                        <Select
+                            name="contractType"
+                            label="Type"                            
+                            onChange={handleChange}
+                            fullWidth
+                        >
+                            {options.map((option) => (
+                                <MenuItem key={option.id} value={option.id}>
+                                    {option.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                        <Slider
+                            name="numberOfContracts"
+                            value={formValues.numberOfContracts}
+                            onChange={handleSliderChange}
+                            max={100}
+                            min={1}
+                            valueLabelDisplay="auto"
+                        />
                         <Stack direction="row" spacing={2}>
-                            <DatePickerElement label="Transaction Start Date" name="transactionStartDate" required disableFuture={true} disablePast={false} />
-                            <DatePickerElement label="Expiry Date" name="contractExpiry" required disableFuture={false} disablePast={false} />
+                            <DatePicker
+                                label="Transaction Start Date"
+                                value={formValues.transactionStartDate}
+                                onChange={(value) => handleDateChange('transactionStartDate', value)}
+                                disableFuture
+                                // renderInput={(params) => <TextField {...params} fullWidth />}
+                            />
+                            <DatePicker
+                                label="Expiry Date"
+                                value={formValues.expiryDate}
+                                onChange={(value) => handleDateChange('expiryDate', value)}
+                                // renderInput={(params) => <TextField {...params} fullWidth />}
+                            />
                         </Stack>
                         <Stack direction="row" spacing={2}>
-                            <TextFieldElement name={'strikePrice'} label={'Strike Price'} required
-                                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
-                            <TextFieldElement name={'contractPrice'} label={'Contract Price'} required
-                                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
-                            <TextFieldElement name={'approxStockPriceAtPurchase'} label={'Approx Stock Price at transaction time'}
-                                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+                            <TextField
+                                name="strikePrice"
+                                label="Strike Price"
+                                required
+                                value={formValues.strikePrice}
+                                onChange={handleChange}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                    }
+                                }}
+                                fullWidth
+                            />
+                            <TextField
+                                name="contractPrice"
+                                label="Contract Price"
+                                required
+                                value={formValues.contractPrice}
+                                onChange={handleChange}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                    }
+                                }}
+                                fullWidth
+                            />
+                            <TextField
+                                name="approxStockPriceAtPurchase"
+                                label="Approx Stock Price at transaction time"
+                                value={formValues.approxStockPriceAtPurchase}
+                                onChange={handleChange}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                    }
+                                }}
+                                fullWidth
+                            />
                         </Stack>
-                        <TextareaAutosizeElement label="Notes" name="notes" rows={5} />
+                        <TextareaAutosize
+                            name="notes"
+                            placeholder="Notes"
+                            value={formValues.notes}
+                            onChange={handleChange}
+                            minRows={5}
+                            style={{ width: '100%' }}
+                        />
                     </LocalizationProvider>
                 </Stack>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => onClose('cancel')}>Cancel</Button>
-                <Button type={'submit'}>Add</Button>
+                <Button onClick={handleSubmit}>Add</Button>
             </DialogActions>
-        </FormContainer>
-    </Dialog>
-}
+        </Dialog>
+    );
+};

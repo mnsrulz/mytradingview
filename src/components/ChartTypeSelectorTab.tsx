@@ -1,6 +1,6 @@
 import { TickerSearchDialog } from "@/components/TickerSearchDialog";
 import { DataModeType, DexGexType } from "@/lib/types";
-import { Tabs, Tab, Box, FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, OutlinedInput, SelectChangeEvent, useMediaQuery, useTheme } from "@mui/material";
+import { Tabs, Tab, Box, FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, OutlinedInput, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
 import { useState } from "react";
 
 export const ChartTypeSelectorTab = (props: { tab: DexGexType; onChange: (v: DexGexType) => void }) => {
@@ -64,50 +64,54 @@ export const DteStrikeSelector = (props: {
         setCustomExpirations(typeof value === 'string' ? value.split(',') : value)
     };
 
-    return <Paper sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <FormControl sx={{ m: 1 }} size="small">
-            <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
-        </FormControl>
-        <Box display="flex">
-            <FormControl sx={{ m: 1, justifyItems: 'right' }} size="small">
-                <InputLabel>Mode</InputLabel>
-                <Select id="dataMode" value={dataMode} label="Mode" onChange={(e) => setDataMode(e.target.value as DataModeType)}>
-                    {dataModes.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
-                </Select>
+    return <Paper
+    // sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+    >
+        <Stack direction="row" gap={1} p={1} justifyContent="space-between" alignItems={"center"}>
+            <FormControl size="small">
+                <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
             </FormControl>
-            <FormControl sx={{ m: 1, justifyItems: 'right' }} size="small">
-                <InputLabel>DTE</InputLabel>
-                <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
-                    {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
-                    {!isMobile && <MenuItem key="custom" value="-1">Custom</MenuItem>}
-                </Select>
-            </FormControl>
-            {
-                enableCustomDte && <FormControl sx={{ m: 1, width: 120 }} size="small">
-                    <InputLabel>Custom DTE</InputLabel>
-                    <Select
-                        multiple
-                        value={selectedExpirations}
-                        onChange={handleCustomDteSelectionChange}
-                        label="Custom DTE"
-                        renderValue={(selected) => selected.join(', ')}
-                        MenuProps={MenuProps}
-                    >
-                        {availableDates.map((name) => (
-                            <MenuItem key={name} value={name}>
-                                <Checkbox size="small" checked={selectedExpirations.includes(name)} />
-                                <ListItemText primary={name} />
-                            </MenuItem>
-                        ))}
+            <Stack direction="row" gap={isMobile ? 0.5 : 1}>
+                <FormControl size="small">
+                    <InputLabel>Mode</InputLabel>
+                    <Select id="dataMode" value={dataMode} label="Mode" onChange={(e) => setDataMode(e.target.value as DataModeType)}>
+                        {dataModes.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
                     </Select>
                 </FormControl>
-            }
-            <FormControl sx={{ m: 1 }} size="small">
-                <InputLabel>Strikes</InputLabel>
-                <Select id="strikes" value={strikeCounts} label="Strikes" onChange={(e) => setStrikesCount(e.target.value as number)}>
-                    {stikeOptions.map((strike) => <MenuItem key={strike} value={strike}>{strike}</MenuItem>)}
-                </Select>
-            </FormControl>
-        </Box>
+                <FormControl size="small">
+                    <InputLabel>DTE</InputLabel>
+                    <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
+                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                        {!isMobile && <MenuItem key="custom" value="-1">Custom</MenuItem>}
+                    </Select>
+                </FormControl>
+                {
+                    enableCustomDte && <FormControl sx={{ width: 120 }} size="small">
+                        <InputLabel>Custom DTE</InputLabel>
+                        <Select
+                            multiple
+                            value={selectedExpirations}
+                            onChange={handleCustomDteSelectionChange}
+                            label="Custom DTE"
+                            renderValue={(selected) => selected.join(', ')}
+                            MenuProps={MenuProps}
+                        >
+                            {availableDates.map((name) => (
+                                <MenuItem key={name} value={name}>
+                                    <Checkbox size="small" checked={selectedExpirations.includes(name)} />
+                                    <ListItemText primary={name} />
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                }
+                <FormControl size="small">
+                    <InputLabel>Strikes</InputLabel>
+                    <Select id="strikes" value={strikeCounts} label="Strikes" onChange={(e) => setStrikesCount(e.target.value as number)}>
+                        {stikeOptions.map((strike) => <MenuItem key={strike} value={strike}>{strike}</MenuItem>)}
+                    </Select>
+                </FormControl>
+            </Stack>
+        </Stack>
     </Paper>
 }

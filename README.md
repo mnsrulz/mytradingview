@@ -1,4 +1,5 @@
 # MyTradingView
+[![Netlify Status](https://api.netlify.com/api/v1/badges/317da820-20d5-45f2-b0a3-f2c49feb5bf7/deploy-status)](https://app.netlify.com/sites/mztrading/deploys)
 
 Welcome to the MyTradingView! This project is a Next.js application designed to help you analyze stock options efficiently. It offers a comprehensive set of features for exploring and making decisions about stock options.
 

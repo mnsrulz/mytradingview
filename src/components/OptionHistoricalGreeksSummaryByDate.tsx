@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Stack, Box, IconButton, Drawer, Dialog, useMediaQuery, useTheme } from '@mui/material';
+import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, Link } from '@mui/material';
 import { DataGrid, GridColDef, GridColumnGroupingModel, GridDensity, GridToolbar } from '@mui/x-data-grid';
 import { getHistoricalGreeksSummaryByDate } from '@/lib/mzDataService';
 import { useQueryState, parseAsStringLiteral, parseAsNumberLiteral } from 'nuqs';
@@ -10,6 +10,7 @@ import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material'
 import { OptionGreeksSummaryByDateResponse } from '@/lib/types';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { OptionsGreekReportBySymbolDialog } from './OptionsGreekReportBySymbol';
+import { currencyCompactFormatter, currencyFormatter, numberCompactFormatter } from '@/lib/formatters';
 
 const dteOptions = [7,
     30,
@@ -36,7 +37,41 @@ const oiOptions = [
     { value: 100000, display: '100K' }
 ];
 
-
+const columnGroupingModel: GridColumnGroupingModel = [
+    {
+        groupId: 'Delta Exposure',
+        description: '',
+        children: [
+            { field: 'call_delta' },
+            { field: 'put_delta' },
+            { field: 'call_put_dex_ratio' }
+        ],
+    },
+    {
+        groupId: 'Gamma Exposure',
+        children: [
+            { field: 'call_gamma' },
+            { field: 'put_gamma' },
+            { field: 'net_gamma' },
+        ],
+    },
+    {
+        groupId: 'Volume',
+        children: [
+            { field: 'call_volume' },
+            { field: 'put_volume' },
+            { field: 'call_put_volume_ratio' },
+        ],
+    },
+    {
+        groupId: 'Open Interest',
+        children: [
+            { field: 'call_oi' },
+            { field: 'put_oi' },
+            { field: 'call_put_oi_ratio' },
+        ],
+    },
+];
 
 export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string[] }) => {
     const { cachedDates } = props;
@@ -55,12 +90,22 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
         if (minOpenInterest && (k.call_oi + k.put_oi < minOpenInterest)) return false;
         return true;
     })
+
+    useEffect(() => {
+        setHasLoaded(false);
+        setRows([]);
+        getHistoricalGreeksSummaryByDate(date, dte).then(d => {
+            // debugger;
+            setRows(d);
+            setHasLoaded(true)
+        })
+    }, [date, dte])
+
     const [open, setOpen] = useState(false);
 
     const toggleDrawer = (newOpen: boolean) => () => {
         setOpen(newOpen);
     };
-
 
     const [selectedSymbol, setSelectedSymbol] = useState('');
     const [openSymbolSummaryDialog, setOpenSymbolSummaryDialog] = useState(false);
@@ -69,58 +114,53 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
         setSelectedSymbol(v)
         setOpenSymbolSummaryDialog(true);
     }
+
     const columns: GridColDef<OptionGreeksSummaryByDateResponse>[] = [
         {
-            field: 'symbol', headerName: 'Symbol', renderCell: (v) => <a href='#' onClick={() => handleSymbolClick(v.value)}>{v.value}</a>
+            // field: 'symbol', headerName: 'Symbol', renderCell: (v) =>  <a href='#' onClick={() => handleSymbolClick(v.value)}>{v.value}</a>
+            field: 'symbol', headerName: 'Symbol', renderCell: (v) => <Link href="#" onClick={() => handleSymbolClick(v.value)}>{v.value}</Link>
         },
         {
-            field: 'price', headerName: 'Price', type: 'number'
+            field: 'price', headerName: 'Price', type: 'number', valueFormatter: (v) => currencyFormatter(v)
         },
         {
-            field: 'call_delta', headerName: 'Calls', type: 'number'
+            field: 'call_delta', headerName: 'Calls', type: 'number', valueFormatter: (v) => currencyCompactFormatter(v)
         },
         {
-            field: 'put_delta', headerName: 'Puts', type: 'number'
+            field: 'put_delta', headerName: 'Puts', type: 'number', valueFormatter: (v) => currencyCompactFormatter(v)
         },
         {
             field: 'call_put_dex_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
         },
         {
-            field: 'call_gamma', headerName: 'Calls', type: 'number'
+            field: 'call_gamma', headerName: 'Calls', type: 'number', valueFormatter: (v) => currencyCompactFormatter(v)
         },
         {
-            field: 'put_gamma', headerName: 'Puts', type: 'number'
+            field: 'put_gamma', headerName: 'Puts', type: 'number', valueFormatter: (v) => currencyCompactFormatter(v)
         },
         {
-            field: 'net_gamma', headerName: 'NET', type: 'number'
+            field: 'net_gamma', headerName: 'NET', type: 'number', valueFormatter: (v) => currencyCompactFormatter(v)
         },
         {
-            field: 'call_volume', headerName: 'Calls', type: 'number'
+            field: 'call_volume', headerName: 'Calls', type: 'number', valueFormatter: (v) => numberCompactFormatter(v)
         },
         {
-            field: 'put_volume', headerName: 'Puts', type: 'number'
+            field: 'put_volume', headerName: 'Puts', type: 'number', valueFormatter: (v) => numberCompactFormatter(v)
         },
         {
             field: 'call_put_volume_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
         },
         {
-            field: 'call_oi', headerName: 'Calls', type: 'number'
+            field: 'call_oi', headerName: 'Calls', type: 'number', valueFormatter: (v) => numberCompactFormatter(v)
         },
         {
-            field: 'put_oi', headerName: 'Puts', type: 'number'
+            field: 'put_oi', headerName: 'Puts', type: 'number', valueFormatter: (v) => numberCompactFormatter(v)
         },
         {
             field: 'call_put_oi_ratio', headerName: 'Calls/Puts', type: 'number', width: 120
         }
     ];
-    useEffect(() => {
-        setHasLoaded(false)
-        getHistoricalGreeksSummaryByDate(date, dte).then(d => {
-            // debugger;
-            setRows(d);
-            setHasLoaded(true)
-        })
-    }, [date, dte])
+
 
     const dteFilter = <FormControl sx={{ m: 1, minWidth: 60 }} size="small">
         <InputLabel>DTE</InputLabel>
@@ -150,7 +190,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
         {volumeFilter}
         {oiFilter}
     </>
-    const dataGridTopFilter = <Paper sx={{ my: 2 }}>
+    const dataGridTopFilter = <Paper sx={{ mb: 1 }}>
         <Stack direction="row" spacing={2} padding={1}>
             {
                 isMobile && <><IconButton onClick={toggleDrawer(true)}>
@@ -176,41 +216,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
             {!isMobile && additionalFilter}
         </Stack>
     </Paper>
-    const columnGroupingModel: GridColumnGroupingModel = [
-        {
-            groupId: 'Delta Exposure',
-            description: '',
-            children: [
-                { field: 'call_delta' },
-                { field: 'put_delta' },
-                { field: 'call_put_dex_ratio' }
-            ],
-        },
-        {
-            groupId: 'Gamma Exposure',
-            children: [
-                { field: 'call_gamma' },
-                { field: 'put_gamma' },
-                { field: 'net_gamma' },
-            ],
-        },
-        {
-            groupId: 'Volume',
-            children: [
-                { field: 'call_volume' },
-                { field: 'put_volume' },
-                { field: 'call_put_volume_ratio' },
-            ],
-        },
-        {
-            groupId: 'Open Interest',
-            children: [
-                { field: 'call_oi' },
-                { field: 'put_oi' },
-                { field: 'call_put_oi_ratio' },
-            ],
-        },
-    ];
+
     return <Box sx={{ mb: 1 }}>
         {dataGridTopFilter}
         <DataGrid
@@ -239,7 +245,7 @@ export const OptionHistoricalGreeksSummaryByDate = (props: { cachedDates: string
                 },
                 fontFamily: 'sans-serif'
             }}
-            slots={{ toolbar: GridToolbar }}
+            // slots={{ toolbar: GridToolbar }}
             slotProps={{
                 toolbar: {
                     showQuickFilter: true,

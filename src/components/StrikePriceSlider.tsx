@@ -19,8 +19,6 @@ export const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
     return <div>
         <div>Strike Price Range: {t[0]} - {t[1]}</div>
         <Stack direction="row" sx={{ m: 1 }} alignItems="center">
-            <Grid item>
-            </Grid>
             <Slider
                 getAriaLabel={() => 'Strike price'}
                 value={t}

@@ -1,2 +1,2 @@
-import { log } from '@logtail/next';
-export default log;
+// import { log } from '@logtail/next';
+// export default log;
