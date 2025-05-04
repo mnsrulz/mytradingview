@@ -35,8 +35,6 @@
     "localforage": "^1.10.0",
     "lodash.chunk": "^4.2.0",
     "lodash.debounce": "^4.0.8",
-    "lru-cache": "^11.0.2",
-    "match-sorter": "^6.3.4",
     "nanoid": "^5.1.5",
     "next": "^15.3.1",
     "next-auth": "^5.0.0-beta.27",
