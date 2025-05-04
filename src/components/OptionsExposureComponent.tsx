@@ -82,7 +82,7 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
         {dataMode == DataModeType.HISTORICAL && <Paper sx={{}}>
             <Grid container>
                 <Grid>
-                    <IconButton disabled={!hasPrevious} onClick={handlePreviousClick}>
+                    <IconButton size="small" disabled={!hasPrevious} onClick={handlePreviousClick}>
                         <SkipPreviousIcon />
                     </IconButton>
                 </Grid>
@@ -90,7 +90,7 @@ export const OptionsExposureComponent = (props: { symbol: string, cachedDates: s
                     <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
                 </Grid>
                 <Grid>
-                    <IconButton disabled={!hasNext} onClick={handleNextClick}>
+                    <IconButton size="small" disabled={!hasNext} onClick={handleNextClick}>
                         <SkipNextIcon />
                     </IconButton>
                 </Grid>
@@ -135,7 +135,7 @@ const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
         marks={strikePriceMarks}
         min={0}
         max={dates.length - 1}
-        size="small"
+        // size="small"
         step={1} />
 };
 
