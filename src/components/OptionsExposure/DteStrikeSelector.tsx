@@ -1,21 +1,8 @@
 import { TickerSearchDialog } from "@/components/TickerSearchDialog";
 import { DataModeType, DexGexType } from "@/lib/types";
-import { Tabs, Tab, Box, FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, OutlinedInput, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
+import { Tabs, Tab, FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
 import { useState } from "react";
 
-export const ChartTypeSelectorTab = (props: { tab: DexGexType; onChange: (v: DexGexType) => void }) => {
-    return <Tabs
-        value={props.tab}
-        onChange={(e, v) => { props.onChange(v) }}
-        indicatorColor="secondary"
-        textColor="inherit"
-        variant="fullWidth">
-        <Tab label="Dex" value={'DEX'}></Tab>
-        <Tab label="Gex" value={'GEX'}></Tab>
-        <Tab label="OI" value={'OI'}></Tab>
-        <Tab label="Volume" value={'VOLUME'}></Tab>
-    </Tabs>
-}
 
 const dteOptions = [7,
     30,

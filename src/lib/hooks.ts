@@ -345,6 +345,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
     return await ky(`/api/symbols/${symbol}/options/exposure`).json<ExposureDataResponse>();
 }
 
+//This hook has potential performance issues
 export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
