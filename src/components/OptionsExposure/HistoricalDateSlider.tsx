@@ -10,8 +10,8 @@ type IHistoricalDateSliderPorps = { dates: string[], currentValue: string, onCha
 export const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
     const { dates, onChange, currentValue } = props;
     const [value, setValue] = useState<number>(dates.indexOf(currentValue || ''));
-    const hasPrevious = dates.indexOf(currentValue) > 0;
-    const hasNext = dates.indexOf(currentValue) < dates.length - 1;
+    const hasPrevious = value > 0;
+    const hasNext = value < dates.length - 1;
     const strikePriceMarks = useMemo(() => {
         const marks = dates.map((m, ix) => ({ value: ix, label: dayjs(m).format('D MMM') }));
         const maxMarks = 5;
@@ -24,23 +24,29 @@ export const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
         return result;
     }, [dates]);
 
-    useEffect(() => {
-        if (currentValue && dates.indexOf(currentValue)) {
-            setValue(dates.indexOf(currentValue));
-        }
-    }, [currentValue, dates]);
+    // useEffect(() => {
+    //     if (currentValue && dates.indexOf(currentValue)) {
+    //         setValue(dates.indexOf(currentValue));
+    //     }
+    // }, [currentValue, dates]);
 
 
     const handlePreviousClick = () => {
-        const currentIx = dates.indexOf(currentValue);
-        const nextValue = dates.at(currentIx - 1);
-        nextValue && onChange(nextValue);
+        setValue((v) => {
+            if (v <= 0) return v;
+            const prevValue = dates.at(v - 1);
+            prevValue && onChange(prevValue);
+            return v - 1;
+        });
     }
 
     const handleNextClick = () => {
-        const currentIx = dates.indexOf(currentValue);
-        const nextValue = dates.at(currentIx + 1);
-        nextValue && onChange(nextValue);
+        setValue(v => {
+            if (v >= dates.length - 1) return v;
+            const nextValue = dates.at(v + 1);
+            nextValue && onChange(nextValue);
+            return v + 1
+        });
     }
 
     return <Paper>
@@ -60,7 +66,7 @@ export const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
                     valueLabelFormat={(v) => dayjs(dates[v]).format('D MMM')}
                     marks={strikePriceMarks}
                     min={0}
-                    max={dates.length - 1}                    
+                    max={dates.length - 1}
                     step={1} />
             </Grid>
             <Grid>
