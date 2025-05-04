@@ -50,7 +50,7 @@
     "react-router-dom": "^7.5.3",
     "recharts": "^2.15.1",
     "socket.io-client": "^4.7.5",
-    "sort-by": "^0.0.2",
+    "sort-by": "^1.2.0",
     "uplot": "^1.6.31",
     "uplot-react": "^1.2.2",
     "yahoo-finance2": "^2.12.3"
