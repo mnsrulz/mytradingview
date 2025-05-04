@@ -311,11 +311,9 @@ export type ExposureDataType = { items: { data: number[], expiration: string }[]
 const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
     const nodes = new Array<number>(mp.size).fill(0);
     for (let ix = 0; ix < skts.length; ix++) {
-        if (mp.has(Number(skts[ix]))) {
-            const nix = mp.get(Number(skts[ix]));
-            if (nix) {
-                nodes[nix] = values[ix];
-            }
+        const nix = mp.get(Number(skts[ix]));
+        if (nix !== undefined) {
+            nodes[nix] = values[ix];
         }
     }
     return nodes;
