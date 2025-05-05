@@ -1,7 +1,12 @@
-import { useRouter } from "next/router"
-import { useEffect } from "react"
+import Link from 'next/link';
+import type { LinkProps } from 'next/link';
 
-const router = useRouter()
-useEffect(() => {
-  router.prefetch = async () => { }
-}, [router])
+const OriginalLink = Link;
+
+Object.defineProperty(Link, 'default', {
+  configurable: true,
+  writable: true,
+  value: (props: LinkProps) => {
+    return <OriginalLink {...props} prefetch={props.prefetch ?? false} />;
+  },
+});
