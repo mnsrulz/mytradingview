@@ -9,8 +9,10 @@ import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Container } from "@mui/material";
 import { Metadata } from "next";
+import { NoPrefetch } from "@/components/NoPrefetch";
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
+
 
 export const metadata: Metadata = {
   title: "My trading view app",
@@ -42,6 +44,7 @@ export default async function RootLayout({
               }}
             >
               <DashboardLayout>
+                <NoPrefetch />
                 <NuqsAdapter>
                   <Container maxWidth="xl" sx={{ p: 1 }}>
                     {children}
