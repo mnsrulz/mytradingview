@@ -27,7 +27,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "autosuggest-highlight": "^3.3.4",
     "collect.js": "^4.36.1",
-    "core-js": "^3.38.1",
+    "core-js": "^3.42.0",
     "dayjs": "^1.11.13",
     "delay": "^6.0.0",
     "he": "^1.2.0",
