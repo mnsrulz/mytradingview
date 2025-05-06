@@ -1,7 +1,7 @@
 'use client';
 import { calculateExposure, useOptionExposure } from "@/lib/hooks";
 import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
@@ -22,7 +22,16 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const { rawExposureResponse, isLoading, hasError, expirationData } = useOptionExposure(symbol, dataMode, historicalDate);
 
     const ets = exposureTab.toString();
-    const exposureData = useMemo(() => calculateExposure(rawExposureResponse, dte, selectedExpirations, strikeCounts, ets), [rawExposureResponse, dte, selectedExpirations, strikeCounts, ets]);
+    const prevRef = useRef(rawExposureResponse);
+
+    useEffect(() => {
+        if (prevRef.current !== rawExposureResponse) {
+            console.log("rawExposureResponse reference changed");
+        }
+        prevRef.current = rawExposureResponse;
+    }, [rawExposureResponse]);
+
+    const exposureData = calculateExposure(rawExposureResponse, dte, selectedExpirations, strikeCounts, ets);
 
     return <Container maxWidth="md" sx={{ p: 0 }}>
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}

@@ -384,8 +384,6 @@ export const useOptionExposure = (symbol: string, dataMode: DataModeType, dt: st
         }).finally(() => setIsLoading(false))
     }, [symbol, dt, dataMode, cacheStore]);
 
-
-
     return {
         isLoading, hasError, expirationData, rawExposureResponse
         // , emaData
