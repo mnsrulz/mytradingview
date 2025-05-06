@@ -21,7 +21,7 @@ const pages = [
     { title: 'Option pricing', href: '/options/pricing' },
     { title: 'History', href: '/history' },
     { title: 'Seasonal', href: '/seasonal' },
-    { title: 'Greeks Report', href: '/reports/OptionGreeksSummary' },
+    { title: 'Greeks Report', href: '/reports/greeks' },
     { title: 'Calculator', href: '/calculator' }
 ];
 
@@ -68,7 +68,7 @@ export const NAVIGATION: Navigation = [
         icon: <AssessmentIcon />,
         children: [
             {
-                segment: 'OptionGreeksSummary',
+                segment: 'greeks',
                 title: 'Greeks',
                 icon: <FunctionsIcon />,
             },
