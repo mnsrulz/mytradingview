@@ -1,5 +1,5 @@
 'use client';
-import { calculateExposure, useOptionExposure } from "@/lib/hooks";
+import { calculateExposure, ExposureDataType, useOptionExposure } from "@/lib/hooks";
 import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper } from "@mui/material";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
@@ -9,6 +9,7 @@ import { GreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
+import { useWorker } from "@koale/useworker";
 
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
@@ -20,9 +21,10 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [exposureTab, setexposureTab] = useState<DexGexType>(DexGexType.DEX);//  useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { rawExposureResponse, isLoading, hasError, expirationData } = useOptionExposure(symbol, dataMode, historicalDate);
-
+    const [exposureData, setexposureData] = useState<ExposureDataType>();
     const ets = exposureTab.toString();
     const prevRef = useRef(rawExposureResponse);
+    const [calculateExposureWorker] = useWorker(calculateExposure);
 
     useEffect(() => {
         if (prevRef.current !== rawExposureResponse) {
@@ -31,7 +33,10 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
         prevRef.current = rawExposureResponse;
     }, [rawExposureResponse]);
 
-    const exposureData = calculateExposure(rawExposureResponse, dte, selectedExpirations, strikeCounts, ets);
+
+    useEffect(() => {
+        calculateExposureWorker(rawExposureResponse, dte, selectedExpirations, strikeCounts, ets).then(r => setexposureData(r))
+    }, [rawExposureResponse, dte, selectedExpirations, strikeCounts, ets])
 
     return <Container maxWidth="md" sx={{ p: 0 }}>
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}

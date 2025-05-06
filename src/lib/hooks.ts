@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ky from 'ky';
-import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData, ExposureDataResponse } from './types';
-import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
-import dayjs from 'dayjs';
+import { DataModeType, NumberRange, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse } from './types';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
 import { getColorPallete } from './color';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
@@ -311,34 +309,6 @@ export type ExposureDataType = {
     series: { data: number[]; stack: string; color: string; label: string; type: "bar"; labelMarkType: "line"; }[]; items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string
 }
 
-const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
-    const nodes = new Array<number>(mp.size).fill(0);
-    for (let ix = 0; ix < skts.length; ix++) {
-        if (mp.has(Number(skts[ix]))) {
-            const nix = mp.get(Number(skts[ix]));
-            if (nix) {
-                nodes[nix] = values[ix];
-            }
-        }
-    }
-    return nodes;
-}
-
-const calcMaxValue = (len: number, data: number[][]) => {
-    const callData = new Array<number>(len).fill(0);
-    const putData = new Array<number>(len).fill(0);
-    for (let i = 0; i < data.length; i++) {
-        for (let j = 0; j < len; j++) {
-            if (data[i][j] > 0) {
-                callData[j] += data[i][j]
-            } else {
-                putData[j] += data[i][j]
-            }
-        }
-    }
-    const maxValue = Math.max(Math.abs(Math.max(...callData)), Math.abs(Math.min(...putData)));
-    return maxValue;
-}
 
 const getLiveExposure = (symbol: string, provider: 'CBOE' | 'TRADIER') => {
     return provider == 'CBOE' ? getLiveCboeOptionExposure(symbol) : getLiveTradierOptionExposure(symbol)
@@ -391,7 +361,57 @@ export const useOptionExposure = (symbol: string, dataMode: DataModeType, dt: st
     };
 }
 
+///responsible for returning the strikes which we have to return in response.
+export const getCalculatedStrikes = (currentPrice: number, maxStrikes: number, strikes: number[]) => {
+    const currentOrAboveStrikes = strikes.filter(j => j >= currentPrice).sort((a, b) => a - b).reverse();
+    const belowCurrentStrikes = strikes.filter(j => j < currentPrice).sort((a, b) => a - b);
+    let result = [];
+    while (result.length < maxStrikes && (currentOrAboveStrikes.length > 0 || belowCurrentStrikes.length > 0)) {
+        result.push(...[currentOrAboveStrikes.pop(), belowCurrentStrikes.pop()].filter(j => j));
+    }
+    return result.map(Number).sort((a, b) => a - b);
+}
+
 export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte: number, selectedExpirations: string[], strikeCount: number, chartType: string) => {
+    function getCalculatedStrikesInner(currentPrice: number, maxStrikes: number, strikes: number[]) {
+        const currentOrAboveStrikes = strikes.filter(j => j >= currentPrice).sort((a, b) => a - b).reverse();
+        const belowCurrentStrikes = strikes.filter(j => j < currentPrice).sort((a, b) => a - b);
+        let result = [];
+        while (result.length < maxStrikes && (currentOrAboveStrikes.length > 0 || belowCurrentStrikes.length > 0)) {
+            result.push(...[currentOrAboveStrikes.pop(), belowCurrentStrikes.pop()].filter(j => j));
+        }
+        return result.map(Number).sort((a, b) => a - b);
+    }
+
+    const calcMaxValue = (len: number, data: number[][]) => {
+        const callData = new Array<number>(len).fill(0);
+        const putData = new Array<number>(len).fill(0);
+        for (let i = 0; i < data.length; i++) {
+            for (let j = 0; j < len; j++) {
+                if (data[i][j] > 0) {
+                    callData[j] += data[i][j]
+                } else {
+                    putData[j] += data[i][j]
+                }
+            }
+        }
+        const maxValue = Math.max(Math.abs(Math.max(...callData)), Math.abs(Math.min(...putData)));
+        return maxValue;
+    }
+
+    const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
+        const nodes = new Array<number>(mp.size).fill(0);
+        for (let ix = 0; ix < skts.length; ix++) {
+            if (mp.has(Number(skts[ix]))) {
+                const nix = mp.get(Number(skts[ix]));
+                if (nix) {
+                    nodes[nix] = values[ix];
+                }
+            }
+        }
+        return nodes;
+    }
+
     console.time('filtered expirations...')
     console.time('calculated allAvailableStikesForFilteredExpirations...')
     console.time('calculated strikes...')
@@ -411,7 +431,7 @@ export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte
     }, new Set<number>());
 
     console.timeEnd("calculated allAvailableStikesForFilteredExpirations...");
-    const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+    const strikes = getCalculatedStrikesInner(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
     console.timeEnd("calculated strikes...");
     const strikesIndexMap = new Map<number, number>();
     strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
@@ -487,9 +507,9 @@ export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte
     const end = performance.now();
     console.log(`exposure-calculation took ${end - start}ms`);
 
-    exposureDataValue.series = exposureDataValue.items.map((j, ix) => {
-        return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar' as 'bar', labelMarkType: 'line' as 'line' }
-    })
+    // exposureDataValue.series = exposureDataValue.items.map((j, ix) => {
+    //     return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar' as 'bar', labelMarkType: 'line' as 'line' }
+    // })
     return exposureDataValue;
 }
 

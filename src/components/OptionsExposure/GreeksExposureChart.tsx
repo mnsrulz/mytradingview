@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
 
+const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 
 const xAxixFormatter = (datasetType: DexGexType, v: number) => {
@@ -27,7 +28,7 @@ const GreeksChartLabelMapping = {
 
 export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
     const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
-    const { strikes, expirations, series, maxPosition, spotPrice, callWall, putWall } = exposureData;
+    const { strikes, items, expirations, maxPosition, spotPrice, callWall, putWall } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
     const height = calculateChartHeight(strikes);
@@ -39,6 +40,9 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     // const theme = useTheme();
     // const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const isSmallScreen = false;
+    const series =  items.map((j, ix) => {
+        return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar' as 'bar', labelMarkType: 'line' as 'line' }
+    })
     return <Box>
         <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
         <BarChart

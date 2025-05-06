@@ -1,17 +1,6 @@
 import { OptionsHedgingDataset } from "./hooks";
 import { MiniOptionContract, TradierOptionContractData, TradierOptionData } from "./types";
 
-///responsible for returning the strikes which we have to return in response.
-export const getCalculatedStrikes = (currentPrice: number, maxStrikes: number, strikes: number[]) => {
-    const currentOrAboveStrikes = strikes.filter(j => j >= currentPrice).sort((a, b) => a - b).reverse();
-    const belowCurrentStrikes = strikes.filter(j => j < currentPrice).sort((a, b) => a - b);
-    let result = [];
-    while (result.length < maxStrikes && (currentOrAboveStrikes.length > 0 || belowCurrentStrikes.length > 0)) {
-        result.push(...[currentOrAboveStrikes.pop(), belowCurrentStrikes.pop()].filter(j => j));
-    }
-    return result.map(Number).sort((a, b) => a - b);
-}
-
 
 export const calculateHedging = (allOptionChains: TradierOptionData[], allStrikes: number[], allDates: string[], currentPrice: number) => {
     const allOp = allOptionChains.flatMap(j => j.options.option.map(s => s));
