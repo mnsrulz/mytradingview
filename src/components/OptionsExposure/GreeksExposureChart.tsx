@@ -1,3 +1,4 @@
+'use client';
 import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
 import { ExposureDataType } from "@/lib/hooks";
