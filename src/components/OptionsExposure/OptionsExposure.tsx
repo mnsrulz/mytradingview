@@ -1,7 +1,7 @@
 'use client';
-import { useOptionExposure } from "@/lib/hooks";
+import { calculateExposure, useOptionExposure } from "@/lib/hooks";
 import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper } from "@mui/material";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
@@ -17,10 +17,13 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
-    const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
+    const [exposureTab, setexposureTab] = useState<DexGexType>(DexGexType.DEX);//  useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
-    const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
-    
+    const { rawExposureResponse, isLoading, hasError, expirationData } = useOptionExposure(symbol, dataMode, historicalDate);
+
+    const ets = exposureTab.toString();
+    const exposureData = useMemo(() => calculateExposure(rawExposureResponse, dte, selectedExpirations, strikeCounts, ets), [rawExposureResponse, dte, selectedExpirations, strikeCounts, ets]);
+
     return <Container maxWidth="md" sx={{ p: 0 }}>
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
