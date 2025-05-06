@@ -392,16 +392,27 @@ export const useOptionExposure = (symbol: string, dataMode: DataModeType, dt: st
 }
 
 export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte: number, selectedExpirations: string[], strikeCount: number, chartType: string) => {
+    console.time('filtered expirations...')
+    console.time('calculated allAvailableStikesForFilteredExpirations...')
+    console.time('calculated strikes...')
+    console.time('calculated gex callWallMap...')
+    console.time('calculated call/put wall...')
+    console.time('calculated items...')    
+    console.time('calculated maxPosition...')
+    // console.timeEnd("start...");
     const start = performance.now();
     const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
     const expirations = filteredData.map(j => j.expiration);
+    console.timeEnd("filtered expirations...");
 
     const allAvailableStikesForFilteredExpirations = filteredData.reduce((prev, c) => {
         c.strikes.forEach(k => prev.add(Number(k)));
         return prev;
     }, new Set<number>());
 
+    console.timeEnd("calculated allAvailableStikesForFilteredExpirations...");
     const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+    console.timeEnd("calculated strikes...");
     const strikesIndexMap = new Map<number, number>();
     strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
     const exposureDataValue: ExposureDataType = { expirations, strikes, series: [], spotPrice: rawExposureResponse?.spotPrice || 0, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
@@ -417,15 +428,18 @@ export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte
                     putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix]
                 })
             })
+            console.timeEnd("calculated gex callWallMap...");
             exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
             exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
 
+            console.timeEnd("calculated call/put wall...");
             exposureDataValue.items = filteredData.map(j => {
                 return {
                     expiration: j.expiration,
                     data: mapChartValues(strikesIndexMap, j.strikes, j.netGamma)
                 }
             })
+            console.timeEnd("calculated items...");
             break;
         case 'DEX':
             exposureDataValue.items = filteredData.flatMap(j => {
@@ -437,6 +451,7 @@ export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte
                     data: mapChartValues(strikesIndexMap, j.strikes, j.put.absDelta.map(v => v))
                 }]
             })
+            console.timeEnd("calculated items...");
             break;
         case 'OI':
             exposureDataValue.items = filteredData.flatMap(j => {
@@ -448,6 +463,7 @@ export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte
                     data: mapChartValues(strikesIndexMap, j.strikes, j.put.openInterest.map(v => -v))
                 }]
             })
+            console.timeEnd("calculated items...");
             break;
         case 'VOLUME':
             exposureDataValue.items = filteredData.flatMap(j => {
@@ -459,12 +475,14 @@ export const calculateExposure = (rawExposureResponse: ExposureDataResponse, dte
                     data: mapChartValues(strikesIndexMap, j.strikes, j.put.volume.map(v => -v))
                 }]
             })
+            console.timeEnd("calculated items...");
             break;
         default:
             throw new Error('invalid chart type');
     }
 
     exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
+    console.timeEnd("calculated maxPosition...");
     // setExposureData(exposureDataValue);
     const end = performance.now();
     console.log(`exposure-calculation took ${end - start}ms`);
