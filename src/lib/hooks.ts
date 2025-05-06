@@ -357,7 +357,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
-    const expirationData = rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
+    const expirationData = rawExposureResponse.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
     // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
 
     // useEffect(() => {
@@ -366,6 +366,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     // }, [symbol]);
 
     useEffect(() => {
+        console.log(`inside the first dependency call in useOptionExposure`)
         setHasError(false);
         const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${dataMode}`;
         if (cacheStore[cacheKey]) {
@@ -381,7 +382,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         }).catch(() => {
             setHasError(true);
         }).finally(() => setIsLoading(false))
-    }, [symbol, dt, dataMode]);
+    }, [symbol, dt, dataMode, cacheStore]);
 
     const ds = useMemo(() => {        
         const start = performance.now();
@@ -465,7 +466,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
             return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar' as 'bar', labelMarkType: 'line' as 'line' }
         })
         return exposureDataValue;
-    }, [rawExposureResponse, chartType, dte]);
+    }, [rawExposureResponse, chartType, dte, selectedExpirations, strikeCount]);
 
     return {
         exposureData: ds, isLoading, hasError, expirationData
