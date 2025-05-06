@@ -20,41 +20,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
-
-    const exposureChartContent = <Box sx={{ m: 1 }} minHeight={400}>{
-        (isLoading && !exposureData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
-            <LinearProgress />
-        ) : hasError ? (
-            <i>Error occurred! Please try again...</i>
-        ) : (
-            exposureData && (
-                <GreeksExposureChart
-                    skipAnimation={printMode}
-                    exposureData={exposureData}
-                    dte={dte}
-                    symbol={symbol}
-                    exposureType={exposureTab}
-                    isLoading={isLoading}
-                />
-            )
-        )
-    }</Box>
-    if (printMode) {
-        return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body'>
-            {exposureChartContent}
-        </Dialog>
-    }
-
-    const startHistoricalAnimation = async () => {
-        const delayMs = 1000;
-        for (const d of cachedDates) {
-            setTimeout(() => {
-                setHistoricalDate(d);
-            }, delayMs);
-            await new Promise((r) => setTimeout(r, delayMs));
-        }
-    }
-
+    
     return <Container maxWidth="md" sx={{ p: 0 }}>
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
@@ -62,10 +28,27 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
-            {exposureChartContent}
+            <Box sx={{ m: 1 }} minHeight={400}>{
+                (isLoading && !exposureData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
+                    <LinearProgress />
+                ) : hasError ? (
+                    <i>Error occurred! Please try again...</i>
+                ) : (
+                    exposureData && (
+                        <GreeksExposureChart
+                            skipAnimation={printMode}
+                            exposureData={exposureData}
+                            dte={dte}
+                            symbol={symbol}
+                            exposureType={exposureTab}
+                            isLoading={isLoading}
+                        />
+                    )
+                )
+            }</Box>
         </Paper>
         {
-            dataMode == DataModeType.HISTORICAL && <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
+            //dataMode == DataModeType.HISTORICAL && <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
         }
         <UpdateFrequencyDisclaimer />
     </Container>

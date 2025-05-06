@@ -8,7 +8,7 @@ import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
 import { useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
-const colorCodes = getColorPallete();
+
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 
 const xAxixFormatter = (datasetType: DexGexType, v: number) => {
@@ -27,18 +27,18 @@ const GreeksChartLabelMapping = {
 
 export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
     const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
-    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall } = exposureData;
+    const { strikes, expirations, series, maxPosition, spotPrice, callWall, putWall } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
-    const height = useMemo(() => calculateChartHeight(expirations, strikes), [expirations, strikes]);
-    const yaxisline = useMemo(() => Math.max(...strikes.filter(j => j <= spotPrice)), [strikes, spotPrice]);
-    const maxStrike = useMemo(() => Math.max(...strikes), [strikes]);
-    const leftMarginValue = useMemo(() => calculateYAxisTickWidth(maxStrike), [maxStrike]);
+    const height = calculateChartHeight(strikes);
+    const yaxisline = Math.max(...strikes.filter(j => j <= spotPrice));
+    const maxStrike = Math.max(...strikes);
+    const leftMarginValue = calculateYAxisTickWidth(maxStrike);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
-    const theme = useTheme();
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
+    // const theme = useTheme();
+    // const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const isSmallScreen = false;
     return <Box>
         <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
         <BarChart
@@ -49,9 +49,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
             // tooltip={{
             //     trigger: 'none'
             // }}            
-            series={useMemo(() => items.map((j, ix) => {
-                return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar', labelMarkType: 'line' }
-            }), [items, expirations])}
+            series={series}
             yAxis={[{
                 data: strikes,
                 scaleType: 'band',

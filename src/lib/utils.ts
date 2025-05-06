@@ -8,7 +8,7 @@ export const calculateYAxisTickWidth = (maxStrikeValue: number) => {
 }
 
 
-export const calculateChartHeight = (expirations: string[], strikes: (number | string)[]) => {
+export const calculateChartHeight = (strikes: (number | string)[]) => {
     /*
     some wierd calculation since there's no straight forward way to set the height of the bars. 
     So 5px for both of the top and bottom margins, and 15px for each bar. Along with 20px for each expirations legends with max of 3 expirations.

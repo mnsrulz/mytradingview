@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ky from 'ky';
 import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData, ExposureDataResponse } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
+import { getColorPallete } from './color';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -306,7 +307,9 @@ export const useTickerSearch = (v: string) => {
 //     return { data, strikes, expirations };
 // }
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string }
+export type ExposureDataType = {
+    series: { data: number[]; stack: string; color: string; label: string; type: "bar"; labelMarkType: "line"; }[]; items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string
+}
 
 const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
     const nodes = new Array<number>(mp.size).fill(0);
@@ -345,10 +348,12 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
     return await ky(`/api/symbols/${symbol}/options/exposure`).json<ExposureDataResponse>();
 }
 
+const colorCodes = getColorPallete();
+
 //This hook has potential performance issues
 export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
-    const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
-    const [exposureData, setExposureData] = useState<ExposureDataType>();
+    const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>({ data: [], spotPrice: 0 });
+    // const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
@@ -378,8 +383,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         }).finally(() => setIsLoading(false))
     }, [symbol, dt, dataMode]);
 
-    useEffect(() => {
-        if (!rawExposureResponse) return;
+    const ds = useMemo(() => {        
         const start = performance.now();
         const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
         const expirations = filteredData.map(j => j.expiration);
@@ -392,7 +396,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
+        const exposureDataValue: ExposureDataType = { expirations, strikes, series: [], spotPrice: rawExposureResponse?.spotPrice || 0, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
         switch (chartType) {
             case 'GEX':
                 const callWallMap = {} as Record<string, number>;
@@ -453,13 +457,18 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         }
 
         exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
-        setExposureData(exposureDataValue);
+        // setExposureData(exposureDataValue);
         const end = performance.now();
         console.log(`exposure-calculation took ${end - start}ms`);
-    }, [rawExposureResponse, chartType, dte, strikeCount, selectedExpirations]);
+
+        exposureDataValue.series = exposureDataValue.items.map((j, ix) => {
+            return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar' as 'bar', labelMarkType: 'line' as 'line' }
+        })
+        return exposureDataValue;
+    }, [rawExposureResponse, chartType, dte]);
 
     return {
-        exposureData, isLoading, hasError, expirationData
+        exposureData: ds, isLoading, hasError, expirationData
         // , emaData
 
     };
