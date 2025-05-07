@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ky from 'ky';
 import { DataModeType, DexGexType, NumberRange, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, ExposureCalculationWorkerRequest } from './types';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
+import { calcMaxValue, getCalculatedStrikes, mapChartValues } from './utils';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -318,7 +319,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 //This hook has potential performance issues
 export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>({ data: [], spotPrice: 0 });
-    const [exposureData, setExposureData] = useState<ExposureDataType>();
+    // const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
@@ -351,20 +352,113 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         }).finally(() => setIsLoading(false))
     }, [symbol, dt, dataMode]);
 
-    useEffect(() => {
-        workerRef.current = new Worker(new URL("../workers/ew.ts", import.meta.url));
-        workerRef.current.onmessage = (event: MessageEvent<ExposureDataType>) =>
-            setExposureData(event.data);
-        const workerRequest: ExposureCalculationWorkerRequest = {
-            exposureDataResponse: rawExposureResponse,
-            chartType: chartType,
-            dte: dte,
-            strikeCount: strikeCount,
-            selectedExpirations: selectedExpirations
+    const imd = useMemo(() => {
+        const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+        const expirations = filteredData.map(j => j.expiration);
+
+        const allAvailableStikesForFilteredExpirations = filteredData.reduce((prev, c) => {
+            c.strikes.forEach(k => prev.add(Number(k)));
+            return prev;
+        }, new Set<number>());
+
+        const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+        const strikesIndexMap = new Map<number, number>();
+        strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
+
+        return {
+            filteredData,
+            expirations,
+            strikes,
+            strikesIndexMap
         }
-        workerRef.current?.postMessage(workerRequest)
-        return () => { workerRef.current?.terminate(); };
-    }, [rawExposureResponse, chartType, dte, strikeCount, selectedExpirations]);
+    }, [rawExposureResponse, dte, selectedExpirations, strikeCount]);
+
+    const exposureData = useMemo(() => {
+        const start = performance.now();
+        const { filteredData, expirations, strikes, strikesIndexMap } = imd
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
+        switch (chartType) {
+            case 'GEX':
+                const callWallMap = {} as Record<string, number>;
+                const putWallMap = {} as Record<string, number>;
+
+                filteredData.forEach(k => {
+                    k.strikes.forEach((s, ix) => {
+                        const strike = Number(s);
+                        callWallMap[strike] = (callWallMap[strike] || 0) + k.call.absGamma[ix]
+                        putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix]
+                    })
+                })
+                exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
+                exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
+
+                exposureDataValue.items = filteredData.map(j => {
+                    return {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.netGamma)
+                    }
+                })
+                break;
+            case 'DEX':
+                exposureDataValue.items = filteredData.flatMap(j => {
+                    return [{
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.absDelta)
+                    }, {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.absDelta.map(v => v))
+                    }]
+                })
+                break;
+            case 'OI':
+                exposureDataValue.items = filteredData.flatMap(j => {
+                    return [{
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.openInterest)
+                    }, {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.openInterest.map(v => -v))
+                    }]
+                })
+                break;
+            case 'VOLUME':
+                exposureDataValue.items = filteredData.flatMap(j => {
+                    return [{
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.volume)
+                    }, {
+                        expiration: j.expiration,
+                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.volume.map(v => -v))
+                    }]
+                })
+                break;
+            default:
+                throw new Error('invalid chart type');
+        }
+
+        exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
+        const end = performance.now();
+        console.log(`exposure-calculation took ${end - start}ms`);
+
+        return exposureDataValue;
+    }, [imd, chartType])
+
+    // useEffect(() => {
+    //     workerRef.current = new Worker(new URL("../workers/ew.ts", import.meta.url));
+    //     workerRef.current.onmessage = (event: MessageEvent<ExposureDataType>) =>
+    //         setExposureData(event.data);
+    //     const workerRequest: ExposureCalculationWorkerRequest = {
+    //         exposureDataResponse: rawExposureResponse,
+    //         chartType: chartType,
+    //         dte: dte,
+    //         strikeCount: strikeCount,
+    //         selectedExpirations: selectedExpirations
+    //     }
+    //     workerRef.current?.postMessage(workerRequest)
+    //     return () => { workerRef.current?.terminate(); };
+    // }, [rawExposureResponse, chartType, dte, strikeCount, selectedExpirations]);
+
+
 
     return {
         exposureData, isLoading, hasError, expirationData

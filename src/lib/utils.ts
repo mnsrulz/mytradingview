@@ -27,3 +27,30 @@ export const getCalculatedStrikes = (currentPrice: number, maxStrikes: number, s
     }
     return result.map(Number).sort((a, b) => a - b);
 }
+
+export const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
+    const nodes = new Array<number>(mp.size).fill(0);
+    for (let ix = 0; ix < skts.length; ix++) {
+        const nix = mp.get(Number(skts[ix]));
+        if (nix !== undefined) {
+            nodes[nix] = values[ix];
+        }
+    }
+    return nodes;
+}
+
+export const calcMaxValue = (len: number, data: number[][]) => {
+    const callData = new Array<number>(len).fill(0);
+    const putData = new Array<number>(len).fill(0);
+    for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < len; j++) {
+            if (data[i][j] > 0) {
+                callData[j] += data[i][j]
+            } else {
+                putData[j] += data[i][j]
+            }
+        }
+    }
+    const maxValue = Math.max(Math.abs(Math.max(...callData)), Math.abs(Math.min(...putData)));
+    return maxValue;
+}
