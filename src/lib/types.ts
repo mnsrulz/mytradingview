@@ -227,3 +227,11 @@ export type ExposureDataResponse = {
   }[],
   spotPrice: number
 }
+
+export type ExposureCalculationWorkerRequest = {
+  exposureDataResponse: ExposureDataResponse,
+  chartType: DexGexType,
+  dte: number,
+  strikeCount: number,
+  selectedExpirations: string[]
+}

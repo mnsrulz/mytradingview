@@ -1,8 +1,10 @@
 
 import dayjs from 'dayjs';
 import { NextRequest, NextResponse } from "next/server";
-import { calculateHedging, getCalculatedStrikes } from "@/lib/dgHedgingHelper";
+import { calculateHedging } from "@/lib/dgHedgingHelper";
+
 import { getCurrentPrice, getOptionData, getOptionExpirations } from '@/lib/tradierService';
+import { getCalculatedStrikes } from '@/lib/utils';
 
 export async function GET(request: NextRequest, p: { params: Promise<{ symbol: string }> }) {
   const { searchParams } = new URL(request.url);
