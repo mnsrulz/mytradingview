@@ -321,10 +321,10 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>({ data: [], spotPrice: 0 });
     // const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
+    const [hasData, setHasData] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
     const expirationData = rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
-
     const workerRef = useRef<Worker>(null);
 
     // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
@@ -347,12 +347,14 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         exposureResponse.then(data => {
             setCache((prev) => { prev[cacheKey] = data; return prev; });
             setRawExposureResponse(data);
+            setHasData(true);
         }).catch(() => {
             setHasError(true);
         }).finally(() => setIsLoading(false))
     }, [symbol, dt, dataMode]);
 
     const imd = useMemo(() => {
+        const start = performance.now();
         const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
         const expirations = filteredData.map(j => j.expiration);
 
@@ -364,19 +366,22 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
+        const end = performance.now();
+        console.log(`filtering took ${end - start}ms`);
 
         return {
             filteredData,
             expirations,
             strikes,
-            strikesIndexMap
+            strikesIndexMap,
+            spotPrice: rawExposureResponse.spotPrice
         }
     }, [rawExposureResponse, dte, selectedExpirations, strikeCount]);
 
     const exposureData = useMemo(() => {
         const start = performance.now();
-        const { filteredData, expirations, strikes, strikesIndexMap } = imd
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
+        const { filteredData, expirations, strikes, strikesIndexMap, spotPrice } = imd
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
         switch (chartType) {
             case 'GEX':
                 const callWallMap = {} as Record<string, number>;
@@ -461,7 +466,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
 
 
     return {
-        exposureData, isLoading, hasError, expirationData
+        exposureData, isLoading, hasError, expirationData, hasData
         // , emaData
 
     };

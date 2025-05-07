@@ -3,6 +3,16 @@ import { ChartsReferenceLine } from "@mui/x-charts/ChartsReferenceLine";
 export const CallPutWallLine = (props: { callWall: number; putWall: number; spotPriceLineValue: number; }) => {
     const { callWall, putWall, spotPriceLineValue } = props;
     // debugger;
+
+    if (
+        typeof callWall !== 'number' || typeof putWall !== 'number' ||
+        !isFinite(callWall) || !isFinite(putWall) ||
+        isNaN(callWall) || isNaN(putWall)
+    ) {
+        console.error("callWall and putWall must be valid finite numbers");
+        return <></>;
+    }
+
     if (callWall == 0 && putWall == 0) return <></>;
     if (callWall == putWall) {
         return <ChartsReferenceLine y={Number(callWall)} label={"WALL: $" + (callWall)}

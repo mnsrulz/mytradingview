@@ -8,6 +8,7 @@ import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
 import { useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
+import { SpotPriceLine } from "./SpotPriceLine";
 const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 
@@ -89,10 +90,8 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
             <ChartsText x="75%" y="5%" style={{ textAnchor: 'middle' }} fill="grey" text="PUTS" opacity="0.2" />
             <ChartsText x="100%" y="85%" fill="grey" text={ghUrl} opacity="0.15" style={{ textAnchor: 'end' }} fontSize={10} />
             <ChartsReferenceLine x={0} />
-            <ChartsReferenceLine y={yaxisline} label={"SPOT PRICE: $" + (spotPrice.toFixed(2))}
-                labelAlign="start"
-                lineStyle={{ strokeDasharray: '4', color: 'red', stroke: 'red' }}
-                labelStyle={{ stroke: 'red', strokeWidth: 0.25, fontSize: '8px' }} />
+
+            <SpotPriceLine spotPriceLineValue={yaxisline} spotPrice={spotPrice} />
 
             {
                 exposureType == DexGexType.GEX && <CallPutWallLine callWall={Number(callWall)} putWall={Number(putWall)} spotPriceLineValue={yaxisline} />

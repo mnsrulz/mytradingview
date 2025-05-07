@@ -19,10 +19,10 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
-    const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
+    const { exposureData, isLoading, hasError, expirationData, hasData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
 
     const exposureChartContent = <Box sx={{ m: 1 }} minHeight={400}>{
-        (isLoading && !exposureData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
+        (isLoading && !hasData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
             <LinearProgress />
         ) : hasError ? (
             <i>Error occurred! Please try again...</i>
