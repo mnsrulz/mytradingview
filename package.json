@@ -48,7 +48,7 @@
     "react-router": "^7.5.3",
     "react-router-dom": "^7.5.3",
     "recharts": "^2.15.3",
-    "socket.io-client": "^4.7.5",
+    "socket.io-client": "^4.8.1",
     "sort-by": "^1.2.0",
     "uplot": "^1.6.31",
     "uplot-react": "^1.2.2",
