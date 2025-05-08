@@ -313,7 +313,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 }
 
 //This hook has potential performance issues
-export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
+export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, exposureType: DexGexType, dataMode: DataModeType, dt: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>({ data: [], spotPrice: 0 });
     // const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
@@ -351,26 +351,19 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         }).finally(() => setIsLoading(false))
     }, [symbol, dt, dataMode]);
 
-    // useEffect(() => {
-
-    //     return () => {
-    //         workerRef.current?.terminate();
-    //     };
-    // }, []);
-
     useEffect(() => {
-        console.log(`posting teh message to worker`)
+        console.log(`posting the message to worker`)
         workerRef.current = new Worker(new URL("../workers/ew.ts", import.meta.url));
         workerRef.current.onmessage = (event: MessageEvent<ExposureDataType>) =>
             setExposureData(event.data)
         workerRef.current?.postMessage({
-            exposureDataResponse: rawExposureResponse, dte, strikeCount, selectedExpirations, chartType
+            exposureDataResponse: rawExposureResponse, dte, strikeCount, selectedExpirations, exposureType
         } as ExposureCalculationWorkerRequest);
         return () => {
             console.log(`terminating the worker...`)
-            workerRef.current?.terminate();
+            workerRef.current?.terminate();            
         };
-    }, [rawExposureResponse, dte, selectedExpirations, strikeCount, chartType]);
+    }, [rawExposureResponse, dte, selectedExpirations, strikeCount, exposureType]);
 
     return {
         exposureData, isLoading, hasError, expirationData, hasData

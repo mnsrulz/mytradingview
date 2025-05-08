@@ -230,10 +230,10 @@ export type ExposureDataResponse = {
 
 export type ExposureCalculationWorkerRequest = {
   exposureDataResponse: ExposureDataResponse,
-  chartType: DexGexType,
+  exposureType: DexGexType,
   dte: number,
   strikeCount: number,
   selectedExpirations: string[]
 }
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string }
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, dte: number, exposureType: DexGexType }

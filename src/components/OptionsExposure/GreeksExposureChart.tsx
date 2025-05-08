@@ -25,9 +25,9 @@ const GreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
-export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
-    const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
-    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall } = exposureData;
+export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean }) => {
+    const { symbol, exposureData, skipAnimation, isLoading } = props;
+    const { strikes, exposureType, dte, expirations, items, maxPosition, spotPrice, callWall, putWall } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
     const height = calculateChartHeight(expirations, strikes);
@@ -66,7 +66,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
                 reverse: true,
                 label: `${gammaOrDelta}`,
                 barGapRatio: 0.1,
-                valueFormatter: (v: number) => xAxixFormatter(props.exposureType, v)
+                valueFormatter: (v: number) => xAxixFormatter(exposureType, v)
             }]}
             layout="horizontal"
             slots={{

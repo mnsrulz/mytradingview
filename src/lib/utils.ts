@@ -59,7 +59,7 @@ export const calcMaxValue = (len: number, data: number[][]) => {
 }
 
 export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
-    const { exposureDataResponse, dte, strikeCount, selectedExpirations, chartType } = args
+    const { exposureDataResponse, dte, strikeCount, selectedExpirations, exposureType } = args
     const filtering_start = performance.now();
     const { spotPrice } = exposureDataResponse;
     const filteredData = dte > 0 ? exposureDataResponse.data.filter(j => j.dte <= dte) : exposureDataResponse.data.filter(j => selectedExpirations.includes(j.expiration));
@@ -78,8 +78,8 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
 
     const start = performance.now();
 
-    const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
-    switch (chartType) {
+    const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', dte, exposureType };
+    switch (exposureType) {
         case 'GEX':
             const callWallMap = {} as Record<string, number>;
             const putWallMap = {} as Record<string, number>;

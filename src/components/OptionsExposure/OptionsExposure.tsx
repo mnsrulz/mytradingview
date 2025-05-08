@@ -30,10 +30,8 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             exposureData && (
                 <GreeksExposureChart
                     skipAnimation={printMode}
-                    exposureData={exposureData}
-                    dte={dte}
-                    symbol={symbol}
-                    exposureType={exposureTab}
+                    exposureData={exposureData}                    
+                    symbol={symbol}                    
                     isLoading={isLoading}
                 />
             )
