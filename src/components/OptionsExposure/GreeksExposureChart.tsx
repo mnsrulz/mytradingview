@@ -9,6 +9,7 @@ import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
 import { SpotPriceLine } from "./SpotPriceLine";
 import { LoadingOverlay } from "./LoadingOverlay";
+import { useBarSeries } from '@mui/x-charts/hooks'
 const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 
@@ -27,9 +28,13 @@ const GreeksChartLabelMapping = {
 }
 
 export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean, hasData: boolean, hasError: boolean }) => {
+    console.log(`rendering GreeksExposureChart`)
     const { symbol, exposureData, skipAnimation, isLoading, hasData, hasError } = props;
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const series = useMemo(() => exposureData?.items?.map((j, ix) => {        
+        return { data: j.data, stack: 'A', color: colorCodes[exposureData.expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar' as const, labelMarkType: 'line' as const }
+    }) || [], [exposureData]);
 
     if (!exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
         return <Box sx={{ m: 1 }} minHeight={400}>
@@ -47,15 +52,6 @@ export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, sk
     const leftMarginValue = calculateYAxisTickWidth(maxStrike);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
-    //     exposureData && (
-    //         <GreeksExposureChart
-    //             skipAnimation={printMode}
-    //             exposureData={exposureData}
-    //             symbol={symbol}
-    //             isLoading={isLoading}
-    //         />
-    //     )
-    // )
 
     return <Box sx={{ m: 1 }} minHeight={400}>
         <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
@@ -67,9 +63,7 @@ export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, sk
             // tooltip={{
             //     trigger: 'none'
             // }}            
-            series={items.map((j, ix) => {
-                return { data: j.data, stack: 'A', color: colorCodes[expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar', labelMarkType: 'line' }
-            })}
+            series={series}
             yAxis={[{
                 data: strikes,
                 scaleType: 'band',
@@ -88,10 +82,10 @@ export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, sk
             }]}
             layout="horizontal"
             slots={{
-                loadingOverlay: LoadingOverlay 
+                //loadingOverlay: LoadingOverlay
                 //legend: () => <ExposureChartLegend expirations={expirations} showLegendOnTop={isSmallScreen} />
             }}
-
+            hideLegend
             slotProps={{
                 tooltip: {
                     trigger: 'none'
@@ -110,7 +104,7 @@ export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, sk
             <ChartsText x="100%" y="85%" fill="grey" text={ghUrl} opacity="0.15" style={{ textAnchor: 'end' }} fontSize={10} />
             <ChartsReferenceLine x={0} />
 
-            <SpotPriceLine spotPriceLineValue={yaxisline} spotPrice={spotPrice} />
+            <SpotPriceLine key={'spot-price-line'} spotPriceLineValue={yaxisline} spotPrice={spotPrice} />
 
             {
                 exposureType == DexGexType.GEX && <CallPutWallLine callWall={Number(callWall)} putWall={Number(putWall)} spotPriceLineValue={yaxisline} />

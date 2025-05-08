@@ -26,10 +26,10 @@ export const LoadingOverlay = () => {
     const bandWidth = yScale.bandwidth();
 
     const [bottom, top] = xScale.range();
-
+debugger;
     return (
         <g>
-            {xScale.domain().map((item, index) => {
+            {yScale.domain().map((item, index) => {
                 const ratio = ratios[index % ratios.length];
                 const barHeight = ratio * (bottom - top);
 
