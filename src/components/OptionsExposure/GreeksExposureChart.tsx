@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
 import { SpotPriceLine } from "./SpotPriceLine";
+import { LoadingOverlay } from "./LoadingOverlay";
 const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 
@@ -30,7 +31,7 @@ export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, sk
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-    if (isLoading || !exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
+    if (!exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
         return <Box sx={{ m: 1 }} minHeight={400}>
             <LinearProgress />
         </Box>
@@ -74,7 +75,7 @@ export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, sk
                 scaleType: 'band',
                 // label: 'Strikes',
                 reverse: true,
-                valueFormatter: (tick) => `$${Number(tick).toFixed(2)}`,
+                //valueFormatter: (tick) => `$${Number(tick).toFixed(2)}`,
                 width: leftMarginValue
             }]}
             xAxis={[{
@@ -83,12 +84,14 @@ export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, sk
                 reverse: true,
                 label: `${gammaOrDelta}`,
                 barGapRatio: 0.1,
-                valueFormatter: (v: number) => xAxixFormatter(exposureType, v)
+                //valueFormatter: (v: number) => xAxixFormatter(exposureType, v)
             }]}
             layout="horizontal"
             slots={{
-                legend: () => <ExposureChartLegend expirations={expirations} showLegendOnTop={isSmallScreen} />
+                loadingOverlay: LoadingOverlay 
+                //legend: () => <ExposureChartLegend expirations={expirations} showLegendOnTop={isSmallScreen} />
             }}
+
             slotProps={{
                 tooltip: {
                     trigger: 'none'
