@@ -1,7 +1,6 @@
 import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
-import { ExposureDataType } from "@/lib/hooks";
-import { DexGexType } from "@/lib/types";
+import { DexGexType, ExposureDataType } from "@/lib/types";
 import { calculateChartHeight, calculateYAxisTickWidth } from "@/lib/utils";
 import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"

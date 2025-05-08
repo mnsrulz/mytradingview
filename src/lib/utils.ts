@@ -1,3 +1,6 @@
+'use client'
+import { ExposureDataType, ExposureDataResponse, DexGexType, ExposureCalculationWorkerRequest } from "./types"
+
 export const calculateYAxisTickWidth = (maxStrikeValue: number) => {
     if (maxStrikeValue < 100) {
         return 48
@@ -53,4 +56,91 @@ export const calcMaxValue = (len: number, data: number[][]) => {
     }
     const maxValue = Math.max(Math.abs(Math.max(...callData)), Math.abs(Math.min(...putData)));
     return maxValue;
+}
+
+export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
+    const { exposureDataResponse, dte, strikeCount, selectedExpirations, chartType } = args
+    const filtering_start = performance.now();
+    const { spotPrice } = exposureDataResponse;
+    const filteredData = dte > 0 ? exposureDataResponse.data.filter(j => j.dte <= dte) : exposureDataResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+    const expirations = filteredData.map(j => j.expiration);
+
+    const allAvailableStikesForFilteredExpirations = filteredData.reduce((prev, c) => {
+        c.strikes.forEach(k => prev.add(Number(k)));
+        return prev;
+    }, new Set<number>());
+
+    const strikes = getCalculatedStrikes(exposureDataResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+    const strikesIndexMap = new Map<number, number>();
+    strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
+    const filtering_end = performance.now();
+    console.log(`filtering took ${filtering_end - filtering_start}ms`);
+
+    const start = performance.now();
+
+    const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
+    switch (chartType) {
+        case 'GEX':
+            const callWallMap = {} as Record<string, number>;
+            const putWallMap = {} as Record<string, number>;
+
+            filteredData.forEach(k => {
+                k.strikes.forEach((s, ix) => {
+                    const strike = Number(s);
+                    callWallMap[strike] = (callWallMap[strike] || 0) + k.call.absGamma[ix]
+                    putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix]
+                })
+            })
+            exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
+            exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
+
+            exposureDataValue.items = filteredData.map(j => {
+                return {
+                    expiration: j.expiration,
+                    data: mapChartValues(strikesIndexMap, j.strikes, j.netGamma)
+                }
+            })
+            break;
+        case 'DEX':
+            exposureDataValue.items = filteredData.flatMap(j => {
+                return [{
+                    expiration: j.expiration,
+                    data: mapChartValues(strikesIndexMap, j.strikes, j.call.absDelta)
+                }, {
+                    expiration: j.expiration,
+                    data: mapChartValues(strikesIndexMap, j.strikes, j.put.absDelta.map(v => v))
+                }]
+            })
+            break;
+        case 'OI':
+            exposureDataValue.items = filteredData.flatMap(j => {
+                return [{
+                    expiration: j.expiration,
+                    data: mapChartValues(strikesIndexMap, j.strikes, j.call.openInterest)
+                }, {
+                    expiration: j.expiration,
+                    data: mapChartValues(strikesIndexMap, j.strikes, j.put.openInterest.map(v => -v))
+                }]
+            })
+            break;
+        case 'VOLUME':
+            exposureDataValue.items = filteredData.flatMap(j => {
+                return [{
+                    expiration: j.expiration,
+                    data: mapChartValues(strikesIndexMap, j.strikes, j.call.volume)
+                }, {
+                    expiration: j.expiration,
+                    data: mapChartValues(strikesIndexMap, j.strikes, j.put.volume.map(v => -v))
+                }]
+            })
+            break;
+        default:
+            throw new Error('invalid chart type');
+    }
+
+    exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
+    const end = performance.now();
+    console.log(`exposure-calculation took ${end - start}ms`);
+
+    return exposureDataValue;
 }

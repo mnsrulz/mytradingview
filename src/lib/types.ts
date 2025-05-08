@@ -235,3 +235,5 @@ export type ExposureCalculationWorkerRequest = {
   strikeCount: number,
   selectedExpirations: string[]
 }
+
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string }
