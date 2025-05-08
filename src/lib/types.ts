@@ -235,5 +235,9 @@ export type ExposureCalculationWorkerRequest = {
   strikeCount: number,
   selectedExpirations: string[]
 }
+export type OptionBarData = {
+  strike: string;
+  [key: `${'call' | 'put'}_${string}`]: number;
+};
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, dte: number, exposureType: DexGexType }
+export type ExposureDataType = { nivoItems: OptionBarData[], items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, dte: number, exposureType: DexGexType }

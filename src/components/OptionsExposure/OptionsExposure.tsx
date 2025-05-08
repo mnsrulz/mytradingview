@@ -9,6 +9,7 @@ import { GreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
+import { GreeksExposureChartNivo } from './GreeksExposureChartNivo';
 
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
@@ -23,7 +24,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
 
     if (printMode) {
         return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body'>
-            <GreeksExposureChart exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} skipAnimation={true} />
+            <GreeksExposureChartNivo exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} skipAnimation={true} />
         </Dialog>
     }
 
@@ -44,7 +45,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
-            <GreeksExposureChart exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} />
+            <GreeksExposureChartNivo exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} />
         </Paper>
         {
             dataMode == DataModeType.HISTORICAL && <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />

@@ -1,5 +1,5 @@
 'use client'
-import { ExposureDataType, ExposureDataResponse, DexGexType, ExposureCalculationWorkerRequest } from "./types"
+import { ExposureDataType, ExposureDataResponse, DexGexType, ExposureCalculationWorkerRequest, OptionBarData } from "./types"
 
 export const calculateYAxisTickWidth = (maxStrikeValue: number) => {
     if (maxStrikeValue < 100) {
@@ -78,7 +78,7 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
 
     const start = performance.now();
 
-    const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', dte, exposureType };
+    const exposureDataValue: ExposureDataType = { nivoItems: [], expirations, strikes, spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', dte, exposureType };
     switch (exposureType) {
         case 'GEX':
             const callWallMap = {} as Record<string, number>;
@@ -100,6 +100,17 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
                     data: mapChartValues(strikesIndexMap, j.strikes, j.netGamma)
                 }
             })
+            const sm: Record<string, OptionBarData> = {};
+            for (const o of filteredData) {
+                o.strikes.forEach((s, six) => {
+                    if (strikesIndexMap.has(Number(s))) {
+                        sm[s] = sm[s] || { strike: s };
+                        sm[s][`call_${o.expiration}`] = o.netGamma[six] > 0 ? o.netGamma[six] : 0
+                        sm[s][`put_${o.expiration}`] = o.netGamma[six] < 0 ? o.netGamma[six] : 0
+                    }
+                })
+            }
+            exposureDataValue.nivoItems = Object.values(sm);
             break;
         case 'DEX':
             exposureDataValue.items = filteredData.flatMap(j => {
@@ -111,6 +122,19 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
                     data: mapChartValues(strikesIndexMap, j.strikes, j.put.absDelta.map(v => v))
                 }]
             })
+
+            const sm1: Record<string, OptionBarData> = {};
+            for (const o of filteredData) {
+                o.strikes.forEach((s, six) => {
+                    if (strikesIndexMap.has(Number(s))) {
+                        sm1[s] = sm1[s] || { strike: s };
+                        sm1[s][`call_${o.expiration}`] = o.call.absDelta[six] || 0;
+                        sm1[s][`put_${o.expiration}`] = o.put.absDelta[six] || 0;
+                    }
+                });
+            }
+            exposureDataValue.nivoItems = Object.values(sm1);
+
             break;
         case 'OI':
             exposureDataValue.items = filteredData.flatMap(j => {
@@ -122,6 +146,18 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
                     data: mapChartValues(strikesIndexMap, j.strikes, j.put.openInterest.map(v => -v))
                 }]
             })
+
+            const sm2: Record<string, OptionBarData> = {};
+            for (const o of filteredData) {
+                o.strikes.forEach((s, six) => {
+                    if (strikesIndexMap.has(Number(s))) {
+                        sm2[s] = sm2[s] || { strike: s };
+                        sm2[s][`call_${o.expiration}`] = o.call.openInterest[six] || 0;
+                        sm2[s][`put_${o.expiration}`] = -o.put.openInterest[six] || 0;
+                    }
+                });
+            }
+            exposureDataValue.nivoItems = Object.values(sm2);
             break;
         case 'VOLUME':
             exposureDataValue.items = filteredData.flatMap(j => {
@@ -133,6 +169,18 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
                     data: mapChartValues(strikesIndexMap, j.strikes, j.put.volume.map(v => -v))
                 }]
             })
+
+            const sm3: Record<string, OptionBarData> = {};
+            for (const o of filteredData) {
+                o.strikes.forEach((s, six) => {
+                    if (strikesIndexMap.has(Number(s))) {
+                        sm3[s] = sm3[s] || { strike: s };
+                        sm3[s][`call_${o.expiration}`] = o.call.volume[six] || 0;
+                        sm3[s][`put_${o.expiration}`] = -o.put.volume[six] || 0;
+                    }
+                });
+            }
+            exposureDataValue.nivoItems = Object.values(sm3);
             break;
         default:
             throw new Error('invalid chart type');

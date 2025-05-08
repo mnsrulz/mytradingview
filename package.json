@@ -22,6 +22,8 @@
     "@mui/x-charts": "^8.2.0",
     "@mui/x-data-grid": "^8.2.0",
     "@mui/x-date-pickers": "^8.2.0",
+    "@nivo/bar": "^0.94.0",
+    "@nivo/core": "^0.94.0",
     "@prisma/client": "^5.12.1",
     "@toolpad/core": "^0.14.0",
     "@uidotdev/usehooks": "^2.4.1",
