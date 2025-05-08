@@ -2,7 +2,7 @@ import { getColorPallete } from "@/lib/color";
 import { humanAbsCurrencyFormatter } from "@/lib/formatters";
 import { DexGexType, ExposureDataType } from "@/lib/types";
 import { calculateChartHeight, calculateYAxisTickWidth } from "@/lib/utils";
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, LinearProgress, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
 import { useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
@@ -25,8 +25,18 @@ const GreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
-export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean }) => {
-    const { symbol, exposureData, skipAnimation, isLoading } = props;
+export const GreeksExposureChart = (props: { exposureData?: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean, hasData: boolean, hasError: boolean }) => {
+    const { symbol, exposureData, skipAnimation, isLoading, hasData, hasError } = props;
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+    if (isLoading || !exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
+        return <Box sx={{ m: 1 }} minHeight={400}>
+            <LinearProgress />
+        </Box>
+    else if (hasError)
+        return <i>Error occurred! Please try again...</i>
+
     const { strikes, exposureType, dte, expirations, items, maxPosition, spotPrice, callWall, putWall } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
@@ -36,10 +46,17 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const leftMarginValue = calculateYAxisTickWidth(maxStrike);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
-    const theme = useTheme();
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    //     exposureData && (
+    //         <GreeksExposureChart
+    //             skipAnimation={printMode}
+    //             exposureData={exposureData}
+    //             symbol={symbol}
+    //             isLoading={isLoading}
+    //         />
+    //     )
+    // )
 
-    return <Box>
+    return <Box sx={{ m: 1 }} minHeight={400}>
         <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
         <BarChart
             loading={isLoading}

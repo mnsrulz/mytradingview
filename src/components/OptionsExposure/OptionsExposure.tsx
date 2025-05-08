@@ -1,5 +1,5 @@
 'use client';
-import { useOptionExposure } from "@/lib/hooks";
+import { useOptionExposure } from '@/hooks/useOptionExposure';
 import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper } from "@mui/material";
 import { useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
@@ -21,25 +21,9 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoading, hasError, expirationData, hasData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
 
-    const exposureChartContent = <Box sx={{ m: 1 }} minHeight={400}>{
-        (isLoading && !hasData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
-            <LinearProgress />
-        ) : hasError ? (
-            <i>Error occurred! Please try again...</i>
-        ) : (
-            exposureData && (
-                <GreeksExposureChart
-                    skipAnimation={printMode}
-                    exposureData={exposureData}                    
-                    symbol={symbol}                    
-                    isLoading={isLoading}
-                />
-            )
-        )
-    }</Box>
     if (printMode) {
         return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body'>
-            {exposureChartContent}
+            <GreeksExposureChart exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} skipAnimation={true} />
         </Dialog>
     }
 
@@ -60,7 +44,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
-            {exposureChartContent}
+            <GreeksExposureChart exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} />
         </Paper>
         {
             dataMode == DataModeType.HISTORICAL && <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
