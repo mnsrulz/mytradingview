@@ -9,7 +9,7 @@ import { GreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
-import { GreeksExposureChartNivo } from './GreeksExposureChartNivo';
+import { GreeksExposureChartNivo, MemoizedGreeksExposureChartNivo } from './GreeksExposureChartNivo';
 
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
@@ -22,21 +22,34 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoading, hasError, expirationData, hasData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
     const handleHistoricalDateChange = useCallback((v: string) => setHistoricalDate(v), [symbol]);
+
+    const expo = !exposureData ? <Box sx={{ m: 1 }} minHeight={400}>
+        <LinearProgress />
+    </Box> : hasError ? <i>Error occurred! Please try again...</i> : <MemoizedGreeksExposureChartNivo exposureData={exposureData} symbol={symbol} skipAnimation={printMode} isLoading={isLoading} />
+
+
+    // if (!exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
+    //     return <Box sx={{ m: 1 }} minHeight={400}>
+    //         <LinearProgress />
+    //     </Box>
+    // else if (hasError)
+    //     return <i>Error occurred! Please try again...</i>
+
     if (printMode) {
         return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body'>
-            <GreeksExposureChartNivo exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} skipAnimation={true} />
+            {expo}
         </Dialog>
     }
 
-    const startHistoricalAnimation = async () => {
-        const delayMs = 1000;
-        for (const d of cachedDates) {
-            setTimeout(() => {
-                setHistoricalDate(d);
-            }, delayMs);
-            await new Promise((r) => setTimeout(r, delayMs));
-        }
-    }
+    // const startHistoricalAnimation = async () => {
+    //     const delayMs = 1000;
+    //     for (const d of cachedDates) {
+    //         setTimeout(() => {
+    //             setHistoricalDate(d);
+    //         }, delayMs);
+    //         await new Promise((r) => setTimeout(r, delayMs));
+    //     }
+    // }
 
     return <Container maxWidth="md" sx={{ p: 0 }}>
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
@@ -45,7 +58,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
-            <GreeksExposureChartNivo exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} />
+            {expo}
         </Paper>
         {
             dataMode == DataModeType.HISTORICAL && <HistoricalDateSlider dates={cachedDates} onChange={handleHistoricalDateChange} currentValue={historicalDate} />

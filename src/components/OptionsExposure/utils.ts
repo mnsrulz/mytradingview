@@ -1,6 +1,7 @@
+import { getColorPallete } from "@/lib/color";
 import { DexGexType } from "@/lib/types";
 import { CartesianMarkerProps, DatumValue } from "@nivo/core";
-
+const colorCodes = getColorPallete();
 export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, putWall }: { spotPrice: number, spotPriceLine: number, exposureType: DexGexType, callWall: number, putWall: number }) => {
     const markers: CartesianMarkerProps<DatumValue>[] = [{
         value: '0',
@@ -62,4 +63,29 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
         }
     }
     return markers;
+}
+
+export const getLegends = (expirations: string[]) => {
+    return [
+        {
+            dataFrom: 'keys',
+            data: expirations.map(k => ({ label: k, color: colorCodes[expirations.indexOf(k)], id: k })),
+            anchor: 'top-right',
+            direction: 'column',
+            justify: false,
+            translateX: 80,
+            itemWidth: 80,
+            itemHeight: 16,
+            itemsSpacing: 2,
+            symbolSize: 10,
+            effects: [
+                {
+                    on: 'hover',
+                    style: {
+                        itemOpacity: 1,
+                    },
+                },
+            ],
+        },
+    ]
 }

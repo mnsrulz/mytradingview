@@ -4,15 +4,15 @@ import { DexGexType, ExposureDataType } from "@/lib/types";
 import { calculateChartHeight, calculateYAxisTickWidth } from "@/lib/utils";
 import { Box, LinearProgress, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
 import { SpotPriceLine } from "./SpotPriceLine";
 import { LoadingOverlay } from "./LoadingOverlay";
 import { useBarSeries, useAnimateLine } from '@mui/x-charts/hooks'
-import { ResponsiveBar } from '@nivo/bar'
+import { BarLegendProps, ResponsiveBar, ResponsiveBarCanvas } from '@nivo/bar'
 import { CartesianMarkerProps, DatumValue } from "@nivo/core";
-import { getMarkers } from "./utils";
+import { getLegends, getMarkers } from "./utils";
 
 const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
@@ -31,39 +31,56 @@ const GreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
-export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean, hasData: boolean, hasError: boolean }) => {
+export const GreeksExposureChartNivo = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean }) => {
     console.log(`rendering GreeksExposureChart`)
-    const { symbol, exposureData, skipAnimation, isLoading, hasData, hasError } = props;
+    const { symbol, exposureData, skipAnimation, isLoading } = props;
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-    if (!exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
-        return <Box sx={{ m: 1 }} minHeight={400}>
-            <LinearProgress />
-        </Box>
-    else if (hasError)
-        return <i>Error occurred! Please try again...</i>
-
-    const { strikes, exposureType, dte, expirations, items, nivoItems, maxPosition, spotPrice, callWall, putWall } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
-    const height = calculateChartHeight(expirations, strikes);
-    const spotPriceLine = Math.max(...strikes.filter(j => j <= spotPrice));
-    const maxStrike = Math.max(...strikes);
-    const leftMarginValue = calculateYAxisTickWidth(maxStrike);
-    const gammaOrDelta = GreeksChartLabelMapping[exposureType]
-    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
+    const { nivoItems, maxPosition, exposureType } = exposureData;
+    const { colors, gammaOrDelta, height, keys, leftMarginValue, spotPriceLine, title, markers, legends } = useMemo(() => {
+        const { strikes, exposureType, dte, expirations, spotPrice, callWall, putWall } = exposureData;
+        const gammaOrDelta = GreeksChartLabelMapping[exposureType];
+        const spotPriceLine = Math.max(...strikes.filter(j => j <= spotPrice));
+        const colors = expirations.reduce((pv, cv, ix) => {
+            pv[`call_${cv}`] = colorCodes[ix]
+            pv[`put_${cv}`] = colorCodes[ix]
+            return pv;
+        }, {} as Record<string, string>);
+        const keys = Object.keys(colors);
+        const markers = getMarkers({ spotPrice, exposureType, spotPriceLine, callWall: Number(callWall), putWall: Number(putWall) });
+        return {
+            height: calculateChartHeight(expirations, strikes),
+            spotPriceLine: Math.max(...strikes.filter(j => j <= spotPrice)),
+            leftMarginValue: calculateYAxisTickWidth(Math.max(...strikes)),
+            gammaOrDelta,
+            title: `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`,
+            colors,
+            keys,
+            markers,
+            legends: getLegends(expirations) as BarLegendProps[]
+        }
+    }, [exposureData])
 
-    const colors = expirations.reduce((pv, cv, ix) => {
-        pv[`call_${cv}`] = colorCodes[ix]
-        pv[`put_${cv}`] = colorCodes[ix]
-        return pv;
-    }, {} as Record<string, string>);
-    const keys = Object.keys(colors);
+    // const height = calculateChartHeight(expirations, strikes);
+    // const spotPriceLine = Math.max(...strikes.filter(j => j <= spotPrice));
+    // const maxStrike = Math.max(...strikes);
+    // const leftMarginValue = calculateYAxisTickWidth(maxStrike);
+    // const gammaOrDelta = GreeksChartLabelMapping[exposureType]
+    // const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
+
+    // const colors = expirations.reduce((pv, cv, ix) => {
+    //     pv[`call_${cv}`] = colorCodes[ix]
+    //     pv[`put_${cv}`] = colorCodes[ix]
+    //     return pv;
+    // }, {} as Record<string, string>);
+    // const keys = Object.keys(colors);
 
     const { rightMargin, legendPosition } = isSmallScreen ? { rightMargin: 0, legendPosition: 'top-right' } : { rightMargin: 100, legendPosition: 'top-right' }
 
-    const markers = getMarkers({ spotPrice, exposureType, spotPriceLine, callWall: Number(callWall), putWall: Number(putWall) });
+
 
     return <div style={{ height: height }}>
         <ResponsiveBar
@@ -97,37 +114,15 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
                 tickRotation: 0,
                 format: (tick) => `$${Number(tick).toFixed(2)}`
             }}
-            enableGridX = {false}
-            enableGridY = {false}
+            enableGridX={false}
+            enableGridY={false}
             enableLabel={false}
             // labelSkipWidth={12}
             // labelSkipHeight={12}
             // labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
             animate={!skipAnimation}
-            motionConfig="stiff"
             markers={markers}
-            legends={[
-                {
-                    dataFrom: 'keys',
-                    data: expirations.map(k => ({ label: k, color: colorCodes[expirations.indexOf(k)], id: k })),
-                    anchor: 'top-right',
-                    direction: 'column',
-                    justify: false,
-                    translateX: 80,
-                    itemWidth: 80,
-                    itemHeight: 16,
-                    itemsSpacing: 2,
-                    symbolSize: 10,
-                    effects: [
-                        {
-                            on: 'hover',
-                            style: {
-                                itemOpacity: 1,
-                            },
-                        },
-                    ],
-                },
-            ]}
+            legends={legends}
         />
     </div>
 
@@ -192,3 +187,5 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
     //     </BarChart>
     // </Box>
 }
+
+export const MemoizedGreeksExposureChartNivo = memo(GreeksExposureChartNivo);
