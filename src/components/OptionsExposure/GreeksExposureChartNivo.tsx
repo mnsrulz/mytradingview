@@ -102,9 +102,10 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
                 tickRotation: 0,
                 format: (tick) => `$${Number(tick).toFixed(2)}`
             }}
-            labelSkipWidth={12}
-            labelSkipHeight={12}
-            labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
+            enableLabel={false}
+            // labelSkipWidth={12}
+            // labelSkipHeight={12}
+            // labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
             animate={!skipAnimation}
             motionConfig="stiff"
             markers={markers}

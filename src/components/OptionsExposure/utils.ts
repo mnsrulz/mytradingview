@@ -14,25 +14,11 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
             strokeDasharray: '4', color: 'red', stroke: 'red'
         },
         textStyle: {
-            stroke: 'red', strokeWidth: 0.25, fontSize: '8px'
+            stroke: 'red', strokeWidth: 0.25, fontSize: '8px', transform: 'translateY(-8px)'
         }
     }];
 
     if (exposureType === DexGexType.GEX) {
-
-        markers.push({
-            value: `${spotPriceLine}`,
-            axis: 'y',
-            legendPosition: 'top-left',
-            legend: `SPOT PRICE: $${spotPrice.toFixed(2)}`,
-            lineStyle: {
-                strokeDasharray: '4', color: 'red', stroke: 'red'
-            },
-            textStyle: {
-                stroke: 'red', strokeWidth: 0.25, fontSize: '8px'
-            }
-        })
-
         if (callWall == putWall) {
             markers.push({
                 value: `${callWall}`,
@@ -43,7 +29,7 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
                     strokeDasharray: '4', color: 'violet', stroke: 'violet'
                 },
                 textStyle: {
-                    stroke: 'violet', strokeWidth: 0.25, fontSize: '8px'
+                    stroke: 'violet', strokeWidth: 0.25, fontSize: '8px', transform: 'translateY(-8px)'
                 }
             })
         } else {
@@ -57,7 +43,7 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
                     strokeDasharray: '4', color: 'green', stroke: 'green'
                 },
                 textStyle: {
-                    stroke: 'green', strokeWidth: 0.25, fontSize: '8px'
+                    stroke: 'green', strokeWidth: 0.25, fontSize: '8px', transform: 'translateY(-8px)'
                 }
             })
 
@@ -70,37 +56,10 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
                     strokeDasharray: '4', color: 'orange', stroke: 'orange'
                 },
                 textStyle: {
-                    stroke: 'orange', strokeWidth: 0.25, fontSize: '8px', margin: 0, translate: 0
+                    stroke: 'orange', strokeWidth: 0.25, fontSize: '8px', margin: 0, padding: 0, top: 0, transform: 'translateY(-8px)'
                 }
             })
         }
-
-        /*
-        if (callWall == putWall) {
-                return <ChartsReferenceLine y={Number(callWall)} label={"WALL: $" + (callWall)}
-                    labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
-                    lineStyle={{ strokeDasharray: '4', color: 'violet', stroke: 'violet' }}
-                    labelStyle={{ stroke: 'violet', strokeWidth: 0.25, fontSize: '8px' }} />;
-            }
-            return <>
-                <ChartsReferenceLine y={Number(callWall)} label={"CALL WALL: $" + (callWall)}
-                    labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
-                    lineStyle={{ strokeDasharray: '4', color: 'green', stroke: 'green' }}
-                    labelStyle={{ stroke: 'green', strokeWidth: 0.25, fontSize: '8px' }} />
-        
-                <ChartsReferenceLine y={Number(putWall)} label={"PUT WALL: $" + (putWall)}
-                    labelAlign={spotPriceLineValue == putWall ? "end" : "start"}
-                    lineStyle={{ strokeDasharray: '4', color: 'orange', stroke: 'orange' }}
-                    labelStyle={{ stroke: 'orange', strokeWidth: 0.25, fontSize: '8px' }} />
-            </>;
-        */
-
-
-
     }
-
-
-
-
     return markers;
 }
