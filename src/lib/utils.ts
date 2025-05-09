@@ -104,7 +104,7 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
             for (const o of filteredData) {
                 o.strikes.forEach((s, six) => {
                     if (strikesIndexMap.has(Number(s))) {
-                        sm[s] = sm[s] || { strike: s };
+                        sm[s] = sm[s] || { strike: Number(s) };
                         sm[s][`call_${o.expiration}`] = o.netGamma[six] > 0 ? o.netGamma[six] : 0
                         sm[s][`put_${o.expiration}`] = o.netGamma[six] < 0 ? o.netGamma[six] : 0
                     }
@@ -127,7 +127,7 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
             for (const o of filteredData) {
                 o.strikes.forEach((s, six) => {
                     if (strikesIndexMap.has(Number(s))) {
-                        sm1[s] = sm1[s] || { strike: s };
+                        sm1[s] = sm1[s] || { strike: Number(s) };
                         sm1[s][`call_${o.expiration}`] = o.call.absDelta[six] || 0;
                         sm1[s][`put_${o.expiration}`] = o.put.absDelta[six] || 0;
                     }
@@ -151,7 +151,7 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
             for (const o of filteredData) {
                 o.strikes.forEach((s, six) => {
                     if (strikesIndexMap.has(Number(s))) {
-                        sm2[s] = sm2[s] || { strike: s };
+                        sm2[s] = sm2[s] || { strike: Number(s) };
                         sm2[s][`call_${o.expiration}`] = o.call.openInterest[six] || 0;
                         sm2[s][`put_${o.expiration}`] = -o.put.openInterest[six] || 0;
                     }
@@ -174,7 +174,7 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
             for (const o of filteredData) {
                 o.strikes.forEach((s, six) => {
                     if (strikesIndexMap.has(Number(s))) {
-                        sm3[s] = sm3[s] || { strike: s };
+                        sm3[s] = sm3[s] || { strike: Number(s) };
                         sm3[s][`call_${o.expiration}`] = o.call.volume[six] || 0;
                         sm3[s][`put_${o.expiration}`] = -o.put.volume[six] || 0;
                     }
@@ -186,7 +186,7 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
             throw new Error('invalid chart type');
     }
 
-    exposureDataValue.nivoItems.sort((a,b)=> Number(a.strike) - Number(b.strike));
+    exposureDataValue.nivoItems.sort((a,b)=> a.strike - b.strike);
     exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
     const end = performance.now();
     console.log(`exposure-calculation took ${end - start}ms`);

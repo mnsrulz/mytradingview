@@ -1,12 +1,12 @@
 import { DexGexType } from "@/lib/types";
 import { CartesianMarkerProps, DatumValue } from "@nivo/core";
 
-export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, putWall }: { spotPrice: number, spotPriceLine: number, exposureType: DexGexType, callWall: string, putWall: string }) => {
+export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, putWall }: { spotPrice: number, spotPriceLine: number, exposureType: DexGexType, callWall: number, putWall: number }) => {
     const markers: CartesianMarkerProps<DatumValue>[] = [{
         value: '0',
         axis: 'x'
     }, {
-        value: `${spotPriceLine}`,
+        value: spotPriceLine,
         axis: 'y',
         legendPosition: 'top-left',
         legend: `SPOT PRICE: $${spotPrice.toFixed(2)}`,
@@ -21,9 +21,9 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
     if (exposureType === DexGexType.GEX) {
         if (callWall == putWall) {
             markers.push({
-                value: `${callWall}`,
+                value: callWall,
                 axis: 'y',
-                legendPosition: spotPriceLine == Number(callWall) ? 'top-right' : 'top-left',
+                legendPosition: spotPriceLine == callWall ? 'top-right' : 'top-left',
                 legend: `WALL: $${callWall}`,
                 lineStyle: {
                     strokeDasharray: '4', color: 'violet', stroke: 'violet'
@@ -35,9 +35,9 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
         } else {
 
             markers.push({
-                value: `${callWall}`,
+                value: callWall,
                 axis: 'y',
-                legendPosition: spotPriceLine == Number(callWall) ? 'top-right' : 'top-left',
+                legendPosition: spotPriceLine == callWall ? 'top-right' : 'top-left',
                 legend: `CALL WALL: $${callWall}`,
                 lineStyle: {
                     strokeDasharray: '4', color: 'green', stroke: 'green'
@@ -48,9 +48,9 @@ export const getMarkers = ({ spotPrice, spotPriceLine, exposureType, callWall, p
             })
 
             markers.push({
-                value: `${putWall}`,
+                value: putWall,
                 axis: 'y',
-                legendPosition: spotPriceLine == Number(putWall) ? 'top-right' : 'top-left',
+                legendPosition: spotPriceLine == putWall ? 'top-right' : 'top-left',
                 legend: `PUT WALL: $${putWall}`,
                 lineStyle: {
                     strokeDasharray: '4', color: 'orange', stroke: 'orange'

@@ -236,7 +236,7 @@ export type ExposureCalculationWorkerRequest = {
   selectedExpirations: string[]
 }
 export type OptionBarData = {
-  strike: string;
+  strike: number;
   [key: `${'call' | 'put'}_${string}`]: number;
 };
 

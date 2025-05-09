@@ -36,9 +36,6 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
     const { symbol, exposureData, skipAnimation, isLoading, hasData, hasError } = props;
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-    const series = useMemo(() => exposureData?.items?.map((j, ix) => {
-        return { data: j.data, stack: 'A', color: colorCodes[exposureData.expirations.indexOf(j.expiration)], label: j.expiration, type: 'bar' as const, labelMarkType: 'line' as const }
-    }) || [], [exposureData]);
 
     if (!exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
         return <Box sx={{ m: 1 }} minHeight={400}>
@@ -66,7 +63,7 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
 
     const { rightMargin, legendPosition } = isSmallScreen ? { rightMargin: 0, legendPosition: 'top-right' } : { rightMargin: 100, legendPosition: 'top-right' }
 
-    const markers = getMarkers({ spotPrice, exposureType, spotPriceLine, callWall, putWall });
+    const markers = getMarkers({ spotPrice, exposureType, spotPriceLine, callWall: Number(callWall), putWall: Number(putWall) });
 
     return <div style={{ height: height }}>
         <ResponsiveBar
@@ -79,14 +76,12 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
             layout="horizontal"
             reverse={true}
             margin={{ top: 40, right: rightMargin, bottom: 50, left: leftMarginValue }}
-            padding={0.3}
             valueScale={{ type: 'linear', min: -maxPosition * 1.1, max: maxPosition * 1.1 }}
             indexScale={{ type: 'band', round: true }}
             colors={({ id }) => colors[id]}
             borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
             axisTop={null}
             axisRight={null}
-
             axisBottom={{
                 tickSize: 5,
                 tickPadding: 5,
@@ -102,6 +97,8 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
                 tickRotation: 0,
                 format: (tick) => `$${Number(tick).toFixed(2)}`
             }}
+            enableGridX = {false}
+            enableGridY = {false}
             enableLabel={false}
             // labelSkipWidth={12}
             // labelSkipHeight={12}
@@ -118,9 +115,9 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
                     justify: false,
                     translateX: 80,
                     itemWidth: 80,
-                    itemHeight: 20,
+                    itemHeight: 16,
                     itemsSpacing: 2,
-                    symbolSize: 20,
+                    symbolSize: 10,
                     effects: [
                         {
                             on: 'hover',

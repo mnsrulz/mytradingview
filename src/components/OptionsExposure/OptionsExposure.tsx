@@ -1,7 +1,7 @@
 'use client';
 import { useOptionExposure } from '@/hooks/useOptionExposure';
 import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper } from "@mui/material";
-import { memo, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
@@ -21,7 +21,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoading, hasError, expirationData, hasData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
-
+    const handleHistoricalDateChange = useCallback((v: string) => setHistoricalDate(v), [symbol]);
     if (printMode) {
         return <Dialog fullWidth={true} fullScreen={true} open={true} aria-labelledby="delta-hedging-dialog" scroll='body'>
             <GreeksExposureChartNivo exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} skipAnimation={true} />
@@ -48,7 +48,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             <GreeksExposureChartNivo exposureData={exposureData} hasData={hasData} hasError={hasError} isLoading={isLoading} symbol={symbol} />
         </Paper>
         {
-            dataMode == DataModeType.HISTORICAL && <HistoricalDateSlider dates={cachedDates} onChange={(v) => setHistoricalDate(v)} currentValue={historicalDate} />
+            dataMode == DataModeType.HISTORICAL && <HistoricalDateSlider dates={cachedDates} onChange={handleHistoricalDateChange} currentValue={historicalDate} />
         }
         <UpdateFrequencyDisclaimer />
     </Container>
