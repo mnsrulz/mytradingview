@@ -11,6 +11,8 @@ import { SpotPriceLine } from "./SpotPriceLine";
 import { LoadingOverlay } from "./LoadingOverlay";
 import { useBarSeries, useAnimateLine } from '@mui/x-charts/hooks'
 import { ResponsiveBar } from '@nivo/bar'
+import { CartesianMarkerProps, DatumValue } from "@nivo/core";
+import { getMarkers } from "./utils";
 
 const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
@@ -49,13 +51,11 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
     const height = calculateChartHeight(expirations, strikes);
-    const yaxisline = Math.max(...strikes.filter(j => j <= spotPrice));
+    const spotPriceLine = Math.max(...strikes.filter(j => j <= spotPrice));
     const maxStrike = Math.max(...strikes);
     const leftMarginValue = calculateYAxisTickWidth(maxStrike);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
-
-    debugger;
 
     const colors = expirations.reduce((pv, cv, ix) => {
         pv[`call_${cv}`] = colorCodes[ix]
@@ -64,16 +64,21 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
     }, {} as Record<string, string>);
     const keys = Object.keys(colors);
 
+    const { rightMargin, legendPosition } = isSmallScreen ? { rightMargin: 0, legendPosition: 'top-right' } : { rightMargin: 100, legendPosition: 'top-right' }
+
+    const markers = getMarkers({ spotPrice, exposureType, spotPriceLine, callWall, putWall });
+
     return <div style={{ height: height }}>
         <ResponsiveBar
+            theme={{
+
+            }}
             data={nivoItems}
             keys={keys}
-            // minValue={-maxPosition * 1.1}
-            // maxValue={maxPosition * 1.1}
             indexBy="strike"
             layout="horizontal"
             reverse={true}
-            margin={{ top: 40, right: 150, bottom: 50, left: leftMarginValue }}
+            margin={{ top: 40, right: rightMargin, bottom: 50, left: leftMarginValue }}
             padding={0.3}
             valueScale={{ type: 'linear', min: -maxPosition * 1.1, max: maxPosition * 1.1 }}
             indexScale={{ type: 'band', round: true }}
@@ -81,11 +86,12 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
             borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
             axisTop={null}
             axisRight={null}
+
             axisBottom={{
                 tickSize: 5,
                 tickPadding: 5,
                 tickRotation: 0,
-                legend: 'Open Interest',
+                legend: gammaOrDelta,
                 legendPosition: 'middle',
                 legendOffset: 40,
                 format: v => xAxixFormatter(exposureType, v)
@@ -99,17 +105,18 @@ export const GreeksExposureChartNivo = (props: { exposureData?: ExposureDataType
             labelSkipWidth={12}
             labelSkipHeight={12}
             labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-            animate={true}
+            animate={!skipAnimation}
             motionConfig="stiff"
+            markers={markers}
             legends={[
                 {
                     dataFrom: 'keys',
                     data: expirations.map(k => ({ label: k, color: colorCodes[expirations.indexOf(k)], id: k })),
-                    anchor: 'right',
+                    anchor: 'top-right',
                     direction: 'column',
                     justify: false,
-                    translateX: 120,
-                    itemWidth: 140,
+                    translateX: 80,
+                    itemWidth: 80,
                     itemHeight: 20,
                     itemsSpacing: 2,
                     symbolSize: 20,

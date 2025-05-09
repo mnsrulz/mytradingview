@@ -186,6 +186,7 @@ export const filterExposureData = (args: ExposureCalculationWorkerRequest) => {
             throw new Error('invalid chart type');
     }
 
+    exposureDataValue.nivoItems.sort((a,b)=> Number(a.strike) - Number(b.strike));
     exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
     const end = performance.now();
     console.log(`exposure-calculation took ${end - start}ms`);

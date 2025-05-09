@@ -1,7 +1,7 @@
 'use client';
 import { useOptionExposure } from '@/hooks/useOptionExposure';
 import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper } from "@mui/material";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
