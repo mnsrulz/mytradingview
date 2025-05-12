@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
-import { GreeksExposureChart } from "./GreeksExposureChart";
+import { MemoizedGreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
@@ -28,7 +28,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             <i>Error occurred! Please try again...</i>
         ) : (
             exposureData && (
-                <GreeksExposureChart
+                <MemoizedGreeksExposureChart
                     skipAnimation={printMode}
                     exposureData={exposureData}
                     dte={dte}
