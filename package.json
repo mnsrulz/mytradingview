@@ -50,7 +50,7 @@
     "recharts": "^2.15.3",
     "socket.io-client": "^4.8.1",
     "sort-by": "^1.2.0",
-    "uplot": "^1.6.31",
+    "uplot": "^1.6.32",
     "uplot-react": "^1.2.2",
     "yahoo-finance2": "^2.12.3"
   },
