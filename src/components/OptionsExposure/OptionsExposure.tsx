@@ -10,6 +10,7 @@ import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
 import { GreeksExposureChartNivo, MemoizedGreeksExposureChartNivo } from './GreeksExposureChartNivo';
+import { useLocalStorageState } from '@toolpad/core/useLocalStorageState';
 
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
@@ -22,10 +23,13 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
     const { exposureData, isLoading, hasError, expirationData, hasData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
     const handleHistoricalDateChange = useCallback((v: string) => setHistoricalDate(v), [symbol]);
+    const [tm] = useLocalStorageState('toolpad-mode', 'default');
+    const darkMode = tm == 'dark'
+
 
     const expo = !exposureData ? <Box sx={{ m: 1 }} minHeight={400}>
         <LinearProgress />
-    </Box> : hasError ? <i>Error occurred! Please try again...</i> : <MemoizedGreeksExposureChartNivo exposureData={exposureData} symbol={symbol} skipAnimation={printMode} isLoading={isLoading} />
+    </Box> : hasError ? <i>Error occurred! Please try again...</i> : <MemoizedGreeksExposureChartNivo darkMode={darkMode} exposureData={exposureData} symbol={symbol} skipAnimation={printMode} isLoading={isLoading} />
 
 
     // if (!exposureData)   //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough

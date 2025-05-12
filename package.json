@@ -25,7 +25,7 @@
     "@nivo/bar": "^0.94.0",
     "@nivo/core": "^0.94.0",
     "@prisma/client": "^5.12.1",
-    "@toolpad/core": "^0.14.0",
+    "@toolpad/core": "^0.15.0",
     "@uidotdev/usehooks": "^2.4.1",
     "autosuggest-highlight": "^3.3.4",
     "collect.js": "^4.36.1",

@@ -7,7 +7,7 @@ import { NextAppProvider } from '@toolpad/core/nextjs';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Container, LinearProgress } from "@mui/material";
+import { Container, LinearProgress, ThemeProvider } from "@mui/material";
 import { Metadata } from "next";
 import { NoPrefetch } from "@/components/NoPrefetch";
 import { Suspense } from "react";
@@ -41,16 +41,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               }}
             >
               <DashboardLayout>
-                <NoPrefetch />
-                <NuqsAdapter>
-                  <Container maxWidth="xl" sx={{ p: 1 }}>
-                    <Suspense fallback={<LinearProgress />}>
-                      {children}
-                    </Suspense>
-                  </Container>
-                  {/* <PageContainer>
+                <NoPrefetch />                
+                  <NuqsAdapter>
+                    <Container maxWidth="xl" sx={{ p: 1 }}>
+                      <Suspense fallback={<LinearProgress />}>
+                        {children}
+                      </Suspense>
+                    </Container>
+                    {/* <PageContainer>
                   </PageContainer> */}
-                </NuqsAdapter>
+                  </NuqsAdapter>
               </DashboardLayout>
             </NextAppProvider>
           </AppRouterCacheProvider>

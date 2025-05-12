@@ -4,7 +4,7 @@ import { DexGexType, ExposureDataType } from "@/lib/types";
 import { calculateChartHeight, calculateYAxisTickWidth } from "@/lib/utils";
 import { Box, LinearProgress, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
-import { memo, useMemo } from "react";
+import { memo, useContext, useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
 import { SpotPriceLine } from "./SpotPriceLine";
@@ -12,7 +12,8 @@ import { LoadingOverlay } from "./LoadingOverlay";
 import { useBarSeries, useAnimateLine } from '@mui/x-charts/hooks'
 import { BarLegendProps, ResponsiveBar, ResponsiveBarCanvas } from '@nivo/bar'
 import { CartesianMarkerProps, DatumValue } from "@nivo/core";
-import { getLegends, getMarkers } from "./utils";
+import { getLegends, getMarkers, getTheme } from "./utils";
+import { ThemeContext } from "@emotion/react";
 
 const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
@@ -31,9 +32,9 @@ const GreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
-export const GreeksExposureChartNivo = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean }) => {
+export const GreeksExposureChartNivo = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, isLoading: boolean, darkMode: boolean }) => {
     console.log(`rendering GreeksExposureChart`)
-    const { symbol, exposureData, skipAnimation, isLoading } = props;
+    const { symbol, exposureData, skipAnimation, isLoading, darkMode } = props;
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -62,37 +63,19 @@ export const GreeksExposureChartNivo = (props: { exposureData: ExposureDataType,
             markers,
             legends: getLegends(expirations) as BarLegendProps[]
         }
-    }, [exposureData])
-
-    // const height = calculateChartHeight(expirations, strikes);
-    // const spotPriceLine = Math.max(...strikes.filter(j => j <= spotPrice));
-    // const maxStrike = Math.max(...strikes);
-    // const leftMarginValue = calculateYAxisTickWidth(maxStrike);
-    // const gammaOrDelta = GreeksChartLabelMapping[exposureType]
-    // const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
-
-    // const colors = expirations.reduce((pv, cv, ix) => {
-    //     pv[`call_${cv}`] = colorCodes[ix]
-    //     pv[`put_${cv}`] = colorCodes[ix]
-    //     return pv;
-    // }, {} as Record<string, string>);
-    // const keys = Object.keys(colors);
+    }, [exposureData, symbol])
 
     const { rightMargin, legendPosition } = isSmallScreen ? { rightMargin: 0, legendPosition: 'top-right' } : { rightMargin: 100, legendPosition: 'top-right' }
 
-
-
     return <div style={{ height: height }}>
         <ResponsiveBar
-            theme={{
-
-            }}
+            theme={getTheme(darkMode)}
             data={nivoItems}
             keys={keys}
             indexBy="strike"
             layout="horizontal"
             reverse={true}
-            margin={{ top: 40, right: rightMargin, bottom: 50, left: leftMarginValue }}
+            margin={{ top: 40, right: rightMargin, bottom: 50, left: leftMarginValue + 8 }}
             valueScale={{ type: 'linear', min: -maxPosition * 1.1, max: maxPosition * 1.1 }}
             indexScale={{ type: 'band', round: true }}
             colors={({ id }) => colors[id]}
