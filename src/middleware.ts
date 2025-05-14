@@ -1,9 +1,16 @@
 import { auth } from "@/lib/auth";
-// import log from '@/lib/logger'
+import { logger } from '@/lib/logger'
 const secureRoutesRegex = /^\/(api\/)?trades$/;
 
 export default auth((req) => {
-       console.log(`${req.method} ${req.nextUrl.pathname}`, { path: req.nextUrl.pathname, method: req.method });
+       logger.info(`${req.method} ${req.nextUrl.pathname}`, {
+              path: req.nextUrl.pathname,
+              method: req.method,
+              referrer: req.referrer,
+              auth: req.auth,
+              ip: req.headers.get('X-Forwarded-For') || req.headers.get('x-real-ip'),
+              userAgent: req.headers.get('user-agent')
+       });
        if (!req.auth) {
               if (secureRoutesRegex.test(req.nextUrl.pathname)) {
                      const newUrl = new URL("/api/auth/signin", req.nextUrl.origin)
