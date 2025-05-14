@@ -6,7 +6,7 @@ export default auth((req) => {
        logger.info(`${req.method} ${req.nextUrl.pathname}`, {
               path: req.nextUrl.pathname,
               method: req.method,
-              referrer: req.referrer,
+              referer: req.headers.get('referer'),
               auth: req.auth,
               ip: req.headers.get('X-Forwarded-For') || req.headers.get('x-real-ip'),
               userAgent: req.headers.get('user-agent')
