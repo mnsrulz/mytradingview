@@ -13,6 +13,9 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CalculateIcon from '@mui/icons-material/Calculate';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+// or
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -71,6 +74,12 @@ export const NAVIGATION: Navigation = [
                 segment: 'greeks',
                 title: 'Greeks',
                 icon: <FunctionsIcon />,
+            },
+            {
+                segment: 'oi-anomaly',
+                title: 'OI Anomaly',
+                icon: <WarningAmberIcon />, // or <ReportProblemIcon />
+                // icon: <ReportProblemIcon />
             },
         ],
     },
