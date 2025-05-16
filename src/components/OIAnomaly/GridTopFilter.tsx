@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEvent, OutlinedInput, Chip } from '@mui/material';
+import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEvent, OutlinedInput, Chip, Autocomplete, TextField } from '@mui/material';
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { useState } from 'react';
+import { SyntheticEvent, useState } from 'react';
 
 
 export const dteOptions = [7,
@@ -36,15 +36,9 @@ export const GridTopFilter = (props: {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-    const handleChange = (event: SelectChangeEvent<typeof selectedSymbols>) => {
-        const {
-            target: { value },
-        } = event;
-        setSelectedSymbols(
-            // On autofill we get a stringified value.
-            typeof value === 'string' ? value.split(',') : value,
-        );
-    };
+    function handleChange(event: SyntheticEvent<Element, Event>, value: string[]): void {
+        setSelectedSymbols(value);
+    }
 
     const [open, setOpen] = useState(false);
     const toggleDrawer = (newOpen: boolean) => () => {
@@ -65,8 +59,22 @@ export const GridTopFilter = (props: {
             </FormControl>
 
             <FormControl sx={{ m: 1, width: 300 }}>
-                <InputLabel>Symbols</InputLabel>
-                <Select
+                {/* <InputLabel>Symbols</InputLabel> */}
+                <Autocomplete
+                    multiple
+                    limitTags={2}
+                    id="multiple-limit-tags"
+                    options={symbols}
+                    // getOptionLabel={(option) => option}
+                    defaultValue={[]}
+                    renderInput={(params) => (
+                        <TextField {...params} label="Symbols" placeholder="Symbols" />
+                    )}
+                    onChange={handleChange}
+                    size='small'
+                // sx={{ width: '500px' }}
+                />
+                {/* <Select
                     id="demo-multiple-chip"
                     multiple
                     value={selectedSymbols}
@@ -99,7 +107,7 @@ export const GridTopFilter = (props: {
                             {name}
                         </MenuItem>
                     ))}
-                </Select>
+                </Select> */}
             </FormControl>
 
             <FormControl sx={{ m: 1, minWidth: 90 }} size="small">
