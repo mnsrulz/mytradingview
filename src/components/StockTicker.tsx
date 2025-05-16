@@ -17,18 +17,20 @@ export const StockTickerView = (props: ITickerProps) => {
     if (oddata && oddata.quoteSummary) {
         const { quoteSummary } = oddata;
         const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
-            [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent|| quoteSummary.preMarketChangePercent]
+            [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
             : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
 
         const secondaryColor = changePercent < 0 ? red[500] : green[500];
         const secondaryText = `${positiveNegativeNumberFormatter(change)} ${positiveNegativeNumberFormatter(changePercent)}%`
         return <ListItemText
-            primaryTypographyProps={{
-                fontSize: primaryTextSize
-            }}
-            secondaryTypographyProps={{
-                fontSize: secondaryTextSize,
-                color: secondaryColor
+            slotProps={{
+                primary: {
+                    fontSize: primaryTextSize
+                },
+                secondary: {
+                    fontSize: secondaryTextSize,
+                    color: secondaryColor
+                }
             }}
             primary={numberFormatter(price)}
             secondary={secondaryText}
@@ -41,11 +43,13 @@ export const StockTickerView = (props: ITickerProps) => {
 export const StockTickerSymbolView = (props: ITickerProps) => {
     const { name, symbol } = props.item;
     return <ListItemText
-        primaryTypographyProps={{
-            fontSize: primaryTextSize
-        }}
-        secondaryTypographyProps={{
-            fontSize: secondaryTextSize,
+        slotProps={{
+            primary: {
+                fontSize: primaryTextSize
+            },
+            secondary: {
+                fontSize: secondaryTextSize,
+            }
         }}
         primary={symbol}
         secondary={name}

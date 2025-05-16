@@ -2,7 +2,6 @@ import ky from "ky";
 import { HistoricalDataResponse, TradierOptionContractData, TradierOptionData } from "./types";
 import dayjs from "dayjs";
 import chunks from 'lodash.chunk';
-import { LRUCache } from 'lru-cache'
 const tradierBaseUri = process.env.TRADIER_BASE_URI || 'https://sandbox.tradier.com/';
 const optionsChain = `${tradierBaseUri}v1/markets/options/chains`;
 const lookup = `${tradierBaseUri}v1/markets/lookup`;

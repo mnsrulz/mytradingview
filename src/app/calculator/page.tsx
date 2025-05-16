@@ -47,8 +47,10 @@ export default function Page() {
                         fullWidth
                         value={formValues.riskValue}
                         onChange={handleChange}
-                        InputProps={{
-                            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                        slotProps={{
+                            input: {
+                                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                            }
                         }}
                     />
                 </Stack>
@@ -71,8 +73,10 @@ export default function Page() {
                         fullWidth
                         value={formValues.expectedProfit}
                         onChange={handleChange}
-                        InputProps={{
-                            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                        slotProps={{
+                            input: {
+                                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                            }
                         }}
                     />
                 </Stack>
