@@ -224,6 +224,7 @@ export type ExposureDataResponse = {
     },
     netGamma: number[],
     strikes: string[],
+    strikesMap: Map<number, number>,
     expiration: string,
     dte: number
   }[],

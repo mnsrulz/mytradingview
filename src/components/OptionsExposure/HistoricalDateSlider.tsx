@@ -32,21 +32,17 @@ export const HistoricalDateSlider = (props: IHistoricalDateSliderPorps) => {
 
 
     const handlePreviousClick = () => {
-        setValue((v) => {
-            if (v <= 0) return v;
-            const prevValue = dates.at(v - 1);
-            prevValue && onChange(prevValue);
-            return v - 1;
-        });
+        if (value <= 0) return;
+        const prevValue = dates.at(value - 1);
+        prevValue && onChange(prevValue);
+        setValue(value - 1);
     }
 
     const handleNextClick = () => {
-        setValue(v => {
-            if (v >= dates.length - 1) return v;
-            const nextValue = dates.at(v + 1);
-            nextValue && onChange(nextValue);
-            return v + 1
-        });
+        if (value >= dates.length - 1) return;
+        const nextValue = dates.at(value + 1);
+        nextValue && onChange(nextValue);
+        setValue(value + 1);
     }
 
     return <Paper>

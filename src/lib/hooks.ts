@@ -308,18 +308,27 @@ export const useTickerSearch = (v: string) => {
 
 export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string }
 
-const mapChartValues = (mp: Map<number, number>, skts: string[], values: number[]) => {
-    const nodes = new Array<number>(mp.size).fill(0);
-    for (let ix = 0; ix < skts.length; ix++) {
-        const nix = mp.get(Number(skts[ix]));
-        if (nix !== undefined) {
-            nodes[nix] = values[ix];
+const mapChartValues = (mp: Map<number, number>, skts: Map<number, number>, values: number[]) => {
+    const nodes = new Float64Array(mp.size).fill(0);
+
+    for (const o of mp.keys()) {    //[100,0]   //may be we don't need mp map, just an array would work too
+        const iix = skts.get(o);
+        const mpiix = mp.get(o);
+        if (iix !== undefined && mpiix !== undefined) {
+            nodes[mpiix] = values[iix];
         }
     }
-    return nodes;
+
+    // for (let ix = 0; ix < skts.length; ix++) {
+    //     const nix = mp.get(Number(skts[ix]));
+    //     if (nix !== undefined) {
+    //         nodes[nix] = values[ix];
+    //     }
+    // }
+    return Array.from(nodes);
 }
 
-const calcMaxValue = (len: number, data: number[][]) => {
+const calcMaxValue = (len: number, data: (number[] | Float64Array)[]) => {
     const callData = new Array<number>(len).fill(0);
     const putData = new Array<number>(len).fill(0);
     for (let i = 0; i < data.length; i++) {
@@ -370,6 +379,9 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const exposureResponse = dataMode == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveExposure(symbol, dataMode);
         exposureResponse.then(data => {
             setCache((prev) => { prev[cacheKey] = data; return prev; });
+            for (const d of data.data) {  //for better performance, we are converting the strikes to number only once
+                d.strikesMap = new Map(d.strikes.map((j, ix) => [Number(j), ix]));
+            }
             setRawExposureResponse(data);
         }).catch(() => {
             setHasError(true);
@@ -382,10 +394,12 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
         const expirations = filteredData.map(j => j.expiration);
 
-        const allAvailableStikesForFilteredExpirations = filteredData.reduce((prev, c) => {
-            c.strikes.forEach(k => prev.add(Number(k)));
-            return prev;
-        }, new Set<number>());
+        const allAvailableStikesForFilteredExpirations = new Set<number>();
+        for (const { strikes } of filteredData) {
+            for (const strike of strikes) {
+                allAvailableStikesForFilteredExpirations.add(Number(strike));
+            }
+        }
 
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
@@ -409,7 +423,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 exposureDataValue.items = filteredData.map(j => {
                     return {
                         expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikes, j.netGamma)
+                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.netGamma)
                     }
                 })
                 break;
@@ -417,10 +431,10 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 exposureDataValue.items = filteredData.flatMap(j => {
                     return [{
                         expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.absDelta)
+                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.absDelta)
                     }, {
                         expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.absDelta.map(v => v))
+                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.absDelta)
                     }]
                 })
                 break;
@@ -428,10 +442,10 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 exposureDataValue.items = filteredData.flatMap(j => {
                     return [{
                         expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.openInterest)
+                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.openInterest)
                     }, {
                         expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.openInterest.map(v => -v))
+                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.openInterest.map(v => -v))
                     }]
                 })
                 break;
@@ -439,10 +453,10 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 exposureDataValue.items = filteredData.flatMap(j => {
                     return [{
                         expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikes, j.call.volume)
+                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.volume)
                     }, {
                         expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikes, j.put.volume.map(v => -v))
+                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.volume.map(v => -v))
                     }]
                 })
                 break;
