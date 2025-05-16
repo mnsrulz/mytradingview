@@ -50,9 +50,9 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
                     secondary={p.row.expiration}
                 />
             }
-        },        
+        },
         {
-            field: 'prev_open_interest', align: 'right', flex: 0.5, headerName: 'Open Interest', type: 'number', renderCell: (p) => {
+            field: 'prev_open_interest', align: 'right', headerName: 'Open Interest', minWidth: 200, type: 'number', renderCell: (p) => {
                 const { oi_change, prev_open_interest, open_interest } = p.row;
                 const changePercent = (oi_change / prev_open_interest) * 100;
                 const secondaryColor = changePercent < 0 ? red[500] : green[500];
@@ -71,7 +71,7 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
                     secondary={secondaryText}
                 />
             }
-        },        
+        },
         {
             field: 'volume', headerName: 'Volume', type: 'number'
         },
@@ -80,70 +80,70 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
         }
     ];
 
-useEffect(() => {
-    setHasLoaded(false);
-    setRows([]);
-    getOIAnomalyReport({
-        dt: date,
-        symbols: selectedSymbols.join(','),
-        dteFrom: dteFrom > 0 ? dteFrom : undefined
-    }).then(d => {
-        setRows(d);
-        setHasLoaded(true)
-    });
-}, [date, selectedSymbols, dteFrom]);
+    useEffect(() => {
+        setHasLoaded(false);
+        setRows([]);
+        getOIAnomalyReport({
+            dt: date,
+            symbols: selectedSymbols.join(','),
+            dteFrom: dteFrom > 0 ? dteFrom : undefined
+        }).then(d => {
+            setRows(d);
+            setHasLoaded(true)
+        });
+    }, [date, selectedSymbols, dteFrom]);
 
-// const handleCloseAddTrade = () => { setOpenSymbolSummaryDialog(false); };
-// const handleSymbolClick = (v: string) => {
-//     setSelectedSymbol(v)
-//     setOpenSymbolSummaryDialog(true);
-// }
+    // const handleCloseAddTrade = () => { setOpenSymbolSummaryDialog(false); };
+    // const handleSymbolClick = (v: string) => {
+    //     setSelectedSymbol(v)
+    //     setOpenSymbolSummaryDialog(true);
+    // }
 
-return <Box sx={{ mb: 1 }}>
-    <GridTopFilter {...props}
-        date={date}
-        setDate={setDate}
-        selectedSymbols={selectedSymbols}
-        setSelectedSymbols={setSelectedSymbols}
-        dteFrom={dteFrom}
-        setDteFrom={setDteFrom}
-    />
+    return <Box sx={{ mb: 1 }}>
+        <GridTopFilter {...props}
+            date={date}
+            setDate={setDate}
+            selectedSymbols={selectedSymbols}
+            setSelectedSymbols={setSelectedSymbols}
+            dteFrom={dteFrom}
+            setDteFrom={setDteFrom}
+        />
 
-    <DataGrid
-        rows={rows}
-        columns={columns}
-        // columnGroupingModel={columnGroupingModel}
-        initialState={{
-            pagination: {
-                paginationModel: {
-                    pageSize: 20,
-                },
-            }
-        }}
-        loading={!hasLoaded}
-        getRowId={(r: OIAnomalyReportDataResponse) => `${r.option}-${r.dt}`}
-        // pageSizeOptions={[5]}
-        checkboxSelection={false}
-        disableColumnFilter
-        disableRowSelectionOnClick
-        disableColumnMenu={true}
-        density='compact'
-        rowHeight={72}
-        sx={{
-            '.MuiDataGrid-columnSeparator': {
-                display: 'none'
-            }
-        }}
-    // showToolbar            
-    // slotProps={{
-    //     toolbar: {
-    //         showQuickFilter: true,
-    //     },
-    // }}
-    />
+        <DataGrid
+            rows={rows}
+            columns={columns}
+            // columnGroupingModel={columnGroupingModel}
+            initialState={{
+                pagination: {
+                    paginationModel: {
+                        pageSize: 20,
+                    },
+                }
+            }}
+            loading={!hasLoaded}
+            getRowId={(r: OIAnomalyReportDataResponse) => `${r.option}-${r.dt}`}
+            // pageSizeOptions={[5]}
+            checkboxSelection={false}
+            disableColumnFilter
+            disableRowSelectionOnClick
+            disableColumnMenu={true}
+            density='compact'
+            rowHeight={72}
+            sx={{
+                '.MuiDataGrid-columnSeparator': {
+                    display: 'none'
+                }
+            }}
+        // showToolbar            
+        // slotProps={{
+        //     toolbar: {
+        //         showQuickFilter: true,
+        //     },
+        // }}
+        />
 
-    {/* {openSymbolSummaryDialog && selectedSymbol && <OptionsGreekReportBySymbolDialog onClose={handleCloseAddTrade}
+        {/* {openSymbolSummaryDialog && selectedSymbol && <OptionsGreekReportBySymbolDialog onClose={handleCloseAddTrade}
             symbol={selectedSymbol}
             open={openSymbolSummaryDialog} />} */}
-</Box>
+    </Box>
 }
