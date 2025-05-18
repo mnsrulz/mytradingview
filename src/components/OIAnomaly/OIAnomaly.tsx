@@ -56,7 +56,7 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
                 const { oi_change, prev_open_interest, open_interest } = p.row;
                 const changePercent = (oi_change / prev_open_interest) * 100;
                 const secondaryColor = changePercent < 0 ? red[500] : green[500];
-                const secondaryText = `${positiveNegativeNumberFormatter(oi_change)} (${positiveNegativeNumberFormatter(changePercent)})%`
+                const secondaryText = `${positiveNegativeNumberFormatter(oi_change)} (${positiveNegativeNumberFormatter(changePercent)}%)`;
                 return <ListItemText
                     slotProps={{
                         primary: {
