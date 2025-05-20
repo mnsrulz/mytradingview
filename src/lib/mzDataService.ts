@@ -1,5 +1,5 @@
 import ky from "ky";
-import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, ExposureSnapshotBySymbolResponse, } from "./types";
+import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, ExposureSnapshotBySymbolResponse, OIAnomalyReportDataResponse, } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -55,6 +55,11 @@ export const getEmaDataForExpsoure = async (symbol: string) => {
 
 export const getHistoricalGreeksSummaryByDate = async (dt: string, dte: number) => {
     return await client(`api/options/report/greeks?dt=${dt}&dte=${dte}`).json<OptionGreeksSummaryByDateResponse[]>();
+}
+export const getOIAnomalyReport = async (params: { dt?: string, symbols?: string, dteFrom?: number }) => {
+    return await client(`api/options/report/oi-anomaly`, {
+        searchParams: params
+    }).json<OIAnomalyReportDataResponse[]>();
 }
 
 export const getOptionsPricing = async (symbol: string) => {

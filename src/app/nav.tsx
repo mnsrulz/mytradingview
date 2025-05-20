@@ -13,6 +13,9 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CalculateIcon from '@mui/icons-material/Calculate';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+// or
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -21,7 +24,7 @@ const pages = [
     { title: 'Option pricing', href: '/options/pricing' },
     { title: 'History', href: '/history' },
     { title: 'Seasonal', href: '/seasonal' },
-    { title: 'Greeks Report', href: '/reports/OptionGreeksSummary' },
+    { title: 'Greeks Report', href: '/reports/greeks' },
     { title: 'Calculator', href: '/calculator' }
 ];
 
@@ -68,9 +71,15 @@ export const NAVIGATION: Navigation = [
         icon: <AssessmentIcon />,
         children: [
             {
-                segment: 'OptionGreeksSummary',
+                segment: 'greeks',
                 title: 'Greeks',
                 icon: <FunctionsIcon />,
+            },
+            {
+                segment: 'oi-anomaly',
+                title: 'OI Anomaly',
+                icon: <WarningAmberIcon />, // or <ReportProblemIcon />
+                // icon: <ReportProblemIcon />
             },
         ],
     },

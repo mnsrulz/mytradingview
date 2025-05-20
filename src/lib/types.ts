@@ -163,6 +163,8 @@ export type ExposureDataRequest = { data: Record<string, Record<string, MicroOpt
 
 export type OptionGreeksSummaryByDateResponse = { symbol: string, call_volume: number, put_volume: number, call_oi: number, put_oi: number }
 
+export type OIAnomalyReportDataResponse = { dt: string, option: string, option_symbol: string, expiration: string, option_type: 'C' | 'P', strike: string, prev_open_interest: number, open_interest: number, oi_change: number, anomaly_score: number }
+
 export type OptionsInnerData = {
   c: Record<string, {
     a: number,
@@ -222,6 +224,7 @@ export type ExposureDataResponse = {
     },
     netGamma: number[],
     strikes: string[],
+    strikesMap: Map<number, number>,
     expiration: string,
     dte: number
   }[],
