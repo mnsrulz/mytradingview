@@ -1,11 +1,22 @@
 'use client';
 
 import * as React from 'react';
-import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEvent, OutlinedInput, Chip, Autocomplete, TextField } from '@mui/material';
+import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEvent, OutlinedInput, Chip, Autocomplete, TextField, Checkbox, ListItemText, ListItemIcon } from '@mui/material';
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { SyntheticEvent, useState } from 'react';
+import { options } from 'numeral';
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
 
 export const dteOptions = [7,
     30,
@@ -19,20 +30,24 @@ export const GridTopFilter = (props: {
     cachedDates: string[],
     symbols: string[],
     selectedSymbols: string[],
+    selectedDates: string[],
     dteFrom: number,
     setDteFrom: React.Dispatch<React.SetStateAction<number>>;
     setSelectedSymbols: React.Dispatch<React.SetStateAction<string[]>>;
-    date: string;
-    setDate: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedDates: React.Dispatch<React.SetStateAction<string[]>>;
+    // date: string;
+    // setDate: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     const { cachedDates,
         symbols,
-        date,
+        selectedDates,
         selectedSymbols,
+        setSelectedDates,
         setSelectedSymbols,
         dteFrom,
         setDteFrom,
-        setDate, } = props;
+        // setDate, 
+    } = props;
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -45,16 +60,61 @@ export const GridTopFilter = (props: {
         setOpen(newOpen);
     };
 
+    const handleDatesSelectionChange = (event: SelectChangeEvent<typeof selectedDates>) => {
+        // const {
+        //     target: { value },
+        // } = event;
+        // setSelectedDates(
+        //     // On autofill we get a stringified value.
+        //     typeof value === 'string' ? value.split(',') : value,
+        // );
+        // setSelectedDates(typeof value === 'string' ? value.split(',') : value)
+
+
+        const value = event.target.value;
+        if (value[value.length - 1] === "all") {
+            setSelectedDates(selectedDates.length === cachedDates.length ? [] : cachedDates);
+            return;
+        }
+        setSelectedDates(typeof value === 'string' ? value.split(',') : value);
+    };
+
+
     return <Paper sx={{ mb: 1 }}>
         <Stack direction="row" spacing={2} padding={1}>
-            <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+            <FormControl sx={{ m: 1, width: 150 }} size="small">
                 <InputLabel>Data Mode</InputLabel>
-                <Select value={date} label="Data Mode" onChange={(e) => setDate(e.target.value)}>
+                {/* <Select value={date} label="Data Mode" onChange={(e) => setDate(e.target.value)}>
                     {
                         cachedDates.map(c => {
                             return <MenuItem key={c} value={c}>{c}</MenuItem>
                         })
                     }
+                </Select> */}
+
+                <Select
+                    multiple
+                    value={selectedDates}
+                    onChange={handleDatesSelectionChange}
+                    label="Data Mode"
+                    renderValue={(selected) => selected.join(', ')}
+                    MenuProps={MenuProps}
+                >
+                    <MenuItem value="all">
+                        <ListItemIcon>
+                        <Checkbox
+                            checked={cachedDates.length > 0 && selectedDates.length === cachedDates.length}
+                            indeterminate={selectedDates.length > 0 && selectedDates.length < cachedDates.length}
+                        />
+                        </ListItemIcon>
+                        <ListItemText primary="Select All" />
+                    </MenuItem>
+                    {cachedDates.map((name) => (
+                        <MenuItem key={name} value={name}>
+                            <Checkbox size="small" checked={selectedDates.includes(name)} />
+                            <ListItemText primary={name} />
+                        </MenuItem>
+                    ))}
                 </Select>
             </FormControl>
 

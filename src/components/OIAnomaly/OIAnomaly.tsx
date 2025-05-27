@@ -18,7 +18,7 @@ const [primaryTextSize, secondaryTextSize] = ['1em', '0.85em'];
 
 export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[] }) => {
     const { cachedDates, symbols } = props;
-    const [date, setDate] = useQueryState('dt', parseAsStringLiteral(cachedDates).withDefault(cachedDates.at(0) || ''));
+    // const [date, setDate] = useQueryState('dt', parseAsStringLiteral(cachedDates).withDefault(cachedDates.at(0) || ''));
     const [rows, setRows] = useState<OIAnomalyReportDataResponse[]>([]);
     const [hasLoaded, setHasLoaded] = useState(false);
     const [minVolume, setMinVolume] = useState(1000);
@@ -28,6 +28,7 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
     const [selectedSymbol, setSelectedSymbol] = useState('');
     const [openSymbolSummaryDialog, setOpenSymbolSummaryDialog] = useState(false);
     const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
+    const [selectedDt, setSelectedDt] = useState<string[]>([cachedDates.at(0) || '']);
     const [dteFrom, setDteFrom] = useState(30);
 
     const columns: GridColDef<OIAnomalyReportDataResponse>[] = [
@@ -84,14 +85,14 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
         setHasLoaded(false);
         setRows([]);
         getOIAnomalyReport({
-            dt: date,
+            dt: selectedDt.join(','),
             symbols: selectedSymbols.join(','),
             dteFrom: dteFrom > 0 ? dteFrom : undefined
         }).then(d => {
             setRows(d);
             setHasLoaded(true)
         });
-    }, [date, selectedSymbols, dteFrom]);
+    }, [selectedDt, selectedSymbols, dteFrom]);
 
     // const handleCloseAddTrade = () => { setOpenSymbolSummaryDialog(false); };
     // const handleSymbolClick = (v: string) => {
@@ -101,8 +102,8 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
 
     return <Box sx={{ mb: 1 }}>
         <GridTopFilter {...props}
-            date={date}
-            setDate={setDate}
+            selectedDates={selectedDt}
+            setSelectedDates={setSelectedDt}
             selectedSymbols={selectedSymbols}
             setSelectedSymbols={setSelectedSymbols}
             dteFrom={dteFrom}
