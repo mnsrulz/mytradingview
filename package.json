@@ -19,7 +19,7 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@mui/material-nextjs": "^7.1.0",
-    "@mui/x-charts": "^8.3.0",
+    "@mui/x-charts": "^8.5.0",
     "@mui/x-data-grid": "^8.3.0",
     "@mui/x-date-pickers": "^8.4.0",
     "@prisma/client": "^5.12.1",
