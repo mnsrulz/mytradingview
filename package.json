@@ -31,7 +31,7 @@
     "dayjs": "^1.11.13",
     "delay": "^6.0.0",
     "he": "^1.2.0",
-    "human-format": "^1.2.0",
+    "human-format": "^1.2.1",
     "ky": "^1.8.1",
     "localforage": "^1.10.0",
     "lodash.chunk": "^4.2.0",
