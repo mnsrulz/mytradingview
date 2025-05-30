@@ -9,8 +9,9 @@ import { useEffect, useState } from 'react';
 import { OIAnomalyReportDataResponse } from '@/lib/types';
 import { GridTopFilter } from './GridTopFilter';
 import { dteOptions } from '../GreeksReport/constants';
-import { numberCompactFormatter, numberFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
+import { numberCompactFormatter, numberFormatter, positiveNegativeNonDecimalFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
 import { red, green } from '@mui/material/colors';
+import CopyToClipboardButton from '../CopyToClipboard';
 // import { OptionsGreekReportBySymbolDialog } from './OptionsGreekReportBySymbol';
 // import { columnGroupingModel, dteOptions } from './constants';
 
@@ -47,7 +48,9 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
                             fontSize: secondaryTextSize,
                         }
                     }}
-                    primary={primarText}
+                    primary={<>
+                        {primarText}<CopyToClipboardButton text={p.row.option}></CopyToClipboardButton>
+                    </>}
                     secondary={p.row.expiration}
                 />
             }
@@ -57,7 +60,7 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
                 const { oi_change, prev_open_interest, open_interest } = p.row;
                 const changePercent = (oi_change / prev_open_interest) * 100;
                 const secondaryColor = changePercent < 0 ? red[500] : green[500];
-                const secondaryText = `${positiveNegativeNumberFormatter(oi_change)} (${positiveNegativeNumberFormatter(changePercent)}%)`;
+                const secondaryText = `${positiveNegativeNonDecimalFormatter(oi_change)} (${positiveNegativeNumberFormatter(changePercent)}%)`;
                 return <ListItemText
                     slotProps={{
                         primary: {
