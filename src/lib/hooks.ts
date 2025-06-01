@@ -306,7 +306,7 @@ export const useTickerSearch = (v: string) => {
 //     return { data, strikes, expirations };
 // }
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string }
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, gammaWall: string }
 
 const mapChartValues = (mp: Map<number, number>, skts: Map<number, number>, values: number[]) => {
     const nodes = new Float64Array(mp.size).fill(0);
@@ -404,7 +404,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0' };
         switch (chartType) {
             case 'GEX':
                 const callWallMap = {} as Record<string, number>;
@@ -427,8 +427,8 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                     }
                     return a;
                 }, { maxGamma: 0, strike: "" });
-
-                console.log(`Gamma Wall: ${gammaWallResult.strike} with value ${gammaWallResult.maxGamma}`);
+                
+                exposureDataValue.gammaWall = gammaWallResult.strike;
 
                 exposureDataValue.items = filteredData.map(j => {
                     return {

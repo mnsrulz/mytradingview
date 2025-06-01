@@ -6,7 +6,7 @@ export const CallPutWallLine = (props: { strikes: number[], callWall: number; pu
     if (callWall == 0 && putWall == 0) return <></>;
     if (callWall == putWall) {
         if (strikes.includes(callWall)) {
-            return <ChartsReferenceLine y={Number(callWall)} label={"WALL: $" + (callWall)}
+            return <ChartsReferenceLine y={Number(callWall)} label={"CALL PUT WALL: $" + (callWall)}
                 labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
                 lineStyle={{ strokeDasharray: '4', color: 'violet', stroke: 'violet' }}
                 labelStyle={{ stroke: 'violet', strokeWidth: 0.25, fontSize: '8px' }} />;
