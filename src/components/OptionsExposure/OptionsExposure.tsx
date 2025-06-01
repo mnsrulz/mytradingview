@@ -9,12 +9,12 @@ import { MemoizedGreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
-
+const symbolsWithDailyOptions = ["NDX", "RUT", "XSP", "SPX", "QQQ", "SPY"]; //will make it configurable later
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
     const [historicalDate, setHistoricalDate] = useQueryState('historical', parseAsString.withDefault(cachedDates.at(-1) || ''));
-    const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
+    const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(symbolsWithDailyOptions.includes(symbol) ? 7 : 50));   //
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
