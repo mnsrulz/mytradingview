@@ -8,7 +8,6 @@ import { BarChart, ChartsText, ChartsReferenceLine } from "@mui/x-charts"
 import { memo, useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
-import { GammaWallLine } from "./GammaWallLine";
 const colorCodes = getColorPallete();
 const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
 
@@ -58,6 +57,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
                 scaleType: 'band',
                 // label: 'Strikes',
                 reverse: true,
+                tickLabelPlacement: 'tick',
                 valueFormatter: (tick) => `$${Number(tick).toFixed(2)}`,
                 width: leftMarginValue
             }]}
@@ -100,10 +100,11 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
             }
 
             {
-                exposureType == DexGexType.GEX && <>
-                    <GammaWallLine strikes={strikes} gammaWall={Number(gammaWall)} spotPriceLineValue={yaxisline} />
-                    <CallPutWallLine strikes={strikes} callWall={Number(callWall)} putWall={Number(putWall)} spotPriceLineValue={yaxisline} />
-                </>
+                exposureType == DexGexType.GEX && <CallPutWallLine strikes={strikes}
+                    callWall={Number(callWall)}
+                    putWall={Number(putWall)}
+                    spotPriceLineValue={yaxisline}
+                    gammaWall={Number(gammaWall)} />
             }
 
             {/* <EmaIndicatorLine strikes={strikes} emaData={emaData} /> */}
