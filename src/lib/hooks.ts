@@ -420,6 +420,16 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
                 exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
 
+                const gammaWallResult = Object.keys(callWallMap).reduce((a, b) => {
+                    if ((callWallMap[b] + putWallMap[b]) > a.maxGamma) {
+                        a.maxGamma = callWallMap[b] + putWallMap[b];
+                        a.strike = b;
+                    }
+                    return a;
+                }, { maxGamma: 0, strike: "" });
+
+                console.log(`Gamma Wall: ${gammaWallResult.strike} with value ${gammaWallResult.maxGamma}`);
+
                 exposureDataValue.items = filteredData.map(j => {
                     return {
                         expiration: j.expiration,
