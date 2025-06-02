@@ -57,7 +57,6 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
                 scaleType: 'band',
                 // label: 'Strikes',
                 reverse: true,
-                tickLabelPlacement: 'tick',
                 valueFormatter: (tick) => `$${Number(tick).toFixed(2)}`,
                 width: leftMarginValue
             }]}
