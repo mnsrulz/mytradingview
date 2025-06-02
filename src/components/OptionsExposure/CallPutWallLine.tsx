@@ -44,7 +44,7 @@ export const CallPutWallLine = (props: { strikes: number[], callWall: number; pu
         if (lineValue == 0 || !strikes.includes(lineValue)) return <></>;
         const { label, color } = getLineLabelAndColor(lines[lineValue]);
         return <ChartsReferenceLine key={label} y={lineValue} label={`${GAMMA_CHAR} ${label} WALL: $${lineValue}`}
-            labelAlign={spotPriceLineValue == callWall ? "end" : "start"}
+            labelAlign={spotPriceLineValue == lineValue ? "end" : "start"}
             lineStyle={{ strokeDasharray: '4', color, stroke: color }}
             labelStyle={{ stroke: color, strokeWidth: 0.25, fontSize: '8px' }} />
     });
