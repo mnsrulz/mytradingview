@@ -101,7 +101,7 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
     //     setOpenSymbolSummaryDialog(true);
     // }
 
-    return <Container sx={{ mb: 1 }} maxWidth='xl'>
+    return <Container sx={{ mb: 1 }} maxWidth='xl' disableGutters>
         <GridTopFilter {...props}
             selectedDates={selectedDt}
             setSelectedDates={setSelectedDt}
