@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEvent, Autocomplete, TextField, Checkbox, ListItemText, ListItemIcon, Divider, Typography } from '@mui/material';
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import { SyntheticEvent, useState } from 'react';
-import MenuIcon from '@mui/icons-material/Menu';
+import TuneIcon from '@mui/icons-material/Tune';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -27,13 +27,15 @@ export const dteOptions = [0,
     400,
     1000];
 
-function OIAnomalyFilterSidebar({ dteFrom, setDteFrom, selectedSymbols, setSelectedSymbols, symbols }: {
+function OIAnomalyFilterSidebar({ dteFrom, setDteFrom, selectedSymbols, setSelectedSymbols, symbols, dteTo, setDteTo }: {
     dteFrom: number;
     setDteFrom: (v: number) => void;
 
     selectedSymbols: string[];
     setSelectedSymbols: (v: string[]) => void;
     symbols: string[];
+    dteTo: number;
+    setDteTo: (v: number) => void;
 }) {
     function handleChange(event: SyntheticEvent<Element, Event>, value: string[]): void {
         setSelectedSymbols(value);
@@ -42,16 +44,22 @@ function OIAnomalyFilterSidebar({ dteFrom, setDteFrom, selectedSymbols, setSelec
     return (
         <Box sx={{ width: 260, p: 2 }}>
             <Typography variant="h6" gutterBottom>Filters</Typography>
-            <Divider sx={{ mb: 2 }} />            
-            <TextField
-                label="DTE From"
-                type="number"
-                value={dteFrom}
-                onChange={e => setDteFrom(Number(e.target.value))}
-                fullWidth
-                margin="normal"
-                size="small"
-            />
+            <Divider sx={{ mb: 2 }} />
+            <Stack direction="row" spacing={2} padding={0} sx={{ mb: 2 }}>
+                <FormControl sx={{ m: 0, minWidth: 90 }} size="small">
+                    <InputLabel>DTE From</InputLabel>
+                    <Select id="dteFrom" value={dteFrom} label="DTE From" onChange={(e) => setDteFrom(e.target.value as number)}>
+                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ m: 0, minWidth: 90 }} size="small">
+                    <InputLabel>DTE To</InputLabel>
+                    <Select id="dteTo" value={dteTo} label="DTE To" onChange={(e) => setDteTo(e.target.value as number)}>
+                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                    </Select>
+                </FormControl>
+            </Stack>
+
             <Autocomplete
                 multiple
                 limitTags={2}
@@ -144,10 +152,11 @@ export const GridTopFilter = (props: {
                 </Select>
             </FormControl>
             {
-                isMobile ? <><IconButton onClick={() => setSidebarOpen(true)} sx={{ alignSelf: 'flex-start' }}>
-                    <MenuIcon />
-                </IconButton>
-                </> : <>
+                isMobile ? <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                    <IconButton onClick={() => setSidebarOpen(true)} sx={{ alignSelf: 'flex-start' }}>
+                        <TuneIcon />
+                    </IconButton>
+                </Box> : <>
                     <FormControl sx={{ m: 1, width: 300 }}>
                         <Autocomplete
                             multiple
