@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Box, ListItemText, useTheme, useMediaQuery } from '@mui/material';
+import { ListItemText, Container } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { getOIAnomalyReport } from '@/lib/mzDataService';
 import { useEffect, useState } from 'react';
@@ -45,7 +45,10 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
                     primary={<>
                         {primarText}<CopyToClipboardButton text={p.row.option}></CopyToClipboardButton>
                     </>}
-                    secondary={p.row.expiration}
+                    secondary={<>{p.row.expiration}
+                        {p.row.delta ? ` | Δ: ${positiveNegativeNonDecimalFormatter(p.row.delta)}` : ''}
+                        {p.row.gamma ? ` | \u03B3: ${positiveNegativeNonDecimalFormatter(p.row.gamma)}` : ''}
+                    </>}
                 />
             }
         },
@@ -98,7 +101,7 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
     //     setOpenSymbolSummaryDialog(true);
     // }
 
-    return <Box sx={{ mb: 1 }}>
+    return <Container sx={{ mb: 1 }} maxWidth='xl'>
         <GridTopFilter {...props}
             selectedDates={selectedDt}
             setSelectedDates={setSelectedDt}
@@ -145,5 +148,5 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
         {/* {openSymbolSummaryDialog && selectedSymbol && <OptionsGreekReportBySymbolDialog onClose={handleCloseAddTrade}
             symbol={selectedSymbol}
             open={openSymbolSummaryDialog} />} */}
-    </Box>
+    </Container>
 }

@@ -55,9 +55,8 @@ function OIAnomalyFilterSidebar({ dteFrom, setDteFrom, selectedSymbols, setSelec
             <Autocomplete
                 multiple
                 limitTags={2}
-                id="multiple-limit-tags"
                 options={symbols}
-                defaultValue={[]}
+                value={selectedSymbols}
                 renderInput={(params) => (
                     <TextField {...params} label="Symbols" placeholder="Symbols" />
                 )}
@@ -153,9 +152,9 @@ export const GridTopFilter = (props: {
                         <Autocomplete
                             multiple
                             limitTags={2}
-                            id="multiple-limit-tags"
                             options={symbols}
                             defaultValue={[]}
+                            value={selectedSymbols}
                             renderInput={(params) => (
                                 <TextField {...params} label="Symbols" placeholder="Symbols" />
                             )}

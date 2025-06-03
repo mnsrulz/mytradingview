@@ -163,7 +163,7 @@ export type ExposureDataRequest = { data: Record<string, Record<string, MicroOpt
 
 export type OptionGreeksSummaryByDateResponse = { symbol: string, call_volume: number, put_volume: number, call_oi: number, put_oi: number }
 
-export type OIAnomalyReportDataResponse = { dt: string, option: string, option_symbol: string, expiration: string, option_type: 'C' | 'P', strike: string, prev_open_interest: number, open_interest: number, oi_change: number, anomaly_score: number }
+export type OIAnomalyReportDataResponse = { dt: string, option: string, option_symbol: string, expiration: string, option_type: 'C' | 'P', strike: string, prev_open_interest: number, open_interest: number, oi_change: number, anomaly_score: number, delta: number, gamma: number }
 
 export type OptionsInnerData = {
   c: Record<string, {
