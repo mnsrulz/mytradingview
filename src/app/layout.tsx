@@ -43,7 +43,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               <DashboardLayout>
                 <NoPrefetch />
                 <NuqsAdapter>
-                  <Container maxWidth="xl" sx={{ p: 1 }}>
+                  <Container maxWidth={false} disableGutters sx={{ p: 1 }}>
                     <Suspense fallback={<LinearProgress />}>
                       {children}
                     </Suspense>

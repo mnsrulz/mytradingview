@@ -56,7 +56,7 @@ export const getEmaDataForExpsoure = async (symbol: string) => {
 export const getHistoricalGreeksSummaryByDate = async (dt: string, dte: number) => {
     return await client(`api/options/report/greeks?dt=${dt}&dte=${dte}`).json<OptionGreeksSummaryByDateResponse[]>();
 }
-export const getOIAnomalyReport = async (params: { dt?: string, symbols?: string, dteFrom?: number }) => {
+export const getOIAnomalyReport = async (params: { dt?: string, symbols?: string, dteFrom?: number, dteTo?: number }) => {
     return await client(`api/options/report/oi-anomaly`, {
         searchParams: params
     }).json<OIAnomalyReportDataResponse[]>();
