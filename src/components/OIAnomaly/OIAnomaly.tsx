@@ -22,8 +22,8 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
     const [hasLoaded, setHasLoaded] = useState(false);
     const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
     const [selectedDt, setSelectedDt] = useState<string[]>([cachedDates.at(0) || '']);
-    const [dteFrom, setDteFrom] = useState(30);
-    const [dteTo, setDteTo] = useState(1000);
+    const [dteFrom, setDteFrom] = useState<number | undefined>(30);
+    const [dteTo, setDteTo] = useState<number | undefined>();
 
 
     const columns: GridColDef<OIAnomalyReportDataResponse>[] = [
@@ -87,8 +87,8 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
         getOIAnomalyReport({
             dt: selectedDt.join(','),
             symbols: selectedSymbols.join(','),
-            dteFrom: dteFrom >= 0 ? dteFrom : undefined,
-            dteTo: dteTo >= 0 ? dteTo : undefined
+            dteFrom: dteFrom,
+            dteTo: dteTo
         }).then(d => {
             setRows(d);
             setHasLoaded(true)

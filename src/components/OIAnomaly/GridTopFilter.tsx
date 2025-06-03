@@ -5,6 +5,7 @@ import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEv
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import { SyntheticEvent, useState } from 'react';
 import TuneIcon from '@mui/icons-material/Tune';
+import NumericRangeTextDropdown from '../NumericRangeTextDropdown';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -28,14 +29,14 @@ export const dteOptions = [0,
     1000];
 
 function OIAnomalyFilterSidebar({ dteFrom, setDteFrom, selectedSymbols, setSelectedSymbols, symbols, dteTo, setDteTo }: {
-    dteFrom: number;
-    setDteFrom: (v: number) => void;
+    dteFrom: number | undefined;
+    setDteFrom: (v: number | undefined) => void;
 
     selectedSymbols: string[];
     setSelectedSymbols: (v: string[]) => void;
     symbols: string[];
-    dteTo: number;
-    setDteTo: (v: number) => void;
+    dteTo: number | undefined;
+    setDteTo: (v: number | undefined) => void;
 }) {
     function handleChange(event: SyntheticEvent<Element, Event>, value: string[]): void {
         setSelectedSymbols(value);
@@ -80,10 +81,10 @@ export const GridTopFilter = (props: {
     symbols: string[],
     selectedSymbols: string[],
     selectedDates: string[],
-    dteFrom: number,
-    setDteFrom: React.Dispatch<React.SetStateAction<number>>;
-    dteTo: number,
-    setDteTo: React.Dispatch<React.SetStateAction<number>>;
+    dteFrom: number | undefined,
+    setDteFrom: React.Dispatch<React.SetStateAction<number | undefined>>;
+    dteTo: number | undefined,
+    setDteTo: React.Dispatch<React.SetStateAction<number | undefined>>;
     setSelectedSymbols: React.Dispatch<React.SetStateAction<string[]>>;
     setSelectedDates: React.Dispatch<React.SetStateAction<string[]>>;
     // date: string;
@@ -124,6 +125,7 @@ export const GridTopFilter = (props: {
             </Drawer>
         }
         <Stack direction="row" spacing={2} padding={1}>
+
             <FormControl sx={{ m: 1, width: 150 }} size="small">
                 <InputLabel>Data Mode</InputLabel>
                 <Select
@@ -171,7 +173,11 @@ export const GridTopFilter = (props: {
                             size='small'
                         />
                     </FormControl>
-                    <FormControl sx={{ m: 1, minWidth: 90 }} size="small">
+                    <NumericRangeTextDropdown from='7' options={dteOptions} onChange={(from, to) => {
+                        from ? setDteFrom(parseInt(from)) : setDteFrom(undefined);
+                        to ? setDteTo(parseInt(to)) : setDteTo(undefined);
+                    }} />
+                    {/* <FormControl sx={{ m: 1, minWidth: 90 }} size="small">
                         <InputLabel>DTE From</InputLabel>
                         <Select id="dteFrom" value={dteFrom} label="DTE From" onChange={(e) => setDteFrom(e.target.value as number)}>
                             {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
@@ -182,7 +188,7 @@ export const GridTopFilter = (props: {
                         <Select id="dteTo" value={dteTo} label="DTE To" onChange={(e) => setDteTo(e.target.value as number)}>
                             {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
                 </>
             }
         </Stack>

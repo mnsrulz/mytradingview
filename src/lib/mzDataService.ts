@@ -56,11 +56,15 @@ export const getEmaDataForExpsoure = async (symbol: string) => {
 export const getHistoricalGreeksSummaryByDate = async (dt: string, dte: number) => {
     return await client(`api/options/report/greeks?dt=${dt}&dte=${dte}`).json<OptionGreeksSummaryByDateResponse[]>();
 }
-export const getOIAnomalyReport = async (params: { dt?: string, symbols?: string, dteFrom?: number, dteTo?: number }) => {
+export const getOIAnomalyReport = async (params: { dt?: string; symbols?: string; dteFrom?: number; dteTo?: number; }) => {
+    const searchParams = Object.fromEntries(
+        Object.entries(params).filter(([, value]) => value !== undefined).map(([k, v]) => [k, String(v)])
+    );
+
     return await client(`api/options/report/oi-anomaly`, {
-        searchParams: params
+        searchParams,
     }).json<OIAnomalyReportDataResponse[]>();
-}
+};
 
 export const getOptionsPricing = async (symbol: string) => {
     return await client(`api/options/${symbol}/pricing`).json<OptionsPricingDataResponse>();
