@@ -74,6 +74,9 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
             }
         },
         {
+            field: 'dte', headerName: 'DTE', type: 'number'
+        },
+        {
             field: 'volume', headerName: 'Volume', type: 'number'
         },
         {

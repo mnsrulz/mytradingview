@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Menu,
@@ -33,9 +33,9 @@ export default function NumericRangeTextDropdown({
   options
 }: NumericRangeTextDropdownProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [min, setMin] = useState(from);
-  const [max, setMax] = useState(to);
-  const [selectedRange, setSelectedRange] = useState('');
+  const [min, setMin] = useState(from || '');
+  const [max, setMax] = useState(to || '');
+  const [selectedRange, setSelectedRange] = useState(getRangeLabel(from, to));
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);

@@ -173,7 +173,7 @@ export const GridTopFilter = (props: {
                             size='small'
                         />
                     </FormControl>
-                    <NumericRangeTextDropdown from='7' options={dteOptions} onChange={(from, to) => {
+                    <NumericRangeTextDropdown from={`${dteFrom}`} options={dteOptions} onChange={(from, to) => {
                         from ? setDteFrom(parseInt(from)) : setDteFrom(undefined);
                         to ? setDteTo(parseInt(to)) : setDteTo(undefined);
                     }} />
