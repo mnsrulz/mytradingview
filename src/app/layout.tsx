@@ -12,8 +12,10 @@ import { Metadata } from "next";
 import { NoPrefetch } from "@/components/NoPrefetch";
 import { Suspense } from "react";
 import theme from '@/theme';
-const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
+import { GoogleAnalytics } from '@next/third-parties/google';
 
+const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
+const gaId = process.env.GOOGLE_ANALYTICS_ID || '';
 
 export const metadata: Metadata = {
   title: "My trading view app",
@@ -56,6 +58,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </AppRouterCacheProvider>
         </SessionProvider>
       </body>
+      {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 }
