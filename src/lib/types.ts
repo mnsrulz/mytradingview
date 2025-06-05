@@ -184,7 +184,8 @@ export type OptionsInnerData = {
 
 export type OptionsPricingDataResponse = {
   spotPrice: number,
-  options: Record<string, OptionsInnerData>
+  options: Record<string, OptionsInnerData>,
+  timestamp: Date
 }
 
 export type OptionGreeksSummaryBySymbolResponse = {
@@ -228,5 +229,6 @@ export type ExposureDataResponse = {
     expiration: string,
     dte: number
   }[],
-  spotPrice: number
+  spotPrice: number,
+  timestamp: Date
 }

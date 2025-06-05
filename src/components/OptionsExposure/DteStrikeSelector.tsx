@@ -1,8 +1,8 @@
 import { TickerSearchDialog } from "@/components/TickerSearchDialog";
-import { DataModeType, DexGexType } from "@/lib/types";
-import { Tabs, Tab, FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
+import { DataModeType } from "@/lib/types";
+import { FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
 import { useState } from "react";
-
+import RefreshCboeData from "../RefreshCboeData";
 
 const dteOptions = [7,
     30,
@@ -30,11 +30,12 @@ const MenuProps = {
 };
 
 export const DteStrikeSelector = (props: {
-    symbol: string, dte: number, availableDates: string[], strikeCounts: number,
+    symbol: string, dte: number, availableDates: string[], strikeCounts: number, timestamp?: Date,
     setCustomExpirations: (v: string[]) => void,
+    onRefresh?: ()=> void,
     setDte: (v: number) => void, setStrikesCount: (v: number) => void, hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
 }) => {
-    const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations } = props;
+    const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations, timestamp, onRefresh } = props;
     const dataModes = hasHistoricalData ? ['CBOE', 'TRADIER', 'HISTORICAL'] : ['CBOE', 'TRADIER'];
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const theme = useTheme();
@@ -59,6 +60,7 @@ export const DteStrikeSelector = (props: {
                 <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
             </FormControl>
             <Stack direction="row" gap={isMobile ? 0.5 : 1}>
+                {timestamp && <RefreshCboeData timestamp={timestamp} symbol={symbol} onRefresh={onRefresh} />}                
                 <FormControl size="small">
                     <InputLabel>Mode</InputLabel>
                     <Select id="dataMode" value={dataMode} label="Mode" onChange={(e) => setDataMode(e.target.value as DataModeType)}>

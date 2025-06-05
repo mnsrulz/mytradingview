@@ -27,7 +27,7 @@ const GreeksChartLabelMapping = {
 
 export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
     const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
-    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall } = exposureData;
+    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall, timestamp } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
     const height = calculateChartHeight(expirations, strikes);

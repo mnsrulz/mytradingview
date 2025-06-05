@@ -1,4 +1,5 @@
 import { getColor } from "@/lib/color";
+import theme from "@/theme";
 import { Box } from "@mui/material";
 type IConditionalFormattingBoxProps = { value: number, formattedValue: string }
 export const ConditionalFormattingBox = (props: IConditionalFormattingBoxProps) => {
@@ -13,7 +14,8 @@ export const ConditionalFormattingBox = (props: IConditionalFormattingBoxProps) 
                 padding: "2px", //padding seems to have no effect???
                 display: 'flex',
                 alignItems: 'center', // Align content vertically
-                justifyContent: 'flex-end'
+                justifyContent: 'flex-end',
+                color: theme.palette.common.black
             }}
         >
             {formattedValue}

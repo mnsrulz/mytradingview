@@ -19,7 +19,9 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
-    const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
+    const [refreshToken, setRefreshToken]  = useState('');
+    const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate, refreshToken);
+    const timestamp = exposureData?.timestamp;
 
     const exposureChartContent = <Box sx={{ m: 1 }} minHeight={400}>{
         (isLoading && !exposureData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
@@ -56,9 +58,12 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     }
 
     return <Container maxWidth="md" sx={{ p: 0 }}>
+        
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
             setCustomExpirations={setSelectedExpirations}
+            timestamp={timestamp}
+            onRefresh={() => setRefreshToken(new Date().toISOString())}
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />

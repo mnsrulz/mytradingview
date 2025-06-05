@@ -28,7 +28,7 @@ const AUTHENTICATION = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
   return (
-    <html lang="en" data-toolpad-color-scheme="light">
+    <html lang="en">
       <body className={inter.className}>
         <SessionProvider session={session}>
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>

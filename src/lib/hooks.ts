@@ -306,7 +306,7 @@ export const useTickerSearch = (v: string) => {
 //     return { data, strikes, expirations };
 // }
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, gammaWall: string }
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, gammaWall: string, timestamp?: Date }
 
 const mapChartValues = (mp: Map<number, number>, skts: Map<number, number>, values: number[]) => {
     const nodes = new Float64Array(mp.size).fill(0);
@@ -353,7 +353,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 }
 
 //This hook has potential performance issues
-export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
+export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
@@ -367,9 +367,11 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     //     getEmaDataForExpsoure(symbol).then(setEmaData);
     // }, [symbol]);
 
+
+
     useEffect(() => {
         setHasError(false);
-        const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${dataMode}`;
+        const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${refreshToken}-${dataMode}`;
         if (cacheStore[cacheKey]) {
             setRawExposureResponse(cacheStore[cacheKey]);
             setIsLoading(false);
@@ -386,7 +388,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         }).catch(() => {
             setHasError(true);
         }).finally(() => setIsLoading(false))
-    }, [symbol, dt, dataMode]);
+    }, [symbol, dt, dataMode, refreshToken]);
 
     useEffect(() => {
         if (!rawExposureResponse) return;
@@ -404,7 +406,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0' };
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', timestamp: rawExposureResponse.timestamp};
         switch (chartType) {
             case 'GEX':
                 const callWallMap = {} as Record<string, number>;
@@ -487,7 +489,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     };
 }
 
-export const useOptionTrackerV2 = (symbol: string) => {
+export const useOptionTrackerV2 = (symbol: string, refreshToken: string) => {
     const [data, setOd] = useState<OptionsPricingDataResponse>();
     const [isLoading, setIsLoading] = useState(true);
     const [targetPrice, setTargetPrice] = useState(0);
@@ -508,7 +510,7 @@ export const useOptionTrackerV2 = (symbol: string) => {
             setTargetPrice(spotPrice);
             setCostBasis(spotPrice);
         }).finally(() => setIsLoading(false));
-    }, [symbol]);
+    }, [symbol, refreshToken]);
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis };
 }
 
