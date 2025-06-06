@@ -7,6 +7,9 @@ import CloseIcon from '@mui/icons-material/Close'
 import { useState, useEffect } from "react";
 import { currencyCompactFormatter, fixedCurrencyFormatter, numberFormatter } from "@/lib/formatters";
 import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc'; // Import the UTC plugin for dayjs
+dayjs.extend(utc); // Import and extend dayjs with utc plugin
+
 type SelectedOptionType = 'call_put_oi_ratio' | 'net_gamma' | 'call_put_dex_ratio' | 'call_put_volume_ratio'
 export const OptionsGreekReportBySymbolDialog = (props: { symbol: string, onClose: () => void, open: boolean }) => {
     const { onClose, open, symbol } = props;
@@ -25,32 +28,23 @@ export const OptionsGreekReportBySymbolDialog = (props: { symbol: string, onClos
         <Stack direction={"row"} sx={{
             justifyContent: "space-between",
             alignItems: "center",
+            ...(showFullScreenDialog && {
+                minHeight: 40,
+                px: 1,
+                py: 0.5,
+            })
         }}>
             <Stack direction={'row'} sx={{ alignItems: 'center' }}>
-                <DialogTitle id="scroll-dialog-title">Greeks Summary ${symbol}</DialogTitle>
-                {/* <FormControl>
-                    <InputLabel id="select-label">Metric</InputLabel>
-                    <Select
-                        labelId="select-label"
-                        value={selectedOption}
-                        label="Metric"
-                        onChange={(ev) => setSelectedOption(ev.target.value as SelectedOptionType)}
-                        size="small"
-                    >
-                        <MenuItem value={'call_put_oi_ratio'}>C/P OI Ratio</MenuItem>
-                        <MenuItem value={'net_gamma'}>Net Gamma</MenuItem>
-                        <MenuItem value={'call_put_dex_ratio'}>C/P DEX Ratio</MenuItem>
-                        <MenuItem value={'call_put_volume_ratio'}>C/P Volume Ratio</MenuItem>
-                    </Select>
-                </FormControl> */}
+                <DialogTitle id="scroll-dialog-title" sx={showFullScreenDialog ? { fontSize: '1rem', p: 0.5, pr: 1 } : {}}>
+                    Greeks Summary ${symbol}
+                </DialogTitle>
             </Stack>
-            <IconButton size="small" sx={{ mr: 2 }} onClick={() => onClose()}><CloseIcon /></IconButton>
-            {/* <Button onClick={() => onClose()}>Close</Button> */}
+            <IconButton size="small" sx={{ mr: 2, ...(showFullScreenDialog && { m: 0, p: 0.5 }) }} onClick={() => onClose()}><CloseIcon /></IconButton>
         </Stack>
-        <DialogContent dividers={true}>
+        <DialogContent dividers={true} sx={{ p: 0 }}>
             <OptionsGreekReportBySymbol symbol={symbol} selectedOption={selectedOption} />
         </DialogContent>
-        <DialogActions sx={{ p: 0 }}>
+        <DialogActions sx={{ p: 0, ...(showFullScreenDialog && { minHeight: 36, px: 0.5, py: 0.5 }) }}>
             <Box width='100%' >
                 <Tabs
                     value={selectedOption}
@@ -65,7 +59,9 @@ export const OptionsGreekReportBySymbolDialog = (props: { symbol: string, onClos
                                 bottom: 'unset',
                             },
                         }
-                    }}>
+                    }}
+                    sx={showFullScreenDialog ? { minHeight: 32, '.MuiTab-root': { minHeight: 32, fontSize: '0.9rem', p: 0.5 } } : {}}
+                >
                     <Tab label="C/P OI Ratio" value={'call_put_oi_ratio'}></Tab>
                     <Tab label="Net Gamma" value={'net_gamma'}></Tab>
                     <Tab label="C/P DEX Ratio" value={'call_put_dex_ratio'}></Tab>
@@ -100,16 +96,25 @@ export const OptionsGreekReportBySymbol = (props: { symbol: string, selectedOpti
 
     const yAxisFormatter = (v: number) => selectedOption == 'net_gamma' ? currencyCompactFormatter(v) : numberFormatter(v)
     const xAxisFormatter = (v: string) => dayjs(v).format("MMM D");
-
-    return <Box >
+    // debugger;
+    // const aspectRatio = 16 / 9;
+    return <Box sx={{ width: '100%' }}>
         <LineChart
-            height={400}
+            sx={{
+                width: '100%',
+                minWidth: 600,
+                height: 400
+            }}
+            // height={Math.round(window.innerWidth / aspectRatio)}
             series={[
-                { data: ds.map(k => k.price), label: 'price', yAxisId: 'leftAxisId' },
-                { data: ds.map(k => k[selectedOption]), label: selectedOption, yAxisId: 'rightAxisId' },
+                { data: ds.map(k => k.price), label: 'price', yAxisId: 'leftAxisId', showMark: false },
+                { data: ds.map(k => k[selectedOption]), label: selectedOption, yAxisId: 'rightAxisId', showMark: false },
             ]}
             xAxis={[{ scaleType: 'point', data: ds.map(k => k.dt), valueFormatter: xAxisFormatter }]}
-            yAxis={[{ id: 'leftAxisId', label: 'Price $', valueFormatter: fixedCurrencyFormatter }, { id: 'rightAxisId', position: 'right', label: MetricLabel[selectedOption], valueFormatter: yAxisFormatter }]}
+            yAxis={[
+                { id: 'leftAxisId', label: 'Price $', valueFormatter: fixedCurrencyFormatter },
+                { id: 'rightAxisId', position: 'right', label: MetricLabel[selectedOption], valueFormatter: yAxisFormatter }
+            ]}
             grid={{ horizontal: true, vertical: true }}
         />
     </Box>
