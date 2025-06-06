@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import ky from "ky";
 import delay from 'delay';
 import relativeTime from "dayjs/plugin/relativeTime";
+import { DataModeType } from "@/lib/types";
 dayjs.extend(relativeTime);
 
 const client = ky.create({
@@ -19,7 +20,7 @@ const client = ky.create({
 const staleWarningInMinutes = 15;
 const staleWarningCheckIntervalInMinutes = 1;   //every one minutes is the check interval for stale data
 const exceptionSymbols = ["CBTX", "DJX", "NANOS", "NDX", "OEX", "RUT", "VIX", "XSP", "SPX"]
-export default function RefreshCboeData({ timestamp, symbol, onRefresh }: { symbol: string, timestamp?: Date, onRefresh?: () => void }) {
+export default function RefreshCboeData({ timestamp, symbol, onRefresh, dataMode }: { symbol: string, timestamp?: Date, onRefresh?: () => void, dataMode: DataModeType }) {
     const [showWarning, setShowWarning] = useState(false);
     const [loading, setLoading] = useState(false);
     const [stale, setStale] = useState(false);
@@ -48,8 +49,10 @@ export default function RefreshCboeData({ timestamp, symbol, onRefresh }: { symb
 
     const handleClick = async () => {
         setLoading(true);
-        await client(exceptionSymbols.includes(symbol.toUpperCase()) ? `^${symbol}` : symbol);
-        await delay(10000); // Simulate 10seconds delay for data refresh
+        if (dataMode == DataModeType.CBOE) {
+            await client(exceptionSymbols.includes(symbol.toUpperCase()) ? `^${symbol}` : symbol);
+            await delay(10000); // Simulate 10seconds delay for data refresh
+        }
         if (typeof onRefresh === "function") {
             onRefresh();
         }
@@ -62,6 +65,10 @@ export default function RefreshCboeData({ timestamp, symbol, onRefresh }: { symb
         : loading
             ? "Refreshing data..."
             : "Data is fresh.";
+
+    if (dataMode == DataModeType.HISTORICAL) {
+        return <></>; // No refresh button for historical data
+    }
 
     return (
         showWarning ? <Tooltip title={tooltipText}>

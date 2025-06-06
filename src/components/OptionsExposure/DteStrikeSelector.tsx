@@ -60,7 +60,7 @@ export const DteStrikeSelector = (props: {
                 <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
             </FormControl>
             <Stack direction="row" gap={isMobile ? 0.5 : 1}>
-                {timestamp && <RefreshCboeData timestamp={timestamp} symbol={symbol} onRefresh={onRefresh} />}                
+                {timestamp && <RefreshCboeData dataMode={dataMode} timestamp={timestamp} symbol={symbol} onRefresh={onRefresh} />}
                 <FormControl size="small">
                     <InputLabel>Mode</InputLabel>
                     <Select id="dataMode" value={dataMode} label="Mode" onChange={(e) => setDataMode(e.target.value as DataModeType)}>

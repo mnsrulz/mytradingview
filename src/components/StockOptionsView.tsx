@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
 import { ConditionalFormattingBox } from './ConditionalFormattingBox';
 import { PutCallRatio } from './PutCallRatio';
-import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
+import { DataModeType, IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
 import { useRouter } from 'next/navigation';
 import { useQueryState, parseAsStringEnum } from 'nuqs';
@@ -134,7 +134,7 @@ export const StockOptionsView = (props: ITickerProps) => {
 
     return <Paper>
         <TickerSearchDialog symbol={props.symbol} basePath='' />  - ${data.spotPrice}
-        {data.timestamp && <RefreshCboeData timestamp={data.timestamp} symbol={props.symbol} onRefresh={()=> setRefreshToken(Date.now().toString())} />}
+        {data.timestamp && <RefreshCboeData dataMode={DataModeType.CBOE} timestamp={data.timestamp} symbol={props.symbol} onRefresh={()=> setRefreshToken(Date.now().toString())} />}
         {/* <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button> */}
         {/* <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
