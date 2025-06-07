@@ -1,13 +1,26 @@
 'use client';
 
 import * as React from 'react';
-import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEvent, OutlinedInput, Chip, Autocomplete, TextField } from '@mui/material';
+import { Stack, Box, IconButton, Drawer, useMediaQuery, useTheme, SelectChangeEvent, Autocomplete, TextField, Checkbox, ListItemText, ListItemIcon, Divider, Typography } from '@mui/material';
 import { FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import { SyntheticEvent, useState } from 'react';
+import TuneIcon from '@mui/icons-material/Tune';
+import NumericRangeTextDropdown from '../NumericRangeTextDropdown';
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
 
-export const dteOptions = [7,
+export const dteOptions = [0,
+    1,
+    7,
     30,
     50,
     90,
@@ -15,107 +28,169 @@ export const dteOptions = [7,
     400,
     1000];
 
+function OIAnomalyFilterSidebar({ dteFrom, setDteFrom, selectedSymbols, setSelectedSymbols, symbols, dteTo, setDteTo }: {
+    dteFrom: number | undefined;
+    setDteFrom: (v: number | undefined) => void;
+
+    selectedSymbols: string[];
+    setSelectedSymbols: (v: string[]) => void;
+    symbols: string[];
+    dteTo: number | undefined;
+    setDteTo: (v: number | undefined) => void;
+}) {
+    function handleChange(event: SyntheticEvent<Element, Event>, value: string[]): void {
+        setSelectedSymbols(value);
+    }
+
+    return (
+        <Box sx={{ width: 260, p: 2 }}>
+            <Typography variant="h6" gutterBottom>Filters</Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Stack direction="row" spacing={2} padding={0} sx={{ mb: 2 }}>
+                <FormControl sx={{ m: 0, minWidth: 90 }} size="small">
+                    <InputLabel>DTE From</InputLabel>
+                    <Select id="dteFrom" value={dteFrom} label="DTE From" onChange={(e) => setDteFrom(e.target.value as number)}>
+                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ m: 0, minWidth: 90 }} size="small">
+                    <InputLabel>DTE To</InputLabel>
+                    <Select id="dteTo" value={dteTo} label="DTE To" onChange={(e) => setDteTo(e.target.value as number)}>
+                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                    </Select>
+                </FormControl>
+            </Stack>
+
+            <Autocomplete
+                multiple
+                limitTags={2}
+                options={symbols}
+                value={selectedSymbols}
+                renderInput={(params) => (
+                    <TextField {...params} label="Symbols" placeholder="Symbols" />
+                )}
+                onChange={handleChange}
+                size='small'
+            />
+        </Box>
+    );
+}
+
 export const GridTopFilter = (props: {
     cachedDates: string[],
     symbols: string[],
     selectedSymbols: string[],
-    dteFrom: number,
-    setDteFrom: React.Dispatch<React.SetStateAction<number>>;
+    selectedDates: string[],
+    dteFrom: number | undefined,
+    setDteFrom: React.Dispatch<React.SetStateAction<number | undefined>>;
+    dteTo: number | undefined,
+    setDteTo: React.Dispatch<React.SetStateAction<number | undefined>>;
     setSelectedSymbols: React.Dispatch<React.SetStateAction<string[]>>;
-    date: string;
-    setDate: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedDates: React.Dispatch<React.SetStateAction<string[]>>;
+    // date: string;
+    // setDate: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     const { cachedDates,
         symbols,
-        date,
+        selectedDates,
         selectedSymbols,
+        setSelectedDates,
         setSelectedSymbols,
         dteFrom,
         setDteFrom,
-        setDate, } = props;
+        dteTo,
+        setDteTo
+    } = props;
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     function handleChange(event: SyntheticEvent<Element, Event>, value: string[]): void {
         setSelectedSymbols(value);
     }
-
-    const [open, setOpen] = useState(false);
-    const toggleDrawer = (newOpen: boolean) => () => {
-        setOpen(newOpen);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const handleDatesSelectionChange = (event: SelectChangeEvent<typeof selectedDates>) => {
+        const value = event.target.value;
+        if (value[value.length - 1] === "all") {
+            setSelectedDates(selectedDates.length === cachedDates.length ? [] : cachedDates);
+            return;
+        }
+        setSelectedDates(typeof value === 'string' ? value.split(',') : value);
     };
 
-    return <Paper sx={{ mb: 1 }}>
-        <Stack direction="row" spacing={2} padding={1}>
-            <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-                <InputLabel>Data Mode</InputLabel>
-                <Select value={date} label="Data Mode" onChange={(e) => setDate(e.target.value)}>
-                    {
-                        cachedDates.map(c => {
-                            return <MenuItem key={c} value={c}>{c}</MenuItem>
-                        })
-                    }
-                </Select>
-            </FormControl>
 
-            <FormControl sx={{ m: 1, width: 300 }}>
-                {/* <InputLabel>Symbols</InputLabel> */}
-                <Autocomplete
+    return <Paper sx={{ mb: 1 }}>
+        {
+            isMobile && <Drawer anchor="left" open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+                <OIAnomalyFilterSidebar {...props} />
+            </Drawer>
+        }
+        <Stack direction="row" spacing={2} padding={1}>
+
+            <FormControl sx={{ m: 1, width: 150 }} size="small">
+                <InputLabel>Data Mode</InputLabel>
+                <Select
                     multiple
-                    limitTags={2}
-                    id="multiple-limit-tags"
-                    options={symbols}
-                    // getOptionLabel={(option) => option}
-                    defaultValue={[]}
-                    renderInput={(params) => (
-                        <TextField {...params} label="Symbols" placeholder="Symbols" />
-                    )}
-                    onChange={handleChange}
-                    size='small'
-                // sx={{ width: '500px' }}
-                />
-                {/* <Select
-                    id="demo-multiple-chip"
-                    multiple
-                    value={selectedSymbols}
-                    onChange={handleChange}
-                    label="Symbols"
-                    // input={<OutlinedInput id="symbols-multiple-chip" label="Symbols" />}
-                    renderValue={(selected) => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {selected.map((value) => (
-                                <Chip key={value} label={value} />
-                            ))}
-                        </Box>
-                    )}
-                    size='small'
-                    MenuProps={{
-                        PaperProps: {
-                            style: {
-                                maxHeight: 48 * 4.5 + 8,
-                                width: 250
-                            }
-                        }
-                    }}
+                    value={selectedDates}
+                    onChange={handleDatesSelectionChange}
+                    label="Data Mode"
+                    renderValue={(selected) => selected.join(', ')}
+                    MenuProps={MenuProps}
                 >
-                    {symbols.map((name) => (
-                        <MenuItem
-                            key={name}
-                            value={name}
-                        // style={getStyles(name, personName, theme)}
-                        >
-                            {name}
+                    <MenuItem value="all">
+                        <ListItemIcon>
+                            <Checkbox
+                                checked={cachedDates.length > 0 && selectedDates.length === cachedDates.length}
+                                indeterminate={selectedDates.length > 0 && selectedDates.length < cachedDates.length}
+                            />
+                        </ListItemIcon>
+                        <ListItemText primary="Select All" />
+                    </MenuItem>
+                    {cachedDates.map((name) => (
+                        <MenuItem key={name} value={name}>
+                            <Checkbox size="small" checked={selectedDates.includes(name)} />
+                            <ListItemText primary={name} />
                         </MenuItem>
                     ))}
-                </Select> */}
-            </FormControl>
-
-            <FormControl sx={{ m: 1, minWidth: 90 }} size="small">
-                <InputLabel>DTE From</InputLabel>
-                <Select id="dte" value={dteFrom} label="DTE From" onChange={(e) => setDteFrom(e.target.value as number)}>
-                    {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}+</MenuItem>)}
                 </Select>
             </FormControl>
+            {
+                isMobile ? <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                    <IconButton onClick={() => setSidebarOpen(true)} sx={{ alignSelf: 'flex-start' }}>
+                        <TuneIcon />
+                    </IconButton>
+                </Box> : <>
+                    <FormControl sx={{ m: 1, width: 300 }}>
+                        <Autocomplete
+                            multiple
+                            limitTags={2}
+                            options={symbols}
+                            defaultValue={[]}
+                            value={selectedSymbols}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Symbols" placeholder="Symbols" />
+                            )}
+                            onChange={handleChange}
+                            size='small'
+                        />
+                    </FormControl>
+                    <NumericRangeTextDropdown from={`${dteFrom}`} options={dteOptions} onChange={(from, to) => {
+                        from ? setDteFrom(parseInt(from)) : setDteFrom(undefined);
+                        to ? setDteTo(parseInt(to)) : setDteTo(undefined);
+                    }} />
+                    {/* <FormControl sx={{ m: 1, minWidth: 90 }} size="small">
+                        <InputLabel>DTE From</InputLabel>
+                        <Select id="dteFrom" value={dteFrom} label="DTE From" onChange={(e) => setDteFrom(e.target.value as number)}>
+                            {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                    <FormControl sx={{ m: 1, minWidth: 90 }} size="small">
+                        <InputLabel>DTE To</InputLabel>
+                        <Select id="dteTo" value={dteTo} label="DTE To" onChange={(e) => setDteTo(e.target.value as number)}>
+                            {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                        </Select>
+                    </FormControl> */}
+                </>
+            }
         </Stack>
     </Paper>
 }

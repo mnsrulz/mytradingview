@@ -8,12 +8,13 @@ import dayjs from 'dayjs';
 import { percentageFormatter } from '@/lib/formatters';
 import { ConditionalFormattingBox } from './ConditionalFormattingBox';
 import { PutCallRatio } from './PutCallRatio';
-import { IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
+import { DataModeType, IOptionsGrid, NumberRange, OptionsInnerData } from '@/lib/types';
 import { StrikePriceSlider } from './StrikePriceSlider';
 import { useRouter } from 'next/navigation';
 import { useQueryState, parseAsStringEnum } from 'nuqs';
 import { TickerSearch } from './TickerSearch';
 import { TickerSearchDialog } from './TickerSearchDialog';
+import RefreshCboeData from './RefreshCboeData';
 
 interface ITickerProps {
     symbol: string
@@ -37,7 +38,8 @@ enum PutCallType {
 const numberFormatter = (v: string) => v && Number(v);
 const todaysDate = dayjs().format('YYYY-MM-DD');
 export const StockOptionsView = (props: ITickerProps) => {
-    const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis } = useOptionTrackerV2(props.symbol);
+    const [refreshToken, setRefreshToken] = useState('');
+    const { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis } = useOptionTrackerV2(props.symbol, refreshToken);
     const [openSearchTickerDialog, setOpenSearchTickerDialog] = useState(false);
     const router = useRouter();
 
@@ -132,6 +134,7 @@ export const StockOptionsView = (props: ITickerProps) => {
 
     return <Paper>
         <TickerSearchDialog symbol={props.symbol} basePath='' />  - ${data.spotPrice}
+        {data.timestamp && <RefreshCboeData dataMode={DataModeType.CBOE} timestamp={data.timestamp} symbol={props.symbol} onRefresh={()=> setRefreshToken(Date.now().toString())} />}
         {/* <Button onClick={() => setDeltaHedgingOpen(true)}>Analyze Delta/Gamma hedging exposure</Button> */}
         {/* <FormControl sx={{ m: 1 }} variant="standard">
             <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>

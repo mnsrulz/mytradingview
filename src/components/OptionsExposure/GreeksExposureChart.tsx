@@ -27,12 +27,12 @@ const GreeksChartLabelMapping = {
 
 export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
     const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
-    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall } = exposureData;
+    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall, timestamp } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
     const height = calculateChartHeight(expirations, strikes);
-    const yaxisline = Math.max(...strikes.filter(j => j <= spotPrice));
-    const maxStrike = Math.max(...strikes);
+    const yaxisline = strikes.length > 0 ? Math.max(...strikes.filter(j => j <= spotPrice)) : 0;
+    const maxStrike = strikes.length > 0 ? Math.max(...strikes) : 0;
     const leftMarginValue = calculateYAxisTickWidth(maxStrike);
     const gammaOrDelta = GreeksChartLabelMapping[exposureType]
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
@@ -88,14 +88,22 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
             <ChartsText x="25%" y="5%" style={{ textAnchor: 'middle' }} fill="grey" text="CALLS" opacity="0.2" />
             <ChartsText x="75%" y="5%" style={{ textAnchor: 'middle' }} fill="grey" text="PUTS" opacity="0.2" />
             <ChartsText x="100%" y="85%" fill="grey" text={ghUrl} opacity="0.15" style={{ textAnchor: 'end' }} fontSize={10} />
-            <ChartsReferenceLine x={0} />
-            <ChartsReferenceLine y={yaxisline} label={"SPOT PRICE: $" + (spotPrice.toFixed(2))}
-                labelAlign="start"
-                lineStyle={{ strokeDasharray: '4', color: 'red', stroke: 'red' }}
-                labelStyle={{ stroke: 'red', strokeWidth: 0.25, fontSize: '8px' }} />
+            {
+                (strikes.length > 0 && !isLoading && strikes.includes(yaxisline)) && <>
+                    <ChartsReferenceLine x={0} />
+                    <ChartsReferenceLine y={yaxisline} label={"SPOT PRICE: $" + (spotPrice.toFixed(2))}
+                        labelAlign="start"
+                        lineStyle={{ strokeDasharray: '4', color: 'red', stroke: 'red' }}
+                        labelStyle={{ stroke: 'red', strokeWidth: 0.25, fontSize: '8px' }} />
+                </>
+            }
 
             {
-                exposureType == DexGexType.GEX && <CallPutWallLine callWall={Number(callWall)} putWall={Number(putWall)} spotPriceLineValue={yaxisline} />
+                exposureType == DexGexType.GEX && <CallPutWallLine strikes={strikes}
+                    callWall={Number(callWall)}
+                    putWall={Number(putWall)}
+                    spotPriceLineValue={yaxisline}
+                    gammaWall={Number(gammaWall)} />
             }
 
             {/* <EmaIndicatorLine strikes={strikes} emaData={emaData} /> */}

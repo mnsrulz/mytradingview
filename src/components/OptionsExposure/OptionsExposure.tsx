@@ -9,17 +9,19 @@ import { MemoizedGreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
-
+const symbolsWithDailyOptions = ["NDX", "RUT", "XSP", "SPX", "QQQ", "SPY"]; //will make it configurable later
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
     const [historicalDate, setHistoricalDate] = useQueryState('historical', parseAsString.withDefault(cachedDates.at(-1) || ''));
-    const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(50));
+    const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(symbolsWithDailyOptions.includes(symbol) ? 7 : 50));   //
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
-    const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate);
+    const [refreshToken, setRefreshToken]  = useState('');
+    const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate, refreshToken);
+    const timestamp = exposureData?.timestamp;
 
     const exposureChartContent = <Box sx={{ m: 1 }} minHeight={400}>{
         (isLoading && !exposureData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
@@ -56,9 +58,12 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     }
 
     return <Container maxWidth="md" sx={{ p: 0 }}>
+        
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
             setCustomExpirations={setSelectedExpirations}
+            timestamp={timestamp}
+            onRefresh={() => setRefreshToken(new Date().toISOString())}
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
