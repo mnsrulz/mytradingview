@@ -19,7 +19,7 @@ const client = ky.create({
 });
 const staleWarningInMinutes = 15;
 const staleWarningCheckIntervalInMinutes = 1;   //every one minutes is the check interval for stale data
-const exceptionSymbols = ["CBTX", "DJX", "NANOS", "NDX", "OEX", "RUT", "VIX", "XSP", "SPX"]
+const exceptionSymbols = ["CBTX", "MBTX", "DJX", "NANOS", "NDX", "OEX", "RUT", "VIX", "XSP", "SPX"]
 export default function RefreshCboeData({ timestamp, symbol, onRefresh, dataMode }: { symbol: string, timestamp?: Date, onRefresh?: () => void, dataMode: DataModeType }) {
     const [showWarning, setShowWarning] = useState(false);
     const [loading, setLoading] = useState(false);
