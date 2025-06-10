@@ -37,7 +37,7 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
     } = usePagination();
     debugger;
     const pageSize = results?.hitsPerPage;
-    const page = results?.page;
+    const page = currentRefinement;
 
     const columns: GridColDef<OIAnomalyReportDataResponse>[] = [
         {
@@ -114,6 +114,7 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
             page: page || 0,
             pageSize: pageSize || 12
         }}
+        rowCount={nbHits}
         onPaginationModelChange={(m) => {
             refine(m.page);
         }}
