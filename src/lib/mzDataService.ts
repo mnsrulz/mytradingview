@@ -73,3 +73,17 @@ export const getOptionsPricing = async (symbol: string) => {
 export const getHistoricalGreeksSummaryBySymbol = async (symbol: string) => {
     return await client(`api/options/${symbol}/report/greeks`).json<OptionGreeksSummaryBySymbolResponse[]>();
 }
+
+export const searchOIAnomaly = async (data:any) =>{
+    console.log(`searching...`)
+    return await client.post(`api/search/oi-anomaly`, {
+        json: data
+    }).json();
+}
+
+export const searchOIAnomalyFacet = async (data:any) =>{
+    console.log(`searching...`)
+    return await client.post(`api/search/oi-anomaly/facet`, {
+        json: data
+    }).json();
+}
