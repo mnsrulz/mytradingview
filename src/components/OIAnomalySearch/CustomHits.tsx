@@ -35,7 +35,6 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
         refine,
         createURL,
     } = usePagination();
-    debugger;
     const pageSize = results?.hitsPerPage;
     const page = currentRefinement;
 
@@ -126,6 +125,7 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
         disableColumnFilter
         disableRowSelectionOnClick
         disableColumnMenu={true}
+        disableColumnSorting={true}
         density='compact'
         rowHeight={72}
         sx={{
