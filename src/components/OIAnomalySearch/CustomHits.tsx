@@ -7,10 +7,8 @@ import {
     usePagination,
 } from 'react-instantsearch';
 
-import { ListItemText, Container } from '@mui/material';
+import { ListItemText } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { getOIAnomalyReport } from '@/lib/mzDataService';
-import { useEffect, useState } from 'react';
 import { OIAnomalyReportDataResponse } from '@/lib/types';
 import { numberCompactFormatter, numberFormatter, positiveNegativeNonDecimalFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
 import { red, green } from '@mui/material/colors';
@@ -45,6 +43,10 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
         {
             field: 'option', headerName: 'Option', width: 200, renderCell: (p) => {
                 const primarText = `${p.row.option_symbol} $${p.row.strike} ${p.row.option_type} `;
+                const os = p.row.option;
+                const strike = parseFloat(p.row.strike);
+                const fCopyText = `-${os.substring(0, os.lastIndexOf(p.row.option_type))}${p.row.option_type}${strike}`;
+
                 return <ListItemText
                     slotProps={{
                         primary: {
@@ -55,7 +57,7 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
                         }
                     }}
                     primary={<>
-                        {primarText}<CopyToClipboardButton text={p.row.option}></CopyToClipboardButton>
+                        {primarText}<CopyToClipboardButton text={fCopyText}></CopyToClipboardButton>                        
                     </>}
                     secondary={<>{p.row.expiration}
                         {p.row.delta ? ` | Δ: ${positiveNegativeNonDecimalFormatter(p.row.delta)}` : ''}
