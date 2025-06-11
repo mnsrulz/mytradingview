@@ -30,23 +30,25 @@ export const OIAnomalyInstantSearch = ({ mostRecentExposureData }: { mostRecentE
                     "dt": [mostRecentExposureData]
                 },
                 range: {
-                    "dte": "7:"
+                    "dte": "30:"
                 }
             }
         }} >
-            {isMobile && <Drawer anchor="left" open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+            {isMobile && <Drawer anchor="left" open={sidebarOpen} keepMounted={true} onClose={() => setSidebarOpen(false)}>
+                <Box mb={6}></Box>
+                <Divider />
                 <OIAnomalyFilterSidebar />
             </Drawer>}
             <Stack direction="row" spacing={3}>
                 {!isMobile && <OIAnomalyFilterSidebar />}
                 <Box flex={1}>
                     {isMobile && <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-start' }}>
-                        <SearchBox style={{ marginBottom: 10 }} />
+                        {/* <SearchBox style={{ marginBottom: 10 }} /> */}
                         <IconButton onClick={() => setSidebarOpen(true)} sx={{ alignSelf: 'flex-start' }}>
                             <TuneIcon />
                         </IconButton>
                     </Box>}
-                    {!isMobile && <SearchBox style={{ marginBottom: 10 }} />}
+                    {/* {!isMobile && <SearchBox style={{ marginBottom: 10 }} />} */}
                     <CustomHits />
                     {/* <Box mt={3}>
                     <Pagination />
@@ -55,54 +57,4 @@ export const OIAnomalyInstantSearch = ({ mostRecentExposureData }: { mostRecentE
             </Stack>
         </InstantSearch >
     </>
-}
-
-
-function OIHit({ hit }:
-    { hit: { dt: string, option_symbol: string, strike: string, option_type: string, expiration: string, option: string, delta: number, gamma: number } }) {
-    const { dt, option_symbol, option_type, strike, expiration, option, delta, gamma } = hit;
-    const primarText = `${option_symbol} $${strike} ${option_type} `;
-    return <ListItem
-        key={`${option}-${dt}`}
-        disableGutters>
-        <ListItemText
-            slotProps={{
-                primary: {
-                    fontSize: primaryTextSize
-                },
-                secondary: {
-                    fontSize: secondaryTextSize,
-                }
-            }}
-            primary={<>
-                {primarText}
-
-                <CopyToClipboardButton text={option}></CopyToClipboardButton>
-            </>}
-            secondary={<>{expiration}
-                {delta ? ` | Δ: ${positiveNegativeNonDecimalFormatter(delta)}` : ''}
-                {gamma ? ` | \u03B3: ${positiveNegativeNonDecimalFormatter(gamma)}` : ''}
-            </>}
-        />
-    </ListItem>
-    // return <ListItemText
-    //     slotProps={{
-    //         primary: {
-    //             fontSize: primaryTextSize
-    //         },
-    //         secondary: {
-    //             fontSize: secondaryTextSize,
-    //         }
-    //     }}
-    //     primary={<>
-    //         {primarText}
-
-    //         <CopyToClipboardButton text={option}></CopyToClipboardButton>
-    //     </>}
-    //     secondary={<>{expiration}
-    //         {delta ? ` | Δ: ${positiveNegativeNonDecimalFormatter(delta)}` : ''}
-    //         {gamma ? ` | \u03B3: ${positiveNegativeNonDecimalFormatter(gamma)}` : ''}
-    //     </>}
-    // />
-
 }
