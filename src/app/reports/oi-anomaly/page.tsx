@@ -1,14 +1,33 @@
-import * as React from 'react';
-import { NoSsr } from '@mui/material';
+'use client';
+import { OIAnomalyInstantSearch } from '@/components/OIAnomalySearch/OIAnomalSearch';
 import { getAvailableExposureDates } from '@/lib/mzDataService';
-import { OIAnomalyReport } from '@/components/OIAnomaly'
-import { getWatchlist } from '@/lib/dataService';
+import { Container, LinearProgress, NoSsr, Typography } from '@mui/material';
+import 'instantsearch.css/themes/satellite.css';
+import { useEffect, useState } from 'react';
 
-export default async function Page() {
-    const [cachedSummaryData, watchList] = await Promise.all([getAvailableExposureDates(), getWatchlist()]);
-    const cachedDates = cachedSummaryData.map(j => j.dt).sort().reverse();
-    const symbols = watchList.map(j => j.symbol).sort();
-    return <NoSsr>
-        <OIAnomalyReport cachedDates={cachedDates} symbols={symbols} />
-    </NoSsr>
+export default function Page() {
+    const [mostRecentExposureData, setmostRecentExposureData] = useState('');
+    const [error, setError] = useState('');
+    useEffect(() => {
+        getAvailableExposureDates().then(async k => {
+            if (k && k.length > 0) {
+                setmostRecentExposureData(k.at(-1)?.dt || '');
+            }
+        }).catch((err) => {
+            setError(`Error occurred! Please try again later.`);
+            console.log(err);
+        });
+    }, []);
+
+    if (error) return <Typography variant='body1' color='red'>{error}</Typography >
+
+    if (!mostRecentExposureData) {
+        return <LinearProgress />
+    }
+
+    return <Container sx={{ mb: 1 }} maxWidth='xl' disableGutters>
+        <NoSsr>
+            <OIAnomalyInstantSearch mostRecentExposureData={mostRecentExposureData} />
+        </NoSsr>
+    </Container >
 }
