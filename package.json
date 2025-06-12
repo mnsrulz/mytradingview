@@ -62,7 +62,7 @@
     "@types/core-js": "^2.5.8",
     "@types/he": "^1.2.3",
     "@types/lodash.chunk": "^4.2.9",
-    "@types/node": "^22.15.19",
+    "@types/node": "^24.0.1",
     "@types/numeral": "^2.0.5",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.3",
