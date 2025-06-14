@@ -1,14 +1,17 @@
-import * as React from 'react';
-import { NoSsr } from '@mui/material';
-import { getAvailableExposureDates } from '@/lib/mzDataService';
-import { OIAnomalyReport } from '@/components/OIAnomaly'
-import { getWatchlist } from '@/lib/dataService';
+'use client';
+import { OIAnomalyInstantSearch } from '@/components/OIAnomalySearch/OIAnomalSearch';
+import { useExporsureDates } from '@/lib/hooks';
+import { Container, LinearProgress, NoSsr, Typography } from '@mui/material';
+import 'instantsearch.css/themes/satellite.css';
 
-export default async function Page() {
-    const [cachedSummaryData, watchList] = await Promise.all([getAvailableExposureDates(), getWatchlist()]);
-    const cachedDates = cachedSummaryData.map(j => j.dt).sort().reverse();
-    const symbols = watchList.map(j => j.symbol).sort();
-    return <NoSsr>
-        <OIAnomalyReport cachedDates={cachedDates} symbols={symbols} />
-    </NoSsr>
+export default function Page() {
+    const { cachedDates, error, isLoading } = useExporsureDates();
+    if (error) return <Typography variant='body1' color='red'>{error}</Typography >
+    if (isLoading) return <LinearProgress />
+
+    return <Container sx={{ mb: 1 }} maxWidth='xl' disableGutters>
+        <NoSsr>
+            <OIAnomalyInstantSearch mostRecentExposureData={cachedDates.at(0) || ''} />
+        </NoSsr>
+    </Container >
 }

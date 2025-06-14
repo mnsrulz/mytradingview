@@ -1,11 +1,13 @@
+'use client';
 import * as React from 'react';
-import { NoSsr } from '@mui/material';
-import { getAvailableExposureDates } from '@/lib/mzDataService';
+import { LinearProgress, NoSsr, Typography } from '@mui/material';
 import { GreeksReport } from '@/components/GreeksReport'
+import { useExporsureDates } from '@/lib/hooks';
 
-export default async function Page() {
-    const cachedSummaryData = await getAvailableExposureDates();
-    const cachedDates = cachedSummaryData.map(j => j.dt).sort().reverse();
+export default function Page() {
+    const { cachedDates, error, isLoading } = useExporsureDates();
+    if (isLoading) return <LinearProgress />
+    if (error) return <Typography variant='body1' color='red'>{error}</Typography >
 
     return <NoSsr>
         <GreeksReport cachedDates={cachedDates} />

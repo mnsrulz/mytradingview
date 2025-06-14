@@ -1,6 +1,9 @@
 import { auth } from "@/lib/auth";
 import { logger } from '@/lib/logger'
-const secureRoutesRegex = /^\/(api\/)?trades$/;
+
+// Separate regex for API and page routes
+const secureApiRoutesRegex = /^\/api\/(trades|symbols\/[^/]+\/options\/analyze\/tradier)$/;
+const securePageRoutesRegex = /^\/trades$/;
 
 export default auth((req) => {
        logger.info(`${req.method} ${req.nextUrl.pathname}`, {
@@ -12,7 +15,13 @@ export default auth((req) => {
               userAgent: req.headers.get('user-agent')
        });
        if (!req.auth) {
-              if (secureRoutesRegex.test(req.nextUrl.pathname)) {
+              if (secureApiRoutesRegex.test(req.nextUrl.pathname)) {
+                     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                            status: 401,
+                            headers: { 'Content-Type': 'application/json' }
+                     });
+              }
+              if (securePageRoutesRegex.test(req.nextUrl.pathname)) {
                      const newUrl = new URL("/api/auth/signin", req.nextUrl.origin)
                      newUrl.searchParams.set('callbackUrl', req.nextUrl.href);
                      return Response.redirect(newUrl);

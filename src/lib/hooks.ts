@@ -4,7 +4,7 @@ import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricing
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate, getAvailableExposureDates } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -306,7 +306,7 @@ export const useTickerSearch = (v: string) => {
 //     return { data, strikes, expirations };
 // }
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string }
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, gammaWall: string, timestamp?: Date }
 
 const mapChartValues = (mp: Map<number, number>, skts: Map<number, number>, values: number[]) => {
     const nodes = new Float64Array(mp.size).fill(0);
@@ -353,7 +353,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 }
 
 //This hook has potential performance issues
-export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string) => {
+export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
     const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
@@ -367,9 +367,11 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     //     getEmaDataForExpsoure(symbol).then(setEmaData);
     // }, [symbol]);
 
+
+
     useEffect(() => {
         setHasError(false);
-        const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${dataMode}`;
+        const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${refreshToken}-${dataMode}`;
         if (cacheStore[cacheKey]) {
             setRawExposureResponse(cacheStore[cacheKey]);
             setIsLoading(false);
@@ -386,7 +388,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         }).catch(() => {
             setHasError(true);
         }).finally(() => setIsLoading(false))
-    }, [symbol, dt, dataMode]);
+    }, [symbol, dt, dataMode, refreshToken]);
 
     useEffect(() => {
         if (!rawExposureResponse) return;
@@ -404,7 +406,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0' };
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', timestamp: rawExposureResponse.timestamp };
         switch (chartType) {
             case 'GEX':
                 const callWallMap = {} as Record<string, number>;
@@ -419,6 +421,16 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 })
                 exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
                 exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
+
+                const gammaWallResult = Object.keys(callWallMap).reduce((a, b) => {
+                    if ((callWallMap[b] + putWallMap[b]) > a.maxGamma) {
+                        a.maxGamma = callWallMap[b] + putWallMap[b];
+                        a.strike = b;
+                    }
+                    return a;
+                }, { maxGamma: 0, strike: "" });
+
+                exposureDataValue.gammaWall = gammaWallResult.strike;
 
                 exposureDataValue.items = filteredData.map(j => {
                     return {
@@ -477,7 +489,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     };
 }
 
-export const useOptionTrackerV2 = (symbol: string) => {
+export const useOptionTrackerV2 = (symbol: string, refreshToken: string) => {
     const [data, setOd] = useState<OptionsPricingDataResponse>();
     const [isLoading, setIsLoading] = useState(true);
     const [targetPrice, setTargetPrice] = useState(0);
@@ -498,8 +510,30 @@ export const useOptionTrackerV2 = (symbol: string) => {
             setTargetPrice(spotPrice);
             setCostBasis(spotPrice);
         }).finally(() => setIsLoading(false));
-    }, [symbol]);
+    }, [symbol, refreshToken]);
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis };
 }
 
 
+export const useExporsureDates = () => {
+    const [cachedDates, setCachedDates] = useState<string[]>([]);
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        setIsLoading(true)
+        getAvailableExposureDates().then(async k => {
+            if (k && k.length > 0) {
+                setCachedDates(k.map(j => j.dt).sort().reverse());
+            }
+        }).catch((err) => {
+            setError(`Error occurred! Please try again later.`);
+        }).finally(() => {
+            setIsLoading(false);
+        });
+    }, []);
+    return {
+        cachedDates,
+        error,
+        isLoading
+    }
+}

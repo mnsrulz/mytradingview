@@ -12,8 +12,11 @@ import { Metadata } from "next";
 import { NoPrefetch } from "@/components/NoPrefetch";
 import { Suspense } from "react";
 import theme from '@/theme';
-const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
+import { GoogleAnalytics } from '@next/third-parties/google';
+import { Footer } from "@/components/Footer";
 
+const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
+const gaId = process.env.GOOGLE_ANALYTICS_ID || '';
 
 export const metadata: Metadata = {
   title: "My trading view app",
@@ -26,7 +29,7 @@ const AUTHENTICATION = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
   return (
-    <html lang="en" data-toolpad-color-scheme="light">
+    <html lang="en">
       <body className={inter.className}>
         <SessionProvider session={session}>
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
@@ -40,10 +43,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 title: 'mztrading'
               }}
             >
-              <DashboardLayout>
+              <DashboardLayout slots={{ sidebarFooter: Footer }}>
                 <NoPrefetch />
                 <NuqsAdapter>
-                  <Container maxWidth="xl" sx={{ p: 1 }}>
+                  <Container maxWidth={false} disableGutters sx={{ p: 1 }}>
                     <Suspense fallback={<LinearProgress />}>
                       {children}
                     </Suspense>
@@ -56,6 +59,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </AppRouterCacheProvider>
         </SessionProvider>
       </body>
+      {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 }

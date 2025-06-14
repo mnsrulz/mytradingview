@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Box, Link } from '@mui/material';
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { getHistoricalGreeksSummaryByDate } from '@/lib/mzDataService';
 import { useQueryState, parseAsStringLiteral, parseAsNumberLiteral } from 'nuqs';
 import { useEffect, useMemo, useState } from 'react';
