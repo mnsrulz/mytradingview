@@ -9,7 +9,7 @@ import { memo, useMemo } from "react";
 import { CallPutWallLine } from "./CallPutWallLine";
 import { ExposureChartLegend } from "./ExposureChartLegend";
 const colorCodes = getColorPallete();
-const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
+import { ghUrl } from '@/lib/constants'
 
 const xAxixFormatter = (datasetType: DexGexType, v: number) => {
     if (datasetType == 'GEX' && v < 0) {

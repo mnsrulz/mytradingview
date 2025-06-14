@@ -13,6 +13,7 @@ import { NoPrefetch } from "@/components/NoPrefetch";
 import { Suspense } from "react";
 import theme from '@/theme';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { Footer } from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 const gaId = process.env.GOOGLE_ANALYTICS_ID || '';
@@ -42,7 +43,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 title: 'mztrading'
               }}
             >
-              <DashboardLayout>
+              <DashboardLayout slots={{ sidebarFooter: Footer }}>
                 <NoPrefetch />
                 <NuqsAdapter>
                   <Container maxWidth={false} disableGutters sx={{ p: 1 }}>

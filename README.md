@@ -1,7 +1,10 @@
 # MyTradingView
 [![Netlify Status](https://api.netlify.com/api/v1/badges/317da820-20d5-45f2-b0a3-f2c49feb5bf7/deploy-status)](https://app.netlify.com/sites/mztrading/deploys)
 
-Welcome to the MyTradingView! This project is a Next.js application designed to help you analyze stock options efficiently. It offers a comprehensive set of features for exploring and making decisions about stock options.
+A powerful stock options analysis tool built with **Next.js**, designed to help users explore and analyze stock option data efficiently.
+
+> ⚠️ **Disclaimer:**  
+> This application is intended for **educational and informational purposes only**. It does **not constitute financial advice** and makes no guarantees about investment outcomes. Users are solely responsible for any decisions made using this application.
 
 ## Features
 
@@ -127,4 +130,4 @@ For any questions or support, please open an issue on GitHub.
 
 ---
 
-Thank you for using the MyTradingView! Happy trading! 🚀
+Thanks for exploring MyTradingView! We hope you find it useful for learning and research. 📊

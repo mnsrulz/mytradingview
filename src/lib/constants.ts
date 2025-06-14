@@ -1,0 +1,1 @@
+export const ghUrl = process.env.GH_REPO_URL || 'github.com/mnsrulz/mytradingview';
