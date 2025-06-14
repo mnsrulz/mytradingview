@@ -4,7 +4,7 @@ import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricing
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate, getAvailableExposureDates } from './mzDataService';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -406,7 +406,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', timestamp: rawExposureResponse.timestamp};
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', timestamp: rawExposureResponse.timestamp };
         switch (chartType) {
             case 'GEX':
                 const callWallMap = {} as Record<string, number>;
@@ -429,7 +429,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                     }
                     return a;
                 }, { maxGamma: 0, strike: "" });
-                
+
                 exposureDataValue.gammaWall = gammaWallResult.strike;
 
                 exposureDataValue.items = filteredData.map(j => {
@@ -515,3 +515,25 @@ export const useOptionTrackerV2 = (symbol: string, refreshToken: string) => {
 }
 
 
+export const useExporsureDates = () => {
+    const [cachedDates, setCachedDates] = useState<string[]>([]);
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        setIsLoading(true)
+        getAvailableExposureDates().then(async k => {
+            if (k && k.length > 0) {
+                setCachedDates(k.map(j => j.dt).sort().reverse());
+            }
+        }).catch((err) => {
+            setError(`Error occurred! Please try again later.`);
+        }).finally(() => {
+            setIsLoading(false);
+        });
+    }, []);
+    return {
+        cachedDates,
+        error,
+        isLoading
+    }
+}
