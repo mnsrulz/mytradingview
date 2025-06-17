@@ -74,7 +74,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
             }}
             slotProps={{
                 tooltip: {
-                    trigger: 'none'
+                    trigger: 'axis'
                 },
                 legend: {
                     direction: isSmallScreen ? 'horizontal' : 'vertical',
