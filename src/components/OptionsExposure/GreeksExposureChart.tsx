@@ -27,7 +27,7 @@ const GreeksChartLabelMapping = {
 
 export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
     const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
-    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall, timestamp } = exposureData;
+    const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall, volTrigger, timestamp } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
     const height = calculateChartHeight(expirations, strikes);
@@ -94,7 +94,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
                     <ChartsReferenceLine y={yaxisline} label={"SPOT PRICE: $" + (spotPrice.toFixed(2))}
                         labelAlign="start"
                         lineStyle={{ strokeDasharray: '4', color: 'red', stroke: 'red' }}
-                        labelStyle={{ stroke: 'red', strokeWidth: 0.25, fontSize: '8px' }} />
+                        labelStyle={{ stroke: 'red', strokeWidth: 0.25, fontSize: '10px' }} />
                 </>
             }
 
@@ -103,6 +103,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
                     callWall={Number(callWall)}
                     putWall={Number(putWall)}
                     spotPriceLineValue={yaxisline}
+                    volTrigger={Number(volTrigger)}
                     gammaWall={Number(gammaWall)} />
             }
 
