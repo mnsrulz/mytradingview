@@ -306,7 +306,7 @@ export const useTickerSearch = (v: string) => {
 //     return { data, strikes, expirations };
 // }
 
-export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, gammaWall: string, timestamp?: Date }
+export type ExposureDataType = { items: { data: number[], expiration: string }[], strikes: number[], expirations: string[], spotPrice: number, maxPosition: number, putWall: string, callWall: string, gammaWall: string, volTrigger: string, timestamp?: Date }
 
 const mapChartValues = (mp: Map<number, number>, skts: Map<number, number>, values: number[]) => {
     const nodes = new Float64Array(mp.size).fill(0);
@@ -406,17 +406,19 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
         const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
         const strikesIndexMap = new Map<number, number>();
         strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', timestamp: rawExposureResponse.timestamp };
+        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', volTrigger: '0', timestamp: rawExposureResponse.timestamp };
         switch (chartType) {
             case 'GEX':
                 const callWallMap = {} as Record<string, number>;
                 const putWallMap = {} as Record<string, number>;
+                const netGammaMap = {} as Record<string, number>;
 
                 filteredData.forEach(k => {
                     k.strikes.forEach((s, ix) => {
                         const strike = Number(s);
                         callWallMap[strike] = (callWallMap[strike] || 0) + k.call.absGamma[ix]
-                        putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix]
+                        putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix];
+                        netGammaMap[strike] = (netGammaMap[strike] || 0) + (k.netGamma[ix]);
                     })
                 })
                 exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
@@ -431,6 +433,23 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 }, { maxGamma: 0, strike: "" });
 
                 exposureDataValue.gammaWall = gammaWallResult.strike;
+                
+                // Calculate VOLTRIGGER -- vol trigger is a strike where the net gamma flips from positive to negative
+                const sortedStrikes = Object.keys(netGammaMap)
+                    .map(Number)
+                    .sort((a, b) => a - b);
+
+                for (let i = 1; i < sortedStrikes.length; i++) {
+                    const prevStrike = sortedStrikes[i - 1];
+                    const currStrike = sortedStrikes[i];
+                    const prevGamma = netGammaMap[prevStrike];
+                    const currGamma = netGammaMap[currStrike];
+
+                    if (prevGamma > 0 && currGamma < 0) {
+                        exposureDataValue.volTrigger = currStrike.toString();
+                        break;
+                    }
+                }
 
                 exposureDataValue.items = filteredData.map(j => {
                     return {
