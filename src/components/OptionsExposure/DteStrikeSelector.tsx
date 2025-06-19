@@ -4,19 +4,22 @@ import { FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemTex
 import { useState } from "react";
 import RefreshCboeData from "../RefreshCboeData";
 
-const dteOptions = [7,
+const dteOptions = [0,
+    1,
+    7,
     30,
     50,
     90,
     180,
     400,
     1000];
-const stikeOptions = [20,
+const strikeOptions = [20,
     30,
     50,
     80,
     100, 150,
-    200]
+    200, 300, 
+    400, 500]
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -32,7 +35,7 @@ const MenuProps = {
 export const DteStrikeSelector = (props: {
     symbol: string, dte: number, availableDates: string[], strikeCounts: number, timestamp?: Date,
     setCustomExpirations: (v: string[]) => void,
-    onRefresh?: ()=> void,
+    onRefresh?: () => void,
     setDte: (v: number) => void, setStrikesCount: (v: number) => void, hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
 }) => {
     const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations, timestamp, onRefresh } = props;
@@ -97,7 +100,7 @@ export const DteStrikeSelector = (props: {
                 <FormControl size="small">
                     <InputLabel>Strikes</InputLabel>
                     <Select id="strikes" value={strikeCounts} label="Strikes" onChange={(e) => setStrikesCount(e.target.value as number)}>
-                        {stikeOptions.map((strike) => <MenuItem key={strike} value={strike}>{strike}</MenuItem>)}
+                        {strikeOptions.map((strike) => <MenuItem key={strike} value={strike}>{strike}</MenuItem>)}
                     </Select>
                 </FormControl>
             </Stack>

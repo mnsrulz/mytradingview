@@ -9,7 +9,7 @@ import { MemoizedGreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
-const symbolsWithDailyOptions = ["NDX", "RUT", "XSP", "SPX", "QQQ", "SPY"]; //will make it configurable later
+const symbolsWithDailyOptions = ["NDX", "RUT", "XSP", "SPX", "QQQ", "SPY", "IWM"]; //will make it configurable later
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
