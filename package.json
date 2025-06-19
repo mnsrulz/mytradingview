@@ -23,7 +23,7 @@
     "@mui/x-data-grid": "^8.5.0",
     "@mui/x-date-pickers": "^8.5.2",
     "@next/third-parties": "^15.3.3",
-    "@prisma/client": "^5.12.1",
+    "@prisma/client": "^6.10.1",
     "@toolpad/core": "^0.16.0",
     "@uidotdev/usehooks": "^2.4.1",
     "algoliasearch": "^5.29.0",
