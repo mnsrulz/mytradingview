@@ -26,7 +26,7 @@
     "@prisma/client": "^5.12.1",
     "@toolpad/core": "^0.16.0",
     "@uidotdev/usehooks": "^2.4.1",
-    "algoliasearch": "^5.28.0",
+    "algoliasearch": "^5.29.0",
     "autosuggest-highlight": "^3.3.4",
     "collect.js": "^4.36.1",
     "core-js": "^3.43.0",
