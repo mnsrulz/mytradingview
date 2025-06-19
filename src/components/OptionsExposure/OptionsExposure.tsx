@@ -14,6 +14,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const { symbol, cachedDates } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
     const [historicalDate, setHistoricalDate] = useQueryState('historical', parseAsString.withDefault(cachedDates.at(-1) || ''));
+    const showZeroAndNextDte = symbolsWithDailyOptions.includes(symbol);
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(symbolsWithDailyOptions.includes(symbol) ? 7 : 50));   //
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsInteger.withDefault(30));
@@ -64,6 +65,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             setCustomExpirations={setSelectedExpirations}
             timestamp={timestamp}
             onRefresh={() => setRefreshToken(new Date().toISOString())}
+            showZeroAndNextDte={showZeroAndNextDte}
             setDte={setDte} setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />

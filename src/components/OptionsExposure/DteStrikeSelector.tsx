@@ -18,7 +18,7 @@ const strikeOptions = [20,
     50,
     80,
     100, 150,
-    200, 300, 
+    200, 300,
     400, 500]
 
 const ITEM_HEIGHT = 48;
@@ -36,9 +36,10 @@ export const DteStrikeSelector = (props: {
     symbol: string, dte: number, availableDates: string[], strikeCounts: number, timestamp?: Date,
     setCustomExpirations: (v: string[]) => void,
     onRefresh?: () => void,
+    showZeroAndNextDte?: boolean,
     setDte: (v: number) => void, setStrikesCount: (v: number) => void, hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
 }) => {
-    const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations, timestamp, onRefresh } = props;
+    const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations, timestamp, onRefresh, showZeroAndNextDte } = props;
     const dataModes = hasHistoricalData ? ['CBOE', 'TRADIER', 'HISTORICAL'] : ['CBOE', 'TRADIER'];
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const theme = useTheme();
@@ -73,7 +74,7 @@ export const DteStrikeSelector = (props: {
                 <FormControl size="small">
                     <InputLabel>DTE</InputLabel>
                     <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
-                        {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                        {dteOptions.filter(k => k > 1 || showZeroAndNextDte).map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
                         {!isMobile && <MenuItem key="custom" value="-1">Custom</MenuItem>}
                     </Select>
                 </FormControl>
