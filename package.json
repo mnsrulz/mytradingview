@@ -48,7 +48,7 @@
     "react-dom": "^19.1.0",
     "react-instantsearch": "^7.15.8",
     "react-photo-view": "^1.2.7",
-    "react-resize-detector": "^12.0.2",
+    "react-resize-detector": "^12.1.0",
     "react-router": "^7.6.1",
     "react-router-dom": "^7.6.2",
     "socket.io-client": "^4.8.1",
