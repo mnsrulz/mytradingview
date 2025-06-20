@@ -40,7 +40,7 @@
     "lodash.chunk": "^4.2.0",
     "lodash.debounce": "^4.0.8",
     "nanoid": "^5.1.5",
-    "next": "^15.3.2",
+    "next": "^15.3.4",
     "next-auth": "^5.0.0-beta.28",
     "numeral": "^2.0.6",
     "nuqs": "^2.4.3",
