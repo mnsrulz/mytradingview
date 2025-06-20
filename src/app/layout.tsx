@@ -5,15 +5,10 @@ import { SessionProvider, signIn, signOut } from 'next-auth/react';
 import { NAVIGATION } from './nav'
 import { NextAppProvider } from '@toolpad/core/nextjs';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { DashboardLayout } from "@toolpad/core/DashboardLayout";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Container, LinearProgress } from "@mui/material";
 import { Metadata } from "next";
-import { NoPrefetch } from "@/components/NoPrefetch";
-import { Suspense } from "react";
 import theme from '@/theme';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { Footer } from "@/components/Footer";
+import { Dashboard } from "./app";
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 const gaId = process.env.GOOGLE_ANALYTICS_ID || '';
@@ -43,18 +38,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 title: 'mztrading'
               }}
             >
-              <DashboardLayout slots={{ sidebarFooter: Footer }}>
-                <NoPrefetch />
-                <NuqsAdapter>
-                  <Container maxWidth={false} disableGutters sx={{ p: 1 }}>
-                    <Suspense fallback={<LinearProgress />}>
-                      {children}
-                    </Suspense>
-                  </Container>
-                  {/* <PageContainer>
-                  </PageContainer> */}
-                </NuqsAdapter>
-              </DashboardLayout>
+              <Dashboard children={children} />
             </NextAppProvider>
           </AppRouterCacheProvider>
         </SessionProvider>
@@ -63,3 +47,4 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     </html>
   );
 }
+
