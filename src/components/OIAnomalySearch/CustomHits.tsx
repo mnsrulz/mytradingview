@@ -120,7 +120,7 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
             refine(m.page);
         }}
         paginationMode='server'
-        loading={status === 'loading'}
+        loading={status === 'loading' || status === 'stalled'}
         getRowId={(r) => `${r.option}-${r.dt}`}
         pageSizeOptions={[12]}
         checkboxSelection={false}
