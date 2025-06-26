@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 title: 'mztrading'
               }}
             >
-              <Dashboard children={children} />
+              <Dashboard>{children}</Dashboard>
             </NextAppProvider>
           </AppRouterCacheProvider>
         </SessionProvider>
