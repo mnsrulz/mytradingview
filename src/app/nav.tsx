@@ -14,6 +14,7 @@ import FunctionsIcon from '@mui/icons-material/Functions';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import TimelineIcon  from '@mui/icons-material/Timeline';
 // or
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
@@ -80,6 +81,11 @@ export const NAVIGATION: Navigation = [
                 title: 'OI Anomaly',
                 icon: <WarningAmberIcon />, // or <ReportProblemIcon />
                 // icon: <ReportProblemIcon />
+            },
+            {
+                segment: 'oi',
+                title: 'OI Historical',
+                icon: <TimelineIcon />
             },
         ],
     },
