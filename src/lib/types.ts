@@ -188,6 +188,18 @@ export type OptionsPricingDataResponse = {
   timestamp: Date
 }
 
+export type OIReportDataResponse = {
+  dt: string;
+  price: number;
+  option_type: string;
+  strike: number;
+  total_open_interest: number;
+}
+
+export type OIExpirationsDataResponse = {
+  expiration: string;
+}
+
 export type OptionGreeksSummaryBySymbolResponse = {
   dt: string;
   price: number;
