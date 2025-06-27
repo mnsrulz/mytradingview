@@ -1,13 +1,14 @@
 'use client';
 
-import { getHistoricalExpirationsBySymbol, getHistoricalOISummaryBySymbol } from "@/lib/mzDataService";
+import { getHistoricalOISummaryBySymbol } from "@/lib/mzDataService";
 import { useEffect, useState } from "react";
 import { BarPlot } from '@mui/x-charts/BarChart';
 import { Box, LinearProgress } from '@mui/material';
-import { OIExpirationsDataResponse, OIReportDataResponse } from "@/lib/types";
+import { OIReportDataResponse } from "@/lib/types";
 import { ChartContainer, ChartsLegend, ChartsXAxis, ChartsYAxis, LinePlot } from '@mui/x-charts';
 import { fixedCurrencyFormatter, numberCompactFormatter } from "@/lib/formatters";
 import { green, red, yellow } from '@mui/material/colors';
+import { useNotifications } from "@toolpad/core";
 
 const priceLineColor = yellow[900]; // Color for the price line
 const barCallColor = green[900]; // Color for the call bar
@@ -17,11 +18,17 @@ export const SeriesChart = (props: { symbol: string, expirationDates: string[] }
     const { symbol, expirationDates } = props;
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<OIReportDataResponse[]>([]);
-    
+    const notifications = useNotifications();
+
     useEffect(() => {
+        setIsLoading(true);
         getHistoricalOISummaryBySymbol(symbol, expirationDates).then((data) => {
             setData(data);
             setIsLoading(false);
+        }).catch((error) => {
+            notifications.show('Error fetching data!', {
+                autoHideDuration: 3000,
+            });
         });
     }, [symbol, expirationDates])
 
