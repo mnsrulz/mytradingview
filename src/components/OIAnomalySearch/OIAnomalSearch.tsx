@@ -23,7 +23,7 @@ export const OIAnomalyInstantSearch = ({ mostRecentExposureData }: { mostRecentE
 
     return <>
 
-        <InstantSearch searchClient={searchClient} indexName="anomaly_score" initialUiState={{
+        <InstantSearch searchClient={searchClient} routing={true} indexName="anomaly_score" initialUiState={{
             "anomaly_score": {
                 hitsPerPage: 20,
                 refinementList: {
