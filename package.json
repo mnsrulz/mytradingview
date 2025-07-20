@@ -50,7 +50,7 @@
     "react-photo-view": "^1.2.7",
     "react-resize-detector": "^12.1.0",
     "react-router": "^7.6.3",
-    "react-router-dom": "^7.6.2",
+    "react-router-dom": "^7.7.0",
     "socket.io-client": "^4.8.1",
     "sort-by": "^1.2.0",
     "uplot": "^1.6.32",
