@@ -19,7 +19,7 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.2.0",
     "@mui/material-nextjs": "^7.2.0",
-    "@mui/x-charts": "^8.5.2",
+    "@mui/x-charts": "^8.9.0",
     "@mui/x-data-grid": "^8.7.0",
     "@mui/x-date-pickers": "^8.7.0",
     "@next/third-parties": "^15.3.3",
