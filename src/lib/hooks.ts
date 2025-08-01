@@ -393,7 +393,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     useEffect(() => {
         if (!rawExposureResponse) return;
         const start = performance.now();
-        const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+        const filteredData = dte >= 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
         const expirations = filteredData.map(j => j.expiration);
 
         const allAvailableStikesForFilteredExpirations = new Set<number>();
