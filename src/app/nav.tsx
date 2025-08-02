@@ -15,6 +15,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import TimelineIcon  from '@mui/icons-material/Timeline';
+import BorderVerticalIcon  from '@mui/icons-material/BorderVertical';
 // or
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
@@ -86,6 +87,11 @@ export const NAVIGATION: Navigation = [
                 segment: 'oi',
                 title: 'OI Historical',
                 icon: <TimelineIcon />
+            },
+            {
+                segment: 'greek-walls',
+                title: 'Greek Walls',
+                icon: <BorderVerticalIcon />
             },
         ],
     },
