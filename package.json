@@ -21,7 +21,7 @@
     "@mui/material-nextjs": "^7.2.0",
     "@mui/x-charts": "^8.9.2",
     "@mui/x-data-grid": "^8.7.0",
-    "@mui/x-date-pickers": "^8.7.0",
+    "@mui/x-date-pickers": "^8.9.2",
     "@next/third-parties": "^15.3.3",
     "@prisma/client": "^5.12.1",
     "@toolpad/core": "^0.16.0",
