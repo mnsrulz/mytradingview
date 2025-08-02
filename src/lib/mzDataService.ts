@@ -1,5 +1,5 @@
 import ky from "ky";
-import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, ExposureSnapshotBySymbolResponse, OIAnomalyReportDataResponse, OIReportDataResponse, OIExpirationsDataResponse, } from "./types";
+import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, ExposureSnapshotBySymbolResponse, OIAnomalyReportDataResponse, OIReportDataResponse, OIExpirationsDataResponse, OptionGreeksExposureWallsByDateResponse, } from "./types";
 
 export type CachedReleasesType = {
     name: string
@@ -56,6 +56,18 @@ export const getEmaDataForExpsoure = async (symbol: string) => {
 export const getHistoricalGreeksSummaryByDate = async (dt: string, dte: number) => {
     return await client(`api/options/report/greeks?dt=${dt}&dte=${dte}`).json<OptionGreeksSummaryByDateResponse[]>();
 }
+
+export const getHistoricalExposureWallsByDate = async (dt: string, dte: number, symbol?: string) => {
+    const params: Record<string, string | number> = {};
+    if (dt) params.dt = dt;
+    if (dte) params.dte = dte;
+    if (symbol) params.symbol = symbol;
+
+    return await client(`api/options/report/exposure-walls?dt=${dt}&dte=${dte}`, {
+        searchParams: params
+    }).json<OptionGreeksExposureWallsByDateResponse[]>();
+}
+
 export const getOIAnomalyReport = async (params: { dt?: string; symbols?: string; dteFrom?: number; dteTo?: number; }) => {
     const searchParams = Object.fromEntries(
         Object.entries(params).filter(([, value]) => value !== undefined).map(([k, v]) => [k, String(v)])

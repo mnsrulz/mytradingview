@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ky from 'ky';
 import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData, ExposureDataResponse } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
@@ -359,7 +359,9 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
-    const expirationData = rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
+    const expirationData = useMemo(()=> {
+        return rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
+    }, [rawExposureResponse]); 
     // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
 
     // useEffect(() => {
@@ -393,7 +395,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     useEffect(() => {
         if (!rawExposureResponse) return;
         const start = performance.now();
-        const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+        const filteredData = dte >= 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
         const expirations = filteredData.map(j => j.expiration);
 
         const allAvailableStikesForFilteredExpirations = new Set<number>();
