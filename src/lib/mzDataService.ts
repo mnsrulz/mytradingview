@@ -98,16 +98,18 @@ export const getHistoricalExpirationsBySymbol = async (symbol: string) => {
     return await client(`api/options/${symbol}/report/greeks/expirations`).json<OIExpirationsDataResponse[]>();
 }
 
-export const searchOIAnomaly = async (data: any) => {
-    console.log(`searching...`)
+export const searchOIAnomaly = async (data: any, abortSignal: AbortSignal | null) => {
+    console.log(`searchOIAnomaly...`)
     return await client.post(`api/search/oi-anomaly`, {
-        json: data
+        json: data,
+        signal: abortSignal
     }).json();
 }
 
-export const searchOIAnomalyFacet = async (data: any) => {
-    console.log(`searching...`)
+export const searchOIAnomalyFacet = async (data: any, abortSignal: AbortSignal | null) => {
+    console.log(`searchOIAnomalyFacet...`)
     return await client.post(`api/search/oi-anomaly/facet`, {
-        json: data
+        json: data,
+        signal: abortSignal
     }).json();
 }
