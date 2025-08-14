@@ -111,17 +111,20 @@ const initialWatchlists: Watchlists = [
 
 export const useMultiWatchlists = () => {
     const [watchlists, setWatchlists] = useLocalStorage<Watchlists>("multiwatchlists", initialWatchlists);
-    const [migratedMultiWatchlist, setMigratedMultiWatchlist] = useLocalStorage<boolean>("enableMultiWatchlist", false);
+    const [migratedMultiWatchlist, setMigratedMultiWatchlist] = useLocalStorage<boolean>("enableMultiWatchlistV1", false);
     const { wl, clear } = useMyLocalWatchList();
 
     useEffect(() => {
         if (migratedMultiWatchlist) return;
         if (wl && wl.length > 0) {
             const defaultWatchlist = watchlists.find(wl => wl.name === 'Default');
-            defaultWatchlist?.tickers.splice(0, defaultWatchlist.tickers.length); //clear existing items
-            defaultWatchlist?.tickers.push(...wl);
-            //clear(); // clear local watchlist if multi-watchlists are being used. Let's enable clear after this feature is stable.            
-            setMigratedMultiWatchlist(true);
+            if (defaultWatchlist) {
+                defaultWatchlist.tickers.splice(0, defaultWatchlist.tickers.length); //clear existing items
+                defaultWatchlist.tickers.push(...wl);
+                setWatchlists([defaultWatchlist, ...watchlists.filter(wl => wl.name !== 'Default')]);
+                //clear(); // clear local watchlist if multi-watchlists are being used. Let's enable clear after this feature is stable.            
+                setMigratedMultiWatchlist(true);
+            }
         }
     }, [migratedMultiWatchlist, watchlists, wl]);
 
