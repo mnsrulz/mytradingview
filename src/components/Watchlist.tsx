@@ -164,7 +164,7 @@ export const Watchlist = () => {
                 {watchlists.map((w) => (
                   <MenuItem key={w.id} value={w.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>{w.name}</span>
-                    {menuOpen && (
+                    {menuOpen && watchlists.length > 1 && (
                       <Box>
                         <IconButton
                           size="small"
