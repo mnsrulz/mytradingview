@@ -245,3 +245,12 @@ export type ExposureDataResponse = {
   spotPrice: number,
   timestamp: Date
 }
+
+
+export type WatchlistItem = {
+    id: string; // unique id for the watchlist
+    name: string; // display name
+    tickers: SearchTickerItem[];
+};
+
+export type Watchlists = WatchlistItem[];

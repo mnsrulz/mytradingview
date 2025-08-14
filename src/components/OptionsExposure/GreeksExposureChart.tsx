@@ -39,6 +39,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+    console.log(`Renderring GreeksExposureChart... ${symbol} ${dte} ${exposureType} ${isLoading} items:${items.length} expirations:${expirations.length} strikes:${strikes.length} maxPosition:${maxPosition} spotPrice:${spotPrice} callWall:${callWall} putWall:${putWall} gammaWall:${gammaWall} volTrigger:${volTrigger} timestamp:${timestamp}`)
     return <Box>
         <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
         <BarChart
