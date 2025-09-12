@@ -68,7 +68,7 @@
     "@types/react-dom": "^19.1.6",
     "eslint": "^9.32.0",
     "eslint-config-next": "^15.4.5",
-    "prisma": "^5.12.1",
+    "prisma": "^6.16.1",
     "typescript": "^5.8.3"
   }
 }
