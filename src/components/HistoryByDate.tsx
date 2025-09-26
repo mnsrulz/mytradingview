@@ -1,8 +1,7 @@
 'use client';
 import { Box, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Switch } from '@mui/material';
 import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
-import { useSnapshotImagesData } from '@/lib/hooks';
-import { useMyLocalWatchList } from "@/lib/hooks";
+import { useMultiWatchlists, useSnapshotImagesData } from '@/lib/hooks';
 import { HistoricalSnapshotView } from './HistoricalSnapshotView';
 
 const modes = ['DEX', 'GEX'];
@@ -12,9 +11,8 @@ export const HistoryByDate = (props: { cachedDates: string[] }) => {
     const [showAllSymbols, setShowAllSymbols] = useQueryState('all', parseAsBoolean.withDefault(false));
     const [date, setDate] = useQueryState('dt', parseAsStringLiteral(cachedDates).withDefault(cachedDates.at(0) || ''));
     const [mode, setMode] = useQueryState('mode', parseAsStringLiteral(modes).withDefault(modes.at(0) || ''));
-
-    const { wl } = useMyLocalWatchList();
-    const mytickersSymbols = wl.map(r => r.symbol);
+    const { watchlists } = useMultiWatchlists();    
+    const mytickersSymbols = watchlists.flatMap(k=> k.tickers.map(r=>r.symbol));
     // const { dt, showAllSymbols } = props;
     const { cachedSummarySymbolsData, isLoadingCachedSummaryData } = useSnapshotImagesData(date);
     const ts = cachedSummarySymbolsData.filter(r => showAllSymbols || mytickersSymbols.includes(r.symbol));    //make sure to load only those which are part of the watchlist.
