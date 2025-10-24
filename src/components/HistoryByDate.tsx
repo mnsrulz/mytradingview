@@ -1,5 +1,5 @@
 'use client';
-import { Box, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Switch } from '@mui/material';
+import { Box, Divider, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Switch } from '@mui/material';
 import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { useMultiWatchlists, useSnapshotImagesData } from '@/lib/hooks';
 import { HistoricalSnapshotView } from './HistoricalSnapshotView';
@@ -43,6 +43,7 @@ export const HistoryByDate = (props: { cachedDates: string[] }) => {
         <FormControl size="small">
             <FormControlLabel title='Show all symbols available for a given date or limit symbols available in your watchlist' control={<Switch checked={showAllSymbols} onChange={(e, v) => setShowAllSymbols(v)} />} label="Show all?" />
         </FormControl>
+        <Divider sx={{ my: 1 }} />
         <HistoricalSnapshotView isLoading={isLoadingCachedSummaryData} items={ts.map(({ symbol, dex, gex }) => ({ key: symbol, asset: mode == 'GEX' ? gex : dex }))} />
     </Box>
 }

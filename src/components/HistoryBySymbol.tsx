@@ -1,5 +1,5 @@
 import { getHistoricalSnapshotsBySymbol } from "@/lib/mzDataService";
-import { Box, FormControl, TextField, Autocomplete, InputLabel, MenuItem, Select } from "@mui/material"
+import { Box, Divider, FormControl, TextField, Autocomplete, InputLabel, MenuItem, Select } from "@mui/material"
 import { useEffect, useState } from "react";
 import { HistoricalSnapshotView } from "./HistoricalSnapshotView";
 import collect from 'collect.js';
@@ -68,10 +68,10 @@ export const HistoryBySymbol = (props: { symbols: string[] }) => {
                 </Select>
             </FormControl>
         </Box>
+        <Divider sx={{ my: 1 }} />
         {
             symbol ? <HistoricalSnapshotView showKeyOnOverlay={true} isLoading={isLoading} key={symbol} items={collect(snapshots).sortByDesc('key').all()} />
                 : <div></div>
         }
-
     </Box>
 }
