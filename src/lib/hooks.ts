@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ky from 'ky';
-import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData, ExposureDataResponse } from './types';
+import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData, ExposureDataResponse, Watchlists } from './types';
 import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
 import dayjs from 'dayjs';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate, getAvailableExposureDates } from './mzDataService';
+import { nanoid } from 'nanoid';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -94,30 +95,74 @@ export const useSnapshotImagesData = (dt: string) => {
     return { cachedSummarySymbolsData: data, isLoadingCachedSummaryData: isLoading };
 }
 
-export const useMyLocalWatchList = () => {
-    const initialState = [
-        {
-            "symbol": "NVDA",
-            "name": "NVIDIA Corporation"
-        },
-        {
-            "symbol": "QQQ",
-            "name": "Invesco QQQ Trust"
-        },
-        {
-            "symbol": "MSFT",
-            "name": "Microsoft Corporation"
-        },
-        {
-            "symbol": "AMD",
-            "name": "Advanced Micro Devices, Inc."
-        },
-        {
-            "symbol": "TSM",
-            "name": "Taiwan Semiconductor Manufacturing Company Limited"
+const initialWatchlists: Watchlists = [
+    {
+        id: nanoid(),
+        name: 'Default',
+        tickers: [
+            { "symbol": "NVDA", "name": "NVIDIA Corporation" },
+            { "symbol": "QQQ", "name": "Invesco QQQ Trust" },
+            { "symbol": "MSFT", "name": "Microsoft Corporation" },
+            { "symbol": "AMD", "name": "Advanced Micro Devices, Inc." },
+            { "symbol": "TSM", "name": "Taiwan Semiconductor Manufacturing Company Limited" }
+        ],
+    }
+];
+
+export const useMultiWatchlists = () => {
+    const [watchlists, setWatchlists] = useLocalStorage<Watchlists>("multiwatchlists", initialWatchlists);
+    const [migratedMultiWatchlist, setMigratedMultiWatchlist] = useLocalStorage<boolean>("enableMultiWatchlistV1", false);
+    const { wl, clear } = useMyLocalWatchList();
+
+    useEffect(() => {
+        if (migratedMultiWatchlist) return;
+        if (wl && wl.length > 0) {
+            const defaultWatchlist = watchlists.find(wl => wl.name === 'Default');
+            if (defaultWatchlist) {
+                defaultWatchlist.tickers.splice(0, defaultWatchlist.tickers.length); //clear existing items
+                defaultWatchlist.tickers.push(...wl);
+                setWatchlists([defaultWatchlist, ...watchlists.filter(wl => wl.name !== 'Default')]);
+                //clear(); // clear local watchlist if multi-watchlists are being used. Let's enable clear after this feature is stable.            
+                setMigratedMultiWatchlist(true);
+            }
         }
-    ];
-    const [wl, setWl] = useLocalStorage("localwatchlist", initialState);
+    }, [migratedMultiWatchlist, watchlists, wl]);
+
+    const addWatchlist = (name: string) => {
+        const id = nanoid();
+        setWatchlists(wls => [...wls, { id, name, tickers: [] }]);
+    };
+
+    const removeWatchlist = (id: string) => {
+        setWatchlists(wls => wls.filter(wl => wl.id !== id));
+    };
+
+    const addTickerToWatchlist = (watchlistId: string, ticker: SearchTickerItem) => {
+        setWatchlists(wls =>
+            wls.map(wl =>
+                wl.id === watchlistId
+                    ? { ...wl, tickers: [...wl.tickers.filter(t => t.symbol !== ticker.symbol), ticker] }
+                    : wl
+            )
+        );
+    };
+
+    const removeTickerFromWatchlist = (watchlistId: string, symbol: string) => {
+        setWatchlists(wls =>
+            wls.map(wl =>
+                wl.id === watchlistId
+                    ? { ...wl, tickers: wl.tickers.filter(t => t.symbol !== symbol) }
+                    : wl
+            )
+        );
+    };
+
+    return { watchlists, addWatchlist, removeWatchlist, addTickerToWatchlist, removeTickerFromWatchlist };
+};
+
+//legacy watchlist hook
+export const useMyLocalWatchList = () => {
+    const [wl, setWl] = useLocalStorage("localwatchlist", [] as { symbol: string, name: string }[]);
 
     const removeFromMyList = (item: SearchTickerItem) => {
         setWl(v => v.filter((ticker) => ticker.symbol != item.symbol));
@@ -131,7 +176,11 @@ export const useMyLocalWatchList = () => {
         });
     };
 
-    return { wl, removeFromMyList, addToMyList };
+    const clear = () => {
+        setWl([]);
+    }
+
+    return { wl, removeFromMyList, addToMyList, clear };
 };
 
 export const useTickerSearch = (v: string) => {
@@ -359,7 +408,9 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
-    const expirationData = rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
+    const expirationData = useMemo(() => {
+        return rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
+    }, [rawExposureResponse]);
     // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
 
     // useEffect(() => {
@@ -367,6 +418,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     //     getEmaDataForExpsoure(symbol).then(setEmaData);
     // }, [symbol]);
 
+    console.log(`useOptionExposure... ${symbol} ${dt} ${dataMode} ${dte} ${selectedExpirations.length} ${strikeCount} ${chartType} ${isLoading} ${hasError} ${rawExposureResponse?.data.length || 0}`)
 
 
     useEffect(() => {
@@ -393,7 +445,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     useEffect(() => {
         if (!rawExposureResponse) return;
         const start = performance.now();
-        const filteredData = dte > 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+        const filteredData = dte >= 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
         const expirations = filteredData.map(j => j.expiration);
 
         const allAvailableStikesForFilteredExpirations = new Set<number>();
@@ -433,7 +485,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 }, { maxGamma: 0, strike: "" });
 
                 exposureDataValue.gammaWall = gammaWallResult.strike;
-                
+
                 // Calculate VOLTRIGGER -- vol trigger is a strike where the net gamma flips from positive to negative
                 const sortedStrikes = Object.keys(netGammaMap)
                     .map(Number)

@@ -8,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import VisibleIcon from '@mui/icons-material/Visibility';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { YahooOptionsResponse } from "@/lib/types";
 import ky from "ky";
@@ -61,7 +62,7 @@ const calculateStrategyData = (strategyLineItem: StrategyLineItem, timesales: Ti
 
 }
 
-const useTimeSalesData = (uniqueOptionContractSymbols: string, timePeriod: number) => {
+const useTimeSalesData = (uniqueOptionContractSymbols: string, timePeriod: number, refreshToken: number) => {
     const [data, setData] = useState<TimeSalesResposne[]>([]);
     const [loading, setLoading] = useState(false);
     useEffect(() => {
@@ -79,7 +80,7 @@ const useTimeSalesData = (uniqueOptionContractSymbols: string, timePeriod: numbe
             setData(timesales);
             setLoading(false);
         })
-    }, [uniqueOptionContractSymbols, timePeriod]);
+    }, [uniqueOptionContractSymbols, timePeriod, refreshToken]);
 
     return { data, loading }
 }
@@ -94,9 +95,11 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
     const [] = useState([]);
     const visibleStrategies = strategies.filter(j => !j.hidden)
     const uniqueOptionContractSymbols = [...new Set(strategies.flatMap(j => j.items.map(k => k.contractSymbol)))].sort().join(',');  //fn();///`TSM241122C00190000,TSM241122C00200000`; //fn();
-    const { data, loading } = useTimeSalesData(uniqueOptionContractSymbols, timePeriod);
+    const [refreshToken, setRefreshToken] = useState(0); //used to trigger the refresh of the data
+    const { data, loading } = useTimeSalesData(uniqueOptionContractSymbols, timePeriod, refreshToken);
     useEffect(() => {
         const allStrategyData = visibleStrategies.map(j => calculateStrategyData(j, data));
+        debugger;
         const flattenedData = mergeMultipleTimeSalesData(allStrategyData);
         setchartdataset({ data: flattenedData, legends: visibleStrategies.map(j => j.name) })
     }, [data, strategies]);
@@ -140,6 +143,9 @@ export const OptionSpreadPricingWrapper = (props: { yf: YahooOptionsResponse }) 
     return <Paper sx={{ p: 1, my: 1 }}>
         {/* <Link href={'/screener'}>Screener</Link> */}
         <Stack direction={'row'} sx={{ justifyContent: 'right' }}>
+            <IconButton onClick={() => setRefreshToken(v => v + 1)}>
+                <RefreshIcon />
+            </IconButton>
             <FormControl size='small' sx={{ width: 200 }}>
                 <InputLabel>Period (D)</InputLabel>
                 <Select id="timePeriod" label="Period (D)" value={timePeriod} onChange={(ev, v) => setTimePeriod(Number(ev.target.value))}>
