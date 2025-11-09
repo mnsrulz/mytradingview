@@ -3,7 +3,7 @@ import { EarningsSeason, HistoricalDataResponse } from "./types";
 import { getEarningDates, getHistoricalPrices } from './tradierService'
 import { getHistoricalPrices as getHistoricalPricesYf } from './yfService'
 
-export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly', client: 'tradier' | 'yahoo' = 'yahoo') => {
+export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly', client: 'tradier' | 'yahoo' = 'tradier') => {
     const years = parseInt(duration.substring(0, 1));
     let startDay: string = '';
     let endDay: string = '';

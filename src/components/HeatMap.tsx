@@ -102,6 +102,13 @@ export const HeatMap = ({
                                         px: 1,
                                         py: 0.5,
                                     },
+                                    "& td": {
+                                        fontSize: "0.85rem",
+                                        fontWeight: 500,
+                                        color: "text.secondary",
+                                        px: 0.5,
+                                        py: 0.5,
+                                    },
                                 }}
                             >
                                 {/* Y Label */}
