@@ -1,10 +1,9 @@
 'use client';
 import { HistoricalDataResponse, EarningsSeason } from "@/lib/types"
 import dayjs from "dayjs";
-import { Box, Divider, FormControl, Grid, InputLabel, MenuItem, Select, Tab, Tabs } from "@mui/material";
+import { Box, Tab, Tabs } from "@mui/material";
 import { TickerSearchDialog } from "./TickerSearchDialog";
 import { HeatMap } from "./HeatMap";
-import { useQueryState, parseAsStringEnum, parseAsBoolean } from 'nuqs';
 import { useRouter } from 'next/navigation';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -159,18 +158,18 @@ function getDailyData(dt: HistoricalDataResponse) {
 }
 
 function getMonthlyData(dt: HistoricalDataResponse) {
-    const ys = [...new Set(dt.history.day.map(j => dayjs(j.date).format('YYYY')))];
+    const years = [...new Set(dt.history.day.map(j => dayjs(j.date).format('YYYY')))];
     const data = dt.history.day.reduce((acc: number[][], current) => {
         const year = dayjs(current.date).format('YYYY');
         const pm = ((current.close - current.open) / current.open);
         const month = dayjs(current.date).month();
-        acc[month][ys.indexOf(year)] = pm;
+        acc[years.indexOf(year)][month] = pm;
         return acc;
-    }, [...Array<number[]>(12)].map(_ => Array<number>(ys.length).fill(0)));
+    }, [...Array<number[]>(years.length)].map(_ => Array<number>(months.length).fill(0)));
     return {
         data,
-        xLabels: ys,
-        yLabels: months,
+        xLabels: months,
+        yLabels: years,
         zeroHeaderLabel: 'Month'
     }
 }

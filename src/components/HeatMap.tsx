@@ -42,7 +42,7 @@ export const HeatMap = ({
                 sx={{
                     width: 'auto', // Set width of the TableContainer to auto
                     //   borderRadius: 1.5,
-                    overflow: "hidden",
+                    // overflow: "hidden",
                     //   display: "inline-block",
                     maxWidth: "100%",
                     display: 'inline-block', // Make sure the container doesn't stretch
@@ -109,7 +109,7 @@ export const HeatMap = ({
                                     component="th"
                                     scope="row"
                                     align="right"
-                                    sx={{ whiteSpace: "nowrap", px: 1 }}
+                                    sx={{ whiteSpace: "nowrap" }}
                                 >
                                     {yLabels[ix]}
                                 </TableCell>

@@ -53,11 +53,11 @@ export const getColorV2 = (v: number, min: number, max: number): string => {
   if (t < 0.5) {
     // red → yellow for negatives
     const localT = t / 0.5;
-    return interpolateColor(red[500], yellow[400], localT);
+    return interpolateColor(red[500], yellow[600], localT);
   } else {
     // yellow → green for positives
     const localT = (t - 0.5) / 0.5;
-    return interpolateColor(yellow[400], green[500], localT);
+    return interpolateColor(yellow[600], green[500], localT);
   }
 };
 
@@ -83,7 +83,6 @@ const interpolateColor = (color1: string, color2: string, t: number): string => 
     .toString(16)
     .slice(1)}`;
 };
-
 
 export const getColorPallete = () => {
     
