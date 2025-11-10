@@ -18,6 +18,7 @@ import { useMultiWatchlists } from "@/lib/hooks";
 import { DialogProps, DialogsProvider, useDialogs } from '@toolpad/core';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Delete';
+import { NumberFlowGroup } from '@number-flow/react';
 
 export const Watchlist = () => {
   const dialogs = useDialogs();
@@ -71,6 +72,7 @@ export const Watchlist = () => {
       field: 'actions',
       type: 'actions',
       width: 1,
+      cellClassName: 'actions',
       getActions: ({ row }) => {
         return [<GridActionsCellItem
           key='Remove'
@@ -113,7 +115,7 @@ export const Watchlist = () => {
   ];
 
   const [openAddTrade, setOpenAddTrade] = useState(false);
-  const [openTradingViewDialog, setOpenTradingViewDialog] = useState(false);  
+  const [openTradingViewDialog, setOpenTradingViewDialog] = useState(false);
 
   const handleNewWatchlistClick = async () => {
     const watchlistName = await dialogs.prompt("Watchlist Name");
@@ -210,25 +212,31 @@ export const Watchlist = () => {
           </Box>
         </Stack>
       </Grid>
-      <DataGrid rows={collect(wl).sortBy(sortMode).all()}
-        columns={columns}
-        //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
-        sx={{ display: 'grid', '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
-        // columnHeaderHeight={0}
-        // slots={{
-        //   columnHeaders: () => <div></div>,
-        // }}      
-        disableColumnMenu
-        disableColumnSorting
-        disableColumnSelector
-        disableColumnResize
-        rowHeight={72}
-        //apiRef={apiRef}
-        // rowSelection={true}
-        disableRowSelectionOnClick
-        hideFooter={true}
-        density='compact'
-        getRowId={(r) => `${r.symbol} - ${r.name}`} />
+      <NumberFlowGroup>
+        <DataGrid rows={collect(wl).sortBy(sortMode).all()}
+          columns={columns}
+          //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+          sx={{
+            display: 'grid',
+            '& .MuiDataGrid-columnSeparator': { display: 'none' },
+            // '& .MuiDataGrid-cell.actions': { paddingX: 0, width: '12px' },
+          }}
+          // columnHeaderHeight={0}
+          // slots={{
+          //   columnHeaders: () => <div></div>,
+          // }}      
+          disableColumnMenu
+          disableColumnSorting
+          disableColumnSelector
+          disableColumnResize
+          rowHeight={72}
+          //apiRef={apiRef}
+          // rowSelection={true}
+          disableRowSelectionOnClick
+          hideFooter={true}
+          density='compact'
+          getRowId={(r) => `${r.symbol} - ${r.name}`} />
+      </NumberFlowGroup>
       <AddTradeDialog onClose={handleCloseAddTrade}
         open={openAddTrade}
         ticker={currentStock} />

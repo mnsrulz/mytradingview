@@ -31,15 +31,15 @@ export const StockTickerView = (props: ITickerProps) => {
         />
 
         const secondaryEl = <>
-            {isNaN(change) ? '' : <NumberFlow
-                value={change}
+            <NumberFlow
+                value={isNaN(change) ? 0 : change}
                 locales="en-US"
                 format={{ minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'always' }}
-            />}
+            />
             &nbsp;
             (
             <NumberFlow
-                value={changePercent / 100}
+                value={isNaN(changePercent) ? 0 : changePercent / 100}
                 locales="en-US"
                 color={secondaryColor}
                 format={{ minimumFractionDigits: 2, maximumFractionDigits: 2, style: 'percent', signDisplay: 'never' }}
