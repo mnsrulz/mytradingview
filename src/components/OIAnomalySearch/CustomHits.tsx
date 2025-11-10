@@ -7,12 +7,13 @@ import {
     usePagination,
 } from 'react-instantsearch';
 
-import { ListItemText } from '@mui/material';
+import { ListItemText, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { OIAnomalyReportDataResponse } from '@/lib/types';
 import { numberCompactFormatter, numberFormatter, positiveNegativeNonDecimalFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
 import { red, green } from '@mui/material/colors';
 import CopyToClipboardButton from '../CopyToClipboard';
+import dayjs from 'dayjs';
 // import { OptionsGreekReportBySymbolDialog } from './OptionsGreekReportBySymbol';
 // import { columnGroupingModel, dteOptions } from './constants';
 
@@ -36,17 +37,46 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
     const pageSize = results?.hitsPerPage;
     const page = currentRefinement;
 
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const OptionsPrimaryText = (p: { row: OIAnomalyReportDataResponse }) => {
+        const primarText = `${p.row.option_symbol} $${p.row.strike} ${p.row.option_type} `;
+        if (isMobile) {
+            return <>
+                {primarText} {dayjs(p.row.expiration).format('DD MMM YY')} ({p.row.dte} DTE)
+            </>;
+        }
+        const os = p.row.option;
+        const strike = parseFloat(p.row.strike);
+        const fCopyText = `-${os.substring(0, os.lastIndexOf(p.row.option_type))}${p.row.option_type}${strike}`;
+        return <>
+            {primarText}<CopyToClipboardButton text={fCopyText}></CopyToClipboardButton>
+        </>
+    }
+
+    const OptionsSecondaryText = (p: { row: OIAnomalyReportDataResponse }) => {
+        if (isMobile) {
+            const { oi_change, prev_open_interest, open_interest } = p.row;
+            const changePercent = (oi_change / prev_open_interest) * 100;
+            const secondaryColor = changePercent < 0 ? red[500] : green[500];
+
+            return <>
+                OI: <span style={{ color: secondaryColor }}>{numberCompactFormatter(open_interest)} ({positiveNegativeNumberFormatter(changePercent)}%)</span>
+                <span> | V: {numberCompactFormatter(p.row.volume)}</span>
+            </>
+        }
+        return <>{p.row.expiration}
+            {p.row.delta ? ` | Δ: ${positiveNegativeNonDecimalFormatter(p.row.delta)}` : ''}
+            {p.row.gamma ? ` | \u03B3: ${positiveNegativeNonDecimalFormatter(p.row.gamma)}` : ''}
+        </>
+    }
+
     const columns: GridColDef<OIAnomalyReportDataResponse>[] = [
         {
             field: 'dt', headerName: 'Date'
         },
         {
-            field: 'option', headerName: 'Option', width: 200, renderCell: (p) => {
-                const primarText = `${p.row.option_symbol} $${p.row.strike} ${p.row.option_type} `;
-                const os = p.row.option;
-                const strike = parseFloat(p.row.strike);
-                const fCopyText = `-${os.substring(0, os.lastIndexOf(p.row.option_type))}${p.row.option_type}${strike}`;
-
+            field: 'option', headerName: 'Option', width: 200, flex: isMobile ? 1 : undefined, renderCell: (p) => {
                 return <ListItemText
                     slotProps={{
                         primary: {
@@ -56,17 +86,15 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
                             fontSize: secondaryTextSize,
                         }
                     }}
-                    primary={<>
-                        {primarText}<CopyToClipboardButton text={fCopyText}></CopyToClipboardButton>                        
-                    </>}
-                    secondary={<>{p.row.expiration}
-                        {p.row.delta ? ` | Δ: ${positiveNegativeNonDecimalFormatter(p.row.delta)}` : ''}
-                        {p.row.gamma ? ` | \u03B3: ${positiveNegativeNonDecimalFormatter(p.row.gamma)}` : ''}
-                    </>}
+                    primary={<OptionsPrimaryText row={p.row} />}
+                    secondary={<OptionsSecondaryText row={p.row} />}
                 />
             }
-        },
-        {
+        }
+    ];
+
+    if (!isMobile) {
+        columns.push(...[{
             field: 'prev_open_interest', align: 'right', headerName: 'Open Interest', minWidth: 200, type: 'number', renderCell: (p) => {
                 const { oi_change, prev_open_interest, open_interest } = p.row;
                 const changePercent = (oi_change / prev_open_interest) * 100;
@@ -95,8 +123,8 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
         },
         {
             field: 'anomaly_score', headerName: 'Score', type: 'number', valueFormatter: (v) => numberCompactFormatter(v)
-        }
-    ];
+        }] as GridColDef<OIAnomalyReportDataResponse>[]);
+    }
 
     return <div style={{ display: 'flex', flexDirection: 'column' }}><DataGrid
         rows={items}
