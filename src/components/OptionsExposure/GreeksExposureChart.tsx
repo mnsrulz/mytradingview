@@ -38,10 +38,11 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
+    const testid = `EXPSOURE-CHART-${symbol}-${exposureType}`
     console.log(`Renderring GreeksExposureChart... ${symbol} ${dte} ${exposureType} ${isLoading} items:${items.length} expirations:${expirations.length} strikes:${strikes.length} maxPosition:${maxPosition} spotPrice:${spotPrice} callWall:${callWall} putWall:${putWall} gammaWall:${gammaWall} volTrigger:${volTrigger} timestamp:${timestamp}`)
     return <Box>
         <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
+        {!isLoading && <div data-testid={testid}></div>}
         <BarChart
             loading={isLoading}
             skipAnimation={skipAnimation}
