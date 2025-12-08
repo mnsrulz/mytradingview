@@ -403,14 +403,19 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 
 //This hook has potential performance issues
 export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
-    const [rawExposureResponse, setRawExposureResponse] = useState<ExposureDataResponse>();
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [cacheStore, setCache] = useState<Record<string, ExposureDataResponse>>({});
-    const expirationData = useMemo(() => {
-        return rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
-    }, [rawExposureResponse]);
+    const [expirationData, setExpirationData] = useState([] as {
+        dte: number;
+        expiration: string;
+    }[]);
+
+// useMemo(() => {
+//         return rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
+//     }, [rawExposureResponse]);
+
     // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
 
     // useEffect(() => {
@@ -418,140 +423,137 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     //     getEmaDataForExpsoure(symbol).then(setEmaData);
     // }, [symbol]);
 
-    console.log(`useOptionExposure... ${symbol} ${dt} ${dataMode} ${dte} ${selectedExpirations.length} ${strikeCount} ${chartType} ${isLoading} ${hasError} ${rawExposureResponse?.data.length || 0}`)
-
-
     useEffect(() => {
-        setHasError(false);
-        const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${refreshToken}-${dataMode}`;
-        if (cacheStore[cacheKey]) {
-            setRawExposureResponse(cacheStore[cacheKey]);
-            setIsLoading(false);
-            return;
-        }
-        setIsLoading(true);
-        const exposureResponse = dataMode == DataModeType.HISTORICAL ? getHistoricalOptionExposure(symbol, dt) : getLiveExposure(symbol, dataMode);
-        exposureResponse.then(data => {
-            setCache((prev) => { prev[cacheKey] = data; return prev; });
-            for (const d of data.data) {  //for better performance, we are converting the strikes to number only once
-                d.strikesMap = new Map(d.strikes.map((j, ix) => [Number(j), ix]));
-            }
-            setRawExposureResponse(data);
-        }).catch(() => {
-            setHasError(true);
-        }).finally(() => setIsLoading(false))
-    }, [symbol, dt, dataMode, refreshToken]);
-
-    useEffect(() => {
-        if (!rawExposureResponse) return;
-        const start = performance.now();
-        const filteredData = dte >= 0 ? rawExposureResponse.data.filter(j => j.dte <= dte) : rawExposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
-        const expirations = filteredData.map(j => j.expiration);
-
-        const allAvailableStikesForFilteredExpirations = new Set<number>();
-        for (const { strikes } of filteredData) {
-            for (const strike of strikes) {
-                allAvailableStikesForFilteredExpirations.add(Number(strike));
-            }
-        }
-
-        const strikes = getCalculatedStrikes(rawExposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
-        const strikesIndexMap = new Map<number, number>();
-        strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
-        const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: rawExposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', volTrigger: '0', timestamp: rawExposureResponse.timestamp };
-        switch (chartType) {
-            case 'GEX':
-                const callWallMap = {} as Record<string, number>;
-                const putWallMap = {} as Record<string, number>;
-                const netGammaMap = {} as Record<string, number>;
-
-                filteredData.forEach(k => {
-                    k.strikes.forEach((s, ix) => {
-                        const strike = Number(s);
-                        callWallMap[strike] = (callWallMap[strike] || 0) + k.call.absGamma[ix]
-                        putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix];
-                        netGammaMap[strike] = (netGammaMap[strike] || 0) + (k.netGamma[ix]);
-                    })
-                })
-                exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
-                exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
-
-                const gammaWallResult = Object.keys(callWallMap).reduce((a, b) => {
-                    if ((callWallMap[b] + putWallMap[b]) > a.maxGamma) {
-                        a.maxGamma = callWallMap[b] + putWallMap[b];
-                        a.strike = b;
-                    }
-                    return a;
-                }, { maxGamma: 0, strike: "" });
-
-                exposureDataValue.gammaWall = gammaWallResult.strike;
-
-                // Calculate VOLTRIGGER -- vol trigger is a strike where the net gamma flips from positive to negative
-                const sortedStrikes = Object.keys(netGammaMap)
-                    .map(Number)
-                    .sort((a, b) => a - b);
-
-                for (let i = 1; i < sortedStrikes.length; i++) {
-                    const prevStrike = sortedStrikes[i - 1];
-                    const currStrike = sortedStrikes[i];
-                    const prevGamma = netGammaMap[prevStrike];
-                    const currGamma = netGammaMap[currStrike];
-
-                    if (prevGamma > 0 && currGamma < 0) {
-                        exposureDataValue.volTrigger = currStrike.toString();
-                        break;
+        (async () => {
+            try {
+                setHasError(false);
+                const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${refreshToken}-${dataMode}`;
+                let exposureResponse = cacheStore[cacheKey];
+                if (!exposureResponse) {
+                    exposureResponse =  dataMode == DataModeType.HISTORICAL ? await getHistoricalOptionExposure(symbol, dt) : await getLiveExposure(symbol, dataMode);
+                    setCache((prev) => { prev[cacheKey] = exposureResponse; return prev; });
+                    for (const d of exposureResponse.data) {  //for better performance, we are converting the strikes to number only once
+                        d.strikesMap = new Map(d.strikes.map((j, ix) => [Number(j), ix]));
                     }
                 }
 
-                exposureDataValue.items = filteredData.map(j => {
-                    return {
-                        expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.netGamma)
-                    }
-                })
-                break;
-            case 'DEX':
-                exposureDataValue.items = filteredData.flatMap(j => {
-                    return [{
-                        expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.absDelta)
-                    }, {
-                        expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.absDelta)
-                    }]
-                })
-                break;
-            case 'OI':
-                exposureDataValue.items = filteredData.flatMap(j => {
-                    return [{
-                        expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.openInterest)
-                    }, {
-                        expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.openInterest.map(v => -v))
-                    }]
-                })
-                break;
-            case 'VOLUME':
-                exposureDataValue.items = filteredData.flatMap(j => {
-                    return [{
-                        expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.volume)
-                    }, {
-                        expiration: j.expiration,
-                        data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.volume.map(v => -v))
-                    }]
-                })
-                break;
-            default:
-                throw new Error('invalid chart type');
-        }
+                setExpirationData(exposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || []);
 
-        exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
-        setExposureData(exposureDataValue);
-        const end = performance.now();
-        console.log(`exposure-calculation took ${end - start}ms`);
-    }, [rawExposureResponse, chartType, dte, strikeCount, selectedExpirations]);
+                const start = performance.now();
+                const filteredData = dte >= 0 ? exposureResponse.data.filter(j => j.dte <= dte) : exposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+                const expirations = filteredData.map(j => j.expiration);
+
+                const allAvailableStikesForFilteredExpirations = new Set<number>();
+                for (const { strikes } of filteredData) {
+                    for (const strike of strikes) {
+                        allAvailableStikesForFilteredExpirations.add(Number(strike));
+                    }
+                }
+
+                const strikes = getCalculatedStrikes(exposureResponse.spotPrice, strikeCount, [...allAvailableStikesForFilteredExpirations]);
+                const strikesIndexMap = new Map<number, number>();
+                strikes.forEach((j, ix) => strikesIndexMap.set(j, ix));
+                const exposureDataValue: ExposureDataType = { expirations, strikes, spotPrice: exposureResponse.spotPrice, maxPosition: 0, items: [], callWall: '0', putWall: '0', gammaWall: '0', volTrigger: '0', timestamp: exposureResponse.timestamp };
+                switch (chartType) {
+                    case 'GEX':
+                        const callWallMap = {} as Record<string, number>;
+                        const putWallMap = {} as Record<string, number>;
+                        const netGammaMap = {} as Record<string, number>;
+
+                        filteredData.forEach(k => {
+                            k.strikes.forEach((s, ix) => {
+                                const strike = Number(s);
+                                callWallMap[strike] = (callWallMap[strike] || 0) + k.call.absGamma[ix]
+                                putWallMap[strike] = (putWallMap[strike] || 0) + k.put.absGamma[ix];
+                                netGammaMap[strike] = (netGammaMap[strike] || 0) + (k.netGamma[ix]);
+                            })
+                        })
+                        exposureDataValue.callWall = Object.keys(callWallMap).reduce((a, b) => callWallMap[a] > callWallMap[b] ? a : b, "");
+                        exposureDataValue.putWall = Object.keys(putWallMap).reduce((a, b) => putWallMap[a] > putWallMap[b] ? a : b, "");
+
+                        const gammaWallResult = Object.keys(callWallMap).reduce((a, b) => {
+                            if ((callWallMap[b] + putWallMap[b]) > a.maxGamma) {
+                                a.maxGamma = callWallMap[b] + putWallMap[b];
+                                a.strike = b;
+                            }
+                            return a;
+                        }, { maxGamma: 0, strike: "" });
+
+                        exposureDataValue.gammaWall = gammaWallResult.strike;
+
+                        // Calculate VOLTRIGGER -- vol trigger is a strike where the net gamma flips from positive to negative
+                        const sortedStrikes = Object.keys(netGammaMap)
+                            .map(Number)
+                            .sort((a, b) => a - b);
+
+                        for (let i = 1; i < sortedStrikes.length; i++) {
+                            const prevStrike = sortedStrikes[i - 1];
+                            const currStrike = sortedStrikes[i];
+                            const prevGamma = netGammaMap[prevStrike];
+                            const currGamma = netGammaMap[currStrike];
+
+                            if (prevGamma > 0 && currGamma < 0) {
+                                exposureDataValue.volTrigger = currStrike.toString();
+                                break;
+                            }
+                        }
+
+                        exposureDataValue.items = filteredData.map(j => {
+                            return {
+                                expiration: j.expiration,
+                                data: mapChartValues(strikesIndexMap, j.strikesMap, j.netGamma)
+                            }
+                        })
+                        break;
+                    case 'DEX':
+                        exposureDataValue.items = filteredData.flatMap(j => {
+                            return [{
+                                expiration: j.expiration,
+                                data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.absDelta)
+                            }, {
+                                expiration: j.expiration,
+                                data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.absDelta)
+                            }]
+                        })
+                        break;
+                    case 'OI':
+                        exposureDataValue.items = filteredData.flatMap(j => {
+                            return [{
+                                expiration: j.expiration,
+                                data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.openInterest)
+                            }, {
+                                expiration: j.expiration,
+                                data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.openInterest.map(v => -v))
+                            }]
+                        })
+                        break;
+                    case 'VOLUME':
+                        exposureDataValue.items = filteredData.flatMap(j => {
+                            return [{
+                                expiration: j.expiration,
+                                data: mapChartValues(strikesIndexMap, j.strikesMap, j.call.volume)
+                            }, {
+                                expiration: j.expiration,
+                                data: mapChartValues(strikesIndexMap, j.strikesMap, j.put.volume.map(v => -v))
+                            }]
+                        })
+                        break;
+                    default:
+                        throw new Error('invalid chart type');
+                }
+
+                exposureDataValue.maxPosition = calcMaxValue(strikes.length, exposureDataValue.items.map(j => j.data));
+                setExposureData(exposureDataValue);
+                const end = performance.now();
+                console.log(`exposure-calculation took ${end - start}ms`);
+            
+            } catch (error) {
+                setHasError(true);
+            } finally {
+                setIsLoading(false);
+            }
+        })();
+    }, [symbol, dt, dataMode, refreshToken, chartType, dte, strikeCount, selectedExpirations]);
 
     return {
         exposureData, isLoading, hasError, expirationData
