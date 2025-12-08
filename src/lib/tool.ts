@@ -22,8 +22,8 @@ export const mergeMultipleTimeSalesData = (allStrategies: number[][][]) => {
 
     for (let ix = 0; ix < allStrategies.length; ix++) {
         // debugger;
-        dataset[ix + 1] = new Array<number>(sortedTimeseriesKeys.length);
-        const myarray = dataset[ix + 1];
+        const myarray = new Array<number>(sortedTimeseriesKeys.length).fill(0);
+        dataset[ix + 1] = myarray;
         let lastKnownValue = null;
         let skIx = 0, svIx = 0;
         while (skIx < sortedTimeseriesKeys.length && svIx < allStrategies[ix][1].length) {
@@ -60,6 +60,11 @@ export const mergeMultipleTimeSalesData = (allStrategies: number[][][]) => {
 
     }
     // console.log(dataset)
+
+    for(let ix = 1; ix < dataset.length; ix++) {
+        dataset[ix] = dataset[ix].map(v => v || 0); //replace NaN with 0. Kinda hacky but works for now.
+    }
+
     return dataset
 }
 

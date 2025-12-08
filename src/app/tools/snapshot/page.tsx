@@ -5,7 +5,7 @@ import { useQueryState, parseAsString } from "nuqs";
 
 export default function Page() {
     const [symbol, setSymbol] = useQueryState('symbol', parseAsString);
-    if (!symbol) return <Typography color="error">select a symbol</Typography>
+    if (!symbol) return <Typography color="error" data-testid="EXPOSURE-TOOLS">select a symbol</Typography>
 
     return <OptionsExposure symbol={symbol} cachedDates={[]} />
 }
