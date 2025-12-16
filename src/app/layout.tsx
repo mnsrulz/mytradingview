@@ -2,7 +2,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { auth } from '@/lib/auth';
 import { SessionProvider, signIn, signOut } from 'next-auth/react';
-import { NAVIGATION } from './nav'
+import { ADMIN_NAVIGATION, NAVIGATION } from './nav'
 import { NextAppProvider } from '@toolpad/core/nextjs';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { Metadata } from "next";
@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             <NextAppProvider
               theme={theme}
-              navigation={NAVIGATION}
+              navigation={session?.user?.name === 'admin' ? ADMIN_NAVIGATION : NAVIGATION}
               session={session}
               authentication={AUTHENTICATION}
               branding={{

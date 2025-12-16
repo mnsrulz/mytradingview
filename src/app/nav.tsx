@@ -111,3 +111,15 @@ export const NAVIGATION: Navigation = [
         icon: <CalculateIcon />,
     },
 ];
+
+export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
+    {
+        kind: 'header',
+        title: 'Admin',
+    },
+    {
+        segment: 'admin/contacts',
+        title: 'Contacts',
+        icon: <FunctionsIcon />,
+    }
+]);
