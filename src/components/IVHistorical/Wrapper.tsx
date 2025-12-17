@@ -89,7 +89,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                     //grid={{ horizontal: true, vertical: true }}
                     />
                     <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
-                        Historical Volatility for {symbol} { mode == 'delta' ? `${delta}Δ` : `$${strike} strike` } options expiring on {expiration}
+                        Implied Volatility for {symbol} { mode == 'delta' ? `${delta}Δ` : `$${strike} strike` } options expiring on {expiration}
                     </Typography>
                 </Box>
             </Paper>
