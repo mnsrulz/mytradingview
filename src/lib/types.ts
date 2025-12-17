@@ -199,6 +199,8 @@ export type OIReportDataResponse = {
 
 export type OIExpirationsDataResponse = {
   expiration: string;
+  strikes: number[];
+  isMonthly: boolean;
 }
 
 export type OptionGreeksSummaryBySymbolResponse = {

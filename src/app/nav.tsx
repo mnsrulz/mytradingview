@@ -9,6 +9,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TocIcon from '@mui/icons-material/Toc';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -59,6 +60,12 @@ export const NAVIGATION: Navigation = [
         title: 'Pricing',
         icon: <AttachMoneyIcon />,
         pattern: 'options/pricing{/:symbol}*'
+    },
+    {
+        segment: 'options/iv',
+        title: 'IV',
+        icon: <ElectricBoltIcon />,
+        pattern: 'options/iv'
     },
     {
         kind: 'divider',
