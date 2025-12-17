@@ -30,7 +30,7 @@ export const useExpirations = (symbol: string) => {
         if (allStrikes.includes(strike)) return;
         const midIndexStrike = allStrikes.at(Math.abs(allStrikes.length / 2)) || 0;  //for now let's default it to mid index
         setStrike(midIndexStrike);
-    }, [expiration]);
+    }, [expiration, expirations]);
 
     return { isLoading, expirations, expiration, setExpiration, strike, setStrike };
 }
