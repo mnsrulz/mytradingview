@@ -7,6 +7,7 @@ import { useState } from "react";
 import { SymbolsSelector } from "./SymbolsSelector";
 import { useExpirations } from "./hooks";
 import { percentageNoDecimalFormatter } from "@/lib/formatters";
+import { getDayOfYear } from 'date-fns';
 
 const deltaOptions = [10,
     25,
@@ -24,11 +25,12 @@ export const Wrapper = (props: {symbols: string[]})=> {
 const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void }) => {
     const { symbols, symbol, onSymbolChange } = props;
     const [mode, setMode] = useState('delta');
+    const [lookbackPeriod, setLookbackPeriod] = useState(180);
     const { expirations, expiration, setExpiration, strike, setStrike } = useExpirations(symbol);
     const [delta, setDelta] = useState(25);
 
     const availableStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
-    const { volatility, isLoading } = useOptionHistoricalVolatility(symbol, 180, delta, strike, expiration, mode as 'delta' | 'strike');
+    const { volatility, isLoading } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike');
     const xAxisFormatter = (v: string) => dayjs(v).format("MMM D");
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -65,6 +67,18 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                         </Select>
                     </FormControl>
                 }
+                <FormControl size="small">
+                    <InputLabel>PERIOD</InputLabel>
+                    <Select id="lookback" value={lookbackPeriod} label="PERIOD" onChange={(e) => setLookbackPeriod(e.target.value as number)}>
+                        <MenuItem key="ytd" value={getDayOfYear(new Date())}>YTD</MenuItem>
+                        <MenuItem key="1M" value={30}>1M</MenuItem>
+                        <MenuItem key="2M" value={60}>2M</MenuItem>
+                        <MenuItem key="3M" value={90}>3M</MenuItem>
+                        <MenuItem key="6M" value={180}>6M</MenuItem>
+                        <MenuItem key="1Y" value={365}>365D</MenuItem>
+                        <MenuItem key="ALL" value={99999}>ALL</MenuItem>
+                    </Select>
+                </FormControl>
                 <Stack direction="row" gap={isMobile ? 0.5 : 1}>
                 </Stack>
             </Stack>
