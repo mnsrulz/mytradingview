@@ -35,13 +35,15 @@ type VolatilityResponse = {
     dt: string[];
     cv: number[];
     pv: number[];
+    cp: number[];
+    pp: number[];
 };
 // const dummyVolatilityResponse: VolatilityResponse = {
 //     dt: ['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05'],
 //     cv: [0.2, 0.25, 0.22, 0.1, 0.91],
 //     pv: [0.18, 0.23, 0.21, 0.15, 0.89]
 // }
-const defaultVoltility = { dt: [], cv: [], pv: [] }
+const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [] }
 export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike') => {
     const [volatility, setVolatility] = useState<VolatilityResponse>(defaultVoltility);
     const [isLoading, setIsLoading] = useState(true);

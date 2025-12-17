@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { SymbolsSelector } from "./SymbolsSelector";
 import { useExpirations } from "./hooks";
-import { percentageFormatter } from "@/lib/formatters";
+import { percentageNoDecimalFormatter } from "@/lib/formatters";
 
 const deltaOptions = [10,
     25,
@@ -36,7 +36,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
     return <>
         <Paper sx={{ mb: 2 }}>
             <Stack direction="row" gap={1} p={1} alignItems={"center"}>
-                <FormControl sx={{ mr: 1, minWidth: 125 }} size="small">
+                <FormControl sx={{ minWidth: 125 }} size="small">
                     <SymbolsSelector symbols={symbols} symbol={symbol} handleSymbolChange={onSymbolChange} />
                 </FormControl>
                 <FormControl size="small">
@@ -58,7 +58,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                         <Select id="delta" value={delta} label="DELTA" onChange={(e) => setDelta(e.target.value as number)}>
                             {deltaOptions.map((d) => (<MenuItem key={d} value={d}>{d}</MenuItem>))}
                         </Select>
-                    </FormControl> : <FormControl size="small">
+                    </FormControl> : <FormControl sx={{ minWidth: 80 }} size="small">
                         <InputLabel>STRIKES</InputLabel>
                         <Select id="strike" value={strike} label="STRIKE" onChange={(e) => setStrike(e.target.value as number)}>
                             {availableStrikes.map((d) => (<MenuItem key={d} value={d}>{d}</MenuItem>))}
@@ -79,17 +79,20 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                             height: 400
                         }}
                         series={[
-                            { data: volatility.cv, label: 'calls', yAxisId: 'leftAxisId', showMark: false },
-                            { data: volatility.pv, label: 'puts', yAxisId: 'leftAxisId', showMark: false },
+                            { data: volatility.cv, label: 'CALL IV', yAxisId: 'leftAxisId', showMark: false, color: 'green' },
+                            { data: volatility.pv, label: 'PUT IV', yAxisId: 'leftAxisId', showMark: false, color: 'red' },
+                            { data: volatility.cp, label: 'CALL Price', yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
+                            { data: volatility.pp, label: 'PUT Price', yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
                         ]}
                         xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}
                         yAxis={[
-                            { id: 'leftAxisId', label: 'IV %', valueFormatter: percentageFormatter }
+                            { id: 'leftAxisId', label: 'IV %', valueFormatter: percentageNoDecimalFormatter },
+                            { id: 'rightAxisId', position: 'right' , label: 'Contract Price $' }
                         ]}
-                    //grid={{ horizontal: true, vertical: true }}
+                        //grid={{ horizontal: true, vertical: true }}
                     />
                     <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
-                        Implied Volatility for {symbol} { mode == 'delta' ? `${delta}Δ` : `$${strike} strike` } options expiring on {expiration}
+                        Implied Volatility and option contact pricing for {symbol} { mode == 'delta' ? `${delta}Δ` : `$${strike} strike` } options expiring on {expiration}
                     </Typography>
                 </Box>
             </Paper>

@@ -1,6 +1,7 @@
 import numeral from 'numeral';
 
 export const percentageFormatter = (v: number) => v && Number(v).toLocaleString(undefined, { style: 'percent', minimumFractionDigits: 2 }) || '';
+export const percentageNoDecimalFormatter = (v: number) => v && Number(v).toLocaleString(undefined, { style: 'percent', maximumFractionDigits: 0 }) || '';
 export const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', }).format;
 export const currencyCompactFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format;
 export const numberFormatter = new Intl.NumberFormat('en-US', { style: 'decimal', maximumFractionDigits: 2 }).format;
