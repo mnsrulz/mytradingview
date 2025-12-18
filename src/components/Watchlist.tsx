@@ -24,22 +24,22 @@ export const Watchlist = () => {
   const dialogs = useDialogs();
   const { watchlists, addWatchlist, removeWatchlist, addTickerToWatchlist, removeTickerFromWatchlist } = useMultiWatchlists();
   const [watchlistId, setWatchlistId] = useState('');
-
+  const [tickers, setTickers] = useState<SearchTickerItem[]>([]);
   const selectedWatchListId = watchlistId || watchlists[0]?.id;
-
-  const wl = watchlists.find(w => w.id === selectedWatchListId)?.tickers || [];
 
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const [sortMode, setSortMode] = useState('symbol');
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
+    const filtered = watchlists.find(w => w.id === selectedWatchListId)?.tickers || [];
+    setTickers(filtered);
     const interval = setInterval(() => {
-      subscribeStockPriceBatchRequest(wl);
+      subscribeStockPriceBatchRequest(filtered);
     }, 1000); //every one second just ping the server to resubscribe
 
     return () => clearInterval(interval);
-  }, [wl]);
+  }, [selectedWatchListId]);
 
   const handleAddToWatchlistClick = async () => {
     const result = await dialogs.open(AddToWatchlistDialog);
@@ -213,7 +213,7 @@ export const Watchlist = () => {
         </Stack>
       </Grid>
       <NumberFlowGroup>
-        <DataGrid rows={collect(wl).sortBy(sortMode).all()}
+        <DataGrid rows={collect(tickers).sortBy(sortMode).all()}
           columns={columns}
           //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
           sx={{
