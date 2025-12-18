@@ -1,54 +1,139 @@
-import { ConditionalFormattingBox } from "./ConditionalFormattingBox";
+import {
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Box,
+} from "@mui/material";
+import { ConditionalFormattingCell } from "./ConditionalFormattingBox";
 import { numberFormatter, percentageFormatter } from "@/lib/formatters";
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 
-type MyProps = {
-    zeroHeaderLabel: string,
-    xLabels: string[],
-    yLabels: string[],
-    data: number[][],
-    formatter: 'percent' | 'number'
-}
-const formatters = { 'percent': percentageFormatter, number: numberFormatter }
-export const HeatMap = (props: MyProps) => {
-    const { xLabels, yLabels, data, formatter, zeroHeaderLabel } = props;
+type HeatMapProps = {
+    zeroHeaderLabel: string;
+    xLabels: string[];
+    yLabels: string[];
+    data: number[][];
+    formatter: "percent" | "number";
+    showLegend?: boolean;
+};
+
+const formatters = {
+    percent: percentageFormatter,
+    number: numberFormatter,
+};
+
+export const HeatMap = ({
+    xLabels,
+    yLabels,
+    data,
+    formatter,
+    zeroHeaderLabel
+}: HeatMapProps) => {
     const fmt = formatters[formatter];
-    return <TableContainer component={Paper} sx={{
-        width: 'auto', // Set width of the TableContainer to auto
-        maxWidth: '100%', // Optional: prevent it from exceeding the parent width
-        display: 'inline-block', // Make sure the container doesn't stretch
-        mt: 1
-    }}>
-        <Table size="small" sx={{
-            tableLayout: 'auto', // Allow table to auto-adjust to content
-            width: 'auto' // Ensure the table takes only the width it needs
-        }} padding='none'>
-            <TableHead>
-                <TableRow key="tablehead-row">
-                    <TableCell key='month' sx={{ px: 1 }}>{zeroHeaderLabel}</TableCell>
-                    {
-                        xLabels.map(c => <TableCell align="right" sx={{ px: 1 }} key={c}>{c}</TableCell>)
-                    }
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {data.map((row, ix) => (
-                    <TableRow
-                        key={`row-${ix}`}
-                        sx={{ '&:last-child td, &:last-child th': { border: 0 }, padding: 0 }}
-                    >
-                        <TableCell key={`${ix}-${yLabels[ix]}`} component="th" scope="row" sx={{ flex: 1, px: 1, textAlign: 'right' }}>
-                            {yLabels[ix]}
-                        </TableCell>
-                        {
-                            row.map((c, ixx) => <TableCell key={`${ix}-${ixx}`} align="right" sx={{ flex: 1, height: '32px' }}>
-                                {/* {row[`d${c}`]} */}
-                                <ConditionalFormattingBox value={c * 1000} formattedValue={`${fmt(c)}`} />
-                            </TableCell>)
-                        }
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    </TableContainer>
-}
+
+    return (
+        <Box>
+            <TableContainer
+                component={Paper}
+                elevation={2}
+                sx={{
+                    width: 'auto', // Set width of the TableContainer to auto
+                    //   borderRadius: 1.5,
+                    // overflow: "hidden",
+                    //   display: "inline-block",
+                    maxWidth: "100%",
+                    display: 'inline-block', // Make sure the container doesn't stretch
+                    mt: 2,
+                }}
+            >
+                <Table
+                    size="small"
+                    sx={{
+                        tableLayout: "auto",
+                        "& th, & td": {
+                            borderColor: "divider",
+                        },
+                        "& td": {
+                            fontFamily: "Roboto Mono, monospace",
+                            fontWeight: 400,
+                        },
+                    }}
+                    padding="none"
+                >
+                    {/* === Table Header === */}
+                    <TableHead>
+                        <TableRow
+                            sx={{
+                                backgroundColor: "action.hover",
+                                "& th": {
+                                    fontSize: "0.7rem",
+                                    fontWeight: 600,
+                                    color: "text.secondary",
+                                    fontFamily: "Inter, Roboto, sans-serif",
+                                    px: 1,
+                                    py: 0.5,
+                                },
+                            }}
+                        >
+                            <TableCell>{zeroHeaderLabel}</TableCell>
+                            {xLabels.map((label) => (
+                                <TableCell key={label} align="center">
+                                    {label}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+
+                    {/* === Table Body === */}
+                    <TableBody>
+                        {data.map((row, ix) => (
+                            <TableRow
+                                key={`row-${ix}`}
+                                sx={{
+                                    "&:last-child td, &:last-child th": { border: 0 },
+                                    "& th": {
+                                        fontSize: "0.7rem",
+                                        fontFamily: "Inter, Roboto, sans-serif",
+                                        fontWeight: 500,
+                                        color: "text.secondary",
+                                        px: 1,
+                                        py: 0.5,
+                                    },
+                                    "& td": {
+                                        fontSize: "0.85rem",
+                                        fontWeight: 500,
+                                        color: "text.secondary",
+                                        px: 0.5,
+                                        py: 0.5,
+                                    },
+                                }}
+                            >
+                                {/* Y Label */}
+                                <TableCell
+                                    component="th"
+                                    scope="row"
+                                    align="right"
+                                    sx={{ whiteSpace: "nowrap" }}
+                                >
+                                    {yLabels[ix]}
+                                </TableCell>
+
+                                {/* Heatmap Cells */}
+                                {row.map((val, ixx) => (
+                                    <ConditionalFormattingCell
+                                        key={`${ix}-${ixx}`}
+                                        value={val}
+                                        formattedValue={fmt(val)}
+                                    />
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
+    );
+};

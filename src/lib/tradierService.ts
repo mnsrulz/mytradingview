@@ -140,23 +140,8 @@ export const getPriceAtDate = async (s: string, dt: string) => {
     throw new Error('unable to determine price');
 }
 
-export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | '4y' | '5y', interval: 'daily' | 'weekly' | 'monthly' | 'earnings') => {
-    const years = parseInt(duration.substring(0, 1));
-    let startDay: string = '';
-    let endDay: string = '';
-
-    switch (interval) {
-        case 'daily':
-            startDay = dayjs().subtract(years, 'year').format('YYYY-MM-DD');
-            endDay = dayjs().format('YYYY-MM-DD');
-            break;
-        default:
-            startDay = dayjs().startOf('year').subtract(years, 'year').format('YYYY-MM-DD');
-            endDay = dayjs().startOf('month').format('YYYY-MM-DD')
-            break;
-    }
-
-    const result = await client(historical, {
+export const getHistoricalPrices = async (s: string, startDay: string, endDay: string, interval: 'daily' | 'weekly' | 'monthly') => {
+    return await client(historical, {
         searchParams: {
             'symbol': s,
             'interval': interval,
@@ -165,7 +150,6 @@ export const getSeasonalView = async (s: string, duration: '1y' | '2y' | '3y' | 
             'session_filter': 'all'
         }
     }).json<HistoricalDataResponse>();
-    return result;
 }
 
 export const getEarningDates = async (symbol: string) => {

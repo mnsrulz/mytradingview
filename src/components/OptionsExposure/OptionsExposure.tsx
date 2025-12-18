@@ -28,7 +28,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
         (isLoading && !exposureData) ? (    //keep it loading only if there's no data to display. Otherwise the mui charts loading indicator is enough
             <LinearProgress />
         ) : hasError ? (
-            <i>Error occurred! Please try again...</i>
+            <i data-testid="EXPOSURE-CHART-ERROR-OCCURRED">Error occurred! Please try again...</i>
         ) : (
             exposureData && (
                 <MemoizedGreeksExposureChart

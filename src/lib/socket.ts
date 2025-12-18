@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useState } from 'react';
 import { SearchTickerItem, StockPriceData } from './types';
 import { io } from 'socket.io-client';
@@ -28,4 +29,61 @@ export const useStockPrice = (item: SearchTickerItem) => {
 
 export const subscribeStockPriceBatchRequest = (tickers: SearchTickerItem[]) => {
     socket.emit('stock-price-subscribe-batch-request', { tickers, frequency: WatchlistUpdateFrequency });
+}
+
+type VolatilityResponse = {
+    dt: string[];
+    cv: number[];
+    pv: number[];
+    cp: number[];
+    pp: number[];
+};
+// const dummyVolatilityResponse: VolatilityResponse = {
+//     dt: ['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05'],
+//     cv: [0.2, 0.25, 0.22, 0.1, 0.91],
+//     pv: [0.18, 0.23, 0.21, 0.15, 0.89]
+// }
+const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [] }
+export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike') => {
+    const [volatility, setVolatility] = useState<VolatilityResponse>(defaultVoltility);
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        console.log(`Fetching volatility data for ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`);
+        if (!symbol || !expiration) {
+            setVolatility(defaultVoltility);
+            setIsLoading(false);
+            return;
+        }
+        setIsLoading(true);
+        const requestId = crypto.randomUUID();
+        const noResponseSignal = setTimeout(() => {
+            socket.emit('log-message', {
+                message: `Failed to receive the response for fetching volatility within 3 seconds. Request Id: ${requestId},  ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`
+            });
+        }, 3000);
+        const fetchVolatility = async () => {
+            socket.once(`volatility-response-${requestId}`, (data: {hasError: boolean, value: VolatilityResponse}) => {
+                clearTimeout(noResponseSignal);
+                if(data.hasError) {
+                    console.error(`Error fetching volatility data for ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`);
+                    setVolatility(defaultVoltility);
+                } else {
+                    setVolatility(data.value);
+                }
+                setIsLoading(false);
+            });
+            socket.emit('query-volatility', {
+                symbol,
+                lookbackDays,
+                delta: mode == 'delta' ? delta: null,
+                expiration,
+                mode,
+                requestId,
+                strike: mode == 'strike' ? strike: null
+            });
+        };
+        fetchVolatility();
+        return () => { socket.off(`volatility-response-${requestId}`); clearTimeout(noResponseSignal); };
+    }, [symbol, lookbackDays, delta, expiration, mode, strike]);
+    return { volatility, isLoading };
 }

@@ -9,12 +9,14 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TocIcon from '@mui/icons-material/Toc';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import TimelineIcon  from '@mui/icons-material/Timeline';
+import BorderVerticalIcon  from '@mui/icons-material/BorderVertical';
 // or
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
@@ -60,6 +62,12 @@ export const NAVIGATION: Navigation = [
         pattern: 'options/pricing{/:symbol}*'
     },
     {
+        segment: 'options/iv',
+        title: 'IV',
+        icon: <ElectricBoltIcon />,
+        pattern: 'options/iv'
+    },
+    {
         kind: 'divider',
     },
     {
@@ -87,6 +95,11 @@ export const NAVIGATION: Navigation = [
                 title: 'OI Historical',
                 icon: <TimelineIcon />
             },
+            {
+                segment: 'greek-walls',
+                title: 'Greek Walls',
+                icon: <BorderVerticalIcon />
+            },
         ],
     },
     {
@@ -105,3 +118,15 @@ export const NAVIGATION: Navigation = [
         icon: <CalculateIcon />,
     },
 ];
+
+export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
+    {
+        kind: 'header',
+        title: 'Admin',
+    },
+    {
+        segment: 'admin/contacts',
+        title: 'Contacts',
+        icon: <FunctionsIcon />,
+    }
+]);

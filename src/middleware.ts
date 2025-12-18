@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger'
 
 // Separate regex for API and page routes
 const secureApiRoutesRegex = /^\/api\/(trades|symbols\/[^/]+\/options\/analyze\/tradier)$/;
-const securePageRoutesRegex = /^\/trades$/;
+const securePageRoutesRegex = /^\/(trades|admin(\/.*)?)$/;
 
 export default auth((req) => {
        logger.info(`${req.method} ${req.nextUrl.pathname}`, {

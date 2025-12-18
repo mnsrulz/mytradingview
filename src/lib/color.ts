@@ -1,4 +1,4 @@
-import { green, red, deepOrange, lime, cyan, deepPurple, blueGrey, brown } from "@mui/material/colors";
+import { green, red, deepOrange, lime, cyan, deepPurple, blueGrey, brown, yellow } from "@mui/material/colors";
 
 const fn1 = (v: number) => {
     const v1 = v;
@@ -30,6 +30,59 @@ export const getColor = (v: number) => {
     const colorvalue = fn1(Math.abs(v));
     return v >= 0 ? green[colorvalue] : red[colorvalue];
 }
+
+
+
+/**
+ * getColor - Smooth gradient from red → yellow → green
+ * @param v  Current value
+ * @param min  Minimum possible value (e.g., -5)
+ * @param max  Maximum possible value (e.g., 5)
+ */
+export const getColorV2 = (v: number, min: number, max: number): string => {
+  if (isNaN(v)) return "#ccc";
+
+  // Clamp
+  const clamped = Math.max(min, Math.min(max, v));
+
+  // Normalize [-1, 1] around 0 midpoint
+  const range = Math.max(Math.abs(min), Math.abs(max));
+  const t = (clamped + range) / (2 * range); // map [-range, +range] → [0, 1]
+
+  // Interpolate smoothly between red → yellow → green
+  if (t < 0.5) {
+    // red → yellow for negatives
+    const localT = t / 0.5;
+    return interpolateColor(red[500], yellow[600], localT);
+  } else {
+    // yellow → green for positives
+    const localT = (t - 0.5) / 0.5;
+    return interpolateColor(yellow[600], green[500], localT);
+  }
+};
+
+/**
+ * Interpolates two colors smoothly.
+ */
+const interpolateColor = (color1: string, color2: string, t: number): string => {
+  const c1 = parseInt(color1.slice(1), 16);
+  const c2 = parseInt(color2.slice(1), 16);
+
+  const r1 = (c1 >> 16) & 0xff,
+    g1 = (c1 >> 8) & 0xff,
+    b1 = c1 & 0xff;
+  const r2 = (c2 >> 16) & 0xff,
+    g2 = (c2 >> 8) & 0xff,
+    b2 = c2 & 0xff;
+
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b)
+    .toString(16)
+    .slice(1)}`;
+};
 
 export const getColorPallete = () => {
     
