@@ -9,6 +9,7 @@ import { Metadata } from "next";
 import theme from '@/theme';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Dashboard } from "./app";
+import { PageTracker } from "@/components/PageTracker";
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 const gaId = process.env.GOOGLE_ANALYTICS_ID || '';
@@ -44,6 +45,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </SessionProvider>
       </body>
       {gaId && <GoogleAnalytics gaId={gaId} />}
+      <PageTracker />
     </html>
   );
 }

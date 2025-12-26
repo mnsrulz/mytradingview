@@ -14,6 +14,23 @@ socket.on("connect", () => {
     console.log("Connected to the client!")
 })
 
+export const useTrackPage = (pathName: string) => {
+    useEffect(() => {
+        const timer = setInterval(() => {
+            socket.emit('track-page', {
+                pageUrl: pathName,
+            });
+        }, 3000);
+        
+        return () => {
+            clearInterval(timer);
+            socket.emit('untrack-page', {
+                pageUrl: pathName,
+            });
+        }
+    }, [pathName]);
+}
+
 export const useStockPrice = (item: SearchTickerItem) => {
     const [stockPrice, setStockPrice] = useState<StockPriceData>();
     useEffect(() => {
@@ -62,9 +79,9 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
             });
         }, 3000);
         const fetchVolatility = async () => {
-            socket.once(`volatility-response-${requestId}`, (data: {hasError: boolean, value: VolatilityResponse}) => {
+            socket.once(`volatility-response-${requestId}`, (data: { hasError: boolean, value: VolatilityResponse }) => {
                 clearTimeout(noResponseSignal);
-                if(data.hasError) {
+                if (data.hasError) {
                     console.error(`Error fetching volatility data for ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`);
                     setVolatility(defaultVoltility);
                 } else {
@@ -75,11 +92,11 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
             socket.emit('query-volatility', {
                 symbol,
                 lookbackDays,
-                delta: mode == 'delta' ? delta: null,
+                delta: mode == 'delta' ? delta : null,
                 expiration,
                 mode,
                 requestId,
-                strike: mode == 'strike' ? strike: null
+                strike: mode == 'strike' ? strike : null
             });
         };
         fetchVolatility();
