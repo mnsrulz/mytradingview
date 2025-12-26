@@ -426,6 +426,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     useEffect(() => {
         (async () => {
             try {
+                setIsLoading(true);
                 setHasError(false);
                 const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${refreshToken}-${dataMode}`;
                 let exposureResponse = cacheStore[cacheKey];
