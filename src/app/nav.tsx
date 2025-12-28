@@ -1,12 +1,6 @@
 import { Navigation } from "@toolpad/core/AppProvider";
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import DescriptionIcon from '@mui/icons-material/Description';
-import LayersIcon from '@mui/icons-material/Layers';
 import HomeIcon from '@mui/icons-material/Home';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TocIcon from '@mui/icons-material/Toc';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
@@ -18,7 +12,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import TimelineIcon  from '@mui/icons-material/Timeline';
 import BorderVerticalIcon  from '@mui/icons-material/BorderVertical';
 // or
-import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -128,5 +122,10 @@ export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
         segment: 'admin/contacts',
         title: 'Contacts',
         icon: <FunctionsIcon />,
+    },
+    {
+        segment: 'admin/live-tracker',
+        title: 'Live Tracker',
+        icon: <TrackChangesIcon />,
     }
 ]);

@@ -21,7 +21,7 @@ export const useTrackPage = (pathName: string) => {
                 pageUrl: pathName,
             });
         }, 3000);
-        
+
         return () => {
             clearInterval(timer);
             socket.emit('untrack-page', {
@@ -42,6 +42,23 @@ export const useStockPrice = (item: SearchTickerItem) => {
         }
     }, [item]);
     return stockPrice;
+}
+
+export const useLivePageTrackingViews = () => {
+    const [views, setViews] = useState<{ page: string, count: number }[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const handleDataCb = (data: any) => {
+        setIsLoading(false);
+        setViews(data);
+    };
+    useEffect(() => {
+        socket.timeout(3000).emitWithAck('list-active-page-tracking').then(handleDataCb);
+        const timer = setInterval(() => {
+            socket.timeout(3000).emitWithAck('list-active-page-tracking').then(handleDataCb);
+        }, 3000);
+        return () => { clearInterval(timer); }
+    }, []);
+    return {views, isLoading};
 }
 
 export const subscribeStockPriceBatchRequest = (tickers: SearchTickerItem[]) => {
