@@ -28,7 +28,7 @@ export const Watchlist = () => {
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const [sortMode, setSortMode] = useState('symbol');
   const [menuOpen, setMenuOpen] = useState(false);
-  const sortedSymbols = useMemo(()=> collect(watchlists.find(w => w.id === watchlistId)?.tickers || []).sortBy(sortMode).all(), [watchlists, watchlistId, sortMode]);
+  const sortedSymbols = useMemo(() => collect(watchlists.find(w => w.id === watchlistId)?.tickers || []).sortBy(sortMode).all(), [watchlists, watchlistId, sortMode]);
 
   useEffect(() => {
     if (!watchlistId && watchlists.length > 0) {
@@ -220,7 +220,9 @@ export const Watchlist = () => {
         sx={{
           display: 'grid',
           '& .MuiDataGrid-columnSeparator': { display: 'none' },
-          // '& .MuiDataGrid-cell.actions': { paddingX: 0, width: '12px' },
+          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+            outline: 'none'
+          }
         }}
         // columnHeaderHeight={0}
         // slots={{
