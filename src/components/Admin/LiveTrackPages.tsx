@@ -7,7 +7,7 @@ export const LiveTrackPages = () => {
     const { views, isLoading } = useLivePageTrackingViews();
 
     const columns: GridColDef[] = [
-        { field: "page", headerName: "Page", flex: 1, minWidth: 300 },
+        { field: "page", headerName: "Page", flex: 1, minWidth: 200 },
         { field: "count", headerName: "Count", type: "number", width: 120, align: "right", headerAlign: "right" }
     ];
 
