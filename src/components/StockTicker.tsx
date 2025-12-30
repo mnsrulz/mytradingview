@@ -40,10 +40,10 @@ const StockTickerViewInternal = (props: { oddata: StockPriceData }) => {
         if (prevPriceRef.current !== null && price !== prevPriceRef.current) {
             setFlash(price > prevPriceRef.current ? 'up' : 'down');
             prevPriceRef.current = price;
-
             const t = setTimeout(() => setFlash(null), 400);
             return () => clearTimeout(t);
         }
+        prevPriceRef.current = price;
     }, [price]);
 
     const primaryEl = inView ? <span style={{
