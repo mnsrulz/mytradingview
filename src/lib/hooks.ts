@@ -145,6 +145,7 @@ export const useMultiWatchlists = () => {
                     : wl
             )
         );
+        ky.post(`/api/watchlist`, { json: ticker });    //let it be async
     };
 
     const removeTickerFromWatchlist = (watchlistId: string, symbol: string) => {
