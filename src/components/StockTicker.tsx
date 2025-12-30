@@ -7,6 +7,7 @@ import { ListItemText } from '@mui/material';
 import { green, red } from "@mui/material/colors";
 import NumberFlow from '@number-flow/react'
 import { useInView } from "react-intersection-observer";
+import { useEffect, useRef, useState } from 'react';
 
 const [primaryTextSize, secondaryTextSize] = ['1em', '0.85em'];
 
@@ -31,13 +32,34 @@ const StockTickerViewInternal = (props: { oddata: StockPriceData }) => {
     const secondaryColor = changePercent < 0 ? red[500] : green[500];
     const [ref, inView] = useInView();
 
-    const primaryEl = inView ? <NumberFlow
-        value={price}
-        locales="en-US"
-        format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
-    /> : numberFormatter(price)
+    const prevPriceRef = useRef<number | null>(null);
+    const [flash, setFlash] = useState<'up' | 'down' | null>(null);
+    const flashColor = flash === 'up' ? green[500] : flash === 'down' ? red[500] : undefined;
 
-    const secondaryEl = inView ? <>
+    useEffect(() => {
+        if (prevPriceRef.current !== null && price !== prevPriceRef.current) {
+            setFlash(price > prevPriceRef.current ? 'up' : 'down');
+
+            const t = setTimeout(() => setFlash(null), 400);
+            return () => clearTimeout(t);
+        }
+
+        prevPriceRef.current = price;
+    }, [price]);
+
+    const primaryEl = inView ? <span style={{
+        color: flashColor,
+        transition: 'color 150ms ease',
+    }}><NumberFlow
+            value={price}
+            locales="en-US"
+            format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
+        /></span> : numberFormatter(price)
+
+    const secondaryEl = inView ? <span style={{
+        color: flashColor,
+        transition: 'color 150ms ease',
+    }}>
         <NumberFlow
             value={isNaN(change) ? 0 : change}
             locales="en-US"
@@ -52,7 +74,7 @@ const StockTickerViewInternal = (props: { oddata: StockPriceData }) => {
             format={{ minimumFractionDigits: 2, maximumFractionDigits: 2, style: 'percent', signDisplay: 'never' }}
         />
         )
-    </> : `${positiveNegativeNumberFormatter(change)} ${positiveNegativeNumberFormatter(changePercent)}%`
+    </span> : `${positiveNegativeNumberFormatter(change)} ${positiveNegativeNumberFormatter(changePercent)}%`
 
     return <ListItemText
         ref={ref}
