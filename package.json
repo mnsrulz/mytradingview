@@ -48,7 +48,7 @@
     "nuqs": "^2.4.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-instantsearch": "^7.16.3",
+    "react-instantsearch": "^7.22.1",
     "react-intersection-observer": "^10.0.0",
     "react-photo-view": "^1.2.7",
     "react-resize-detector": "^12.1.0",
