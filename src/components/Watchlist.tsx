@@ -34,7 +34,7 @@ export const Watchlist = () => {
     if (!watchlistId && watchlists.length > 0) {
       setWatchlistId(watchlists[0].id);
     }
-  }, [watchlists])
+  }, [watchlists, watchlistId])
 
   useEffect(() => {
     const interval = setInterval(() => {
