@@ -83,14 +83,14 @@ const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], iv30: [], clo
 export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike') => {
     const [volatility, setVolatility] = useState<VolatilityResponse>(defaultVoltility);
     const [isLoading, setIsLoading] = useState(true);
-    const [hasError, setHasError] = useState(true);
+    const [hasError, setHasError] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
         console.log(`Fetching volatility data for ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`);
         if (!symbol || !expiration) {
             setVolatility(defaultVoltility);
-            setIsLoading(false);
+            setIsLoading(true);
             return;
         }
         setIsLoading(true);

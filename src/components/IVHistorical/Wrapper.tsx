@@ -38,6 +38,15 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+    const getMinYAxisValue = () => {
+        const values: number[] = [];
+        if (!disabledDataPoints.includes('close')) values.push(...volatility.close);
+        if (!disabledDataPoints.includes('cp')) values.push(...volatility.cp);
+        if (!disabledDataPoints.includes('pp')) values.push(...volatility.pp);
+
+        return Math.min(...values) * .8 || 0;
+    }
+
     return <>
         <Paper sx={{ mb: 2 }}>
             <Stack direction="row" gap={1} p={1} alignItems="center">
@@ -57,14 +66,14 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                             <div><b>STRIKE</b>: View options based on fixed strike price.</div>
                             <div><b>ATM</b>: View options relative to the at-the-money strike.</div>
                         </>
-                        }>
+                    }>
                         <InputLabel>MODE</InputLabel>
                     </Tooltip>
-                        <Select id="mode" value={mode} label="MODE" onChange={(e) => setMode(e.target.value)}>
-                            <MenuItem key="delta" value="delta">DELTA</MenuItem>
-                            <MenuItem key="strike" value="strike">STRIKE</MenuItem>
-                            <MenuItem key="atm" value="atm">ATM</MenuItem>
-                        </Select>
+                    <Select id="mode" value={mode} label="MODE" onChange={(e) => setMode(e.target.value)}>
+                        <MenuItem key="delta" value="delta">DELTA</MenuItem>
+                        <MenuItem key="strike" value="strike">STRIKE</MenuItem>
+                        <MenuItem key="atm" value="atm">ATM</MenuItem>
+                    </Select>
                 </FormControl>
                 {
                     mode == 'delta' && <FormControl size="small">
@@ -72,8 +81,8 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                         <Select id="delta" value={delta} label="DELTA" onChange={(e) => setDelta(e.target.value as number)}>
                             {deltaOptions.map((d) => (<MenuItem key={d} value={d}>{d}</MenuItem>))}
                         </Select>
-                    </FormControl> 
-                     
+                    </FormControl>
+
                 }
                 {
                     mode == 'strike' && <FormControl sx={{ minWidth: 80 }} size="small">
@@ -100,7 +109,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
             </Stack>
         </Paper>
         {
-            isLoading ? <Paper sx={{ p: 2, textAlign: 'center', height: 400 }}><Skeleton variant="rectangular"  height={360} /></Paper> : <Paper>
+            isLoading ? <Paper sx={{ p: 2, textAlign: 'center', height: 400 }}><Skeleton variant="rectangular" height={360} /></Paper> : <Paper>
                 {
                     hasError ? <Alert severity="error">{error}</Alert> :
                         <Box sx={{ width: '100%' }}>
@@ -111,30 +120,30 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                                     height: 400
                                 }}
                                 series={[
-                                    { data: disabledDataPoints.includes('iv30') ? []: volatility.iv30, label: 'IV30', id: "iv30", yAxisId: 'leftAxisId', showMark: false, color: 'cyan' },
-                                    { data: disabledDataPoints.includes('cv') ? []: volatility.cv, label: 'CALL IV', id: "cv", yAxisId: 'leftAxisId', showMark: false, color: 'green' },
-                                    { data: disabledDataPoints.includes('pv') ? []: volatility.pv, label: 'PUT IV', id: "pv", yAxisId: 'leftAxisId', showMark: false, color: 'red' },
-                                    { data: disabledDataPoints.includes('cp') ? []: volatility.cp, label: 'CALL Price', id: "cp", yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
-                                    { data: disabledDataPoints.includes('pp') ? []: volatility.pp, label: 'PUT Price', id: "pp", yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
-                                    { data: disabledDataPoints.includes('close') ? []: volatility.close, label: 'Stock Price', id: "close", yAxisId: 'rightAxisId', showMark: false, color: 'orange',  },
+                                    { data: disabledDataPoints.includes('iv30') ? [] : volatility.iv30, label: 'IV30', id: "iv30", yAxisId: 'leftAxisId', showMark: false, color: 'cyan' },
+                                    { data: disabledDataPoints.includes('cv') ? [] : volatility.cv, label: 'CALL IV', id: "cv", yAxisId: 'leftAxisId', showMark: false, color: 'green' },
+                                    { data: disabledDataPoints.includes('pv') ? [] : volatility.pv, label: 'PUT IV', id: "pv", yAxisId: 'leftAxisId', showMark: false, color: 'red' },
+                                    { data: disabledDataPoints.includes('cp') ? [] : volatility.cp, label: 'CALL Price', id: "cp", yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
+                                    { data: disabledDataPoints.includes('pp') ? [] : volatility.pp, label: 'PUT Price', id: "pp", yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
+                                    { data: disabledDataPoints.includes('close') ? [] : volatility.close, label: 'Stock Price', id: "close", yAxisId: 'rightAxisId', showMark: false, color: 'orange' },
                                 ]}
                                 xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}
                                 yAxis={[
                                     { id: 'leftAxisId', label: 'IV %', valueFormatter: percentageNoDecimalFormatter },
-                                    { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price $' }
+                                    { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price $', min: getMinYAxisValue() }
                                 ]}
                                 slotProps={{
                                     legend: {
-                                        onItemClick: (args: any, li: SeriesLegendItemContext)=> {
-                                            setDisabledDataPoints(v=> {
-                                                if(v.includes(li.seriesId.toString()))
-                                                    return v.filter(k=> k !== li.seriesId.toString());
+                                        onItemClick: (args: any, li: SeriesLegendItemContext) => {
+                                            setDisabledDataPoints(v => {
+                                                if (v.includes(li.seriesId.toString()))
+                                                    return v.filter(k => k !== li.seriesId.toString());
                                                 return [...v, li.seriesId.toString()];
                                             });
                                         }
                                     }
                                 }}
-                                //grid={{ horizontal: true, vertical: true }}
+                            //grid={{ horizontal: true, vertical: true }}
                             />
                             <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
                                 Implied Volatility and option contact pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} options expiring on {expiration}
