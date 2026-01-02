@@ -9,6 +9,7 @@ import { useExpirations } from "./hooks";
 import { percentageNoDecimalFormatter } from "@/lib/formatters";
 import { getDayOfYear } from 'date-fns';
 import Alert from '@mui/material/Alert';
+import { SeriesLegendItemContext } from "@mui/x-charts/ChartsLegend";
 
 const deltaOptions = [10,
     25,
@@ -29,6 +30,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
     const [lookbackPeriod, setLookbackPeriod] = useState(180);
     const { expirations, expiration, setExpiration, strike, setStrike } = useExpirations(symbol);
     const [delta, setDelta] = useState(25);
+    const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
 
     const availableStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
     const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike');
@@ -49,7 +51,6 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                     </Select>
                 </FormControl>
                 <FormControl size="small">
-                    <InputLabel>MODE</InputLabel>
                     <Tooltip title={
                         <>
                             <div><b>DELTA</b>: View options based on delta value.</div>
@@ -57,12 +58,13 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                             <div><b>ATM</b>: View options relative to the at-the-money strike.</div>
                         </>
                         }>
+                        <InputLabel>MODE</InputLabel>
+                    </Tooltip>
                         <Select id="mode" value={mode} label="MODE" onChange={(e) => setMode(e.target.value)}>
                             <MenuItem key="delta" value="delta">DELTA</MenuItem>
                             <MenuItem key="strike" value="strike">STRIKE</MenuItem>
                             <MenuItem key="atm" value="atm">ATM</MenuItem>
                         </Select>
-                    </Tooltip>
                 </FormControl>
                 {
                     mode == 'delta' && <FormControl size="small">
@@ -109,20 +111,33 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                                     height: 400
                                 }}
                                 series={[
-                                    { data: volatility.cv, label: 'CALL IV', yAxisId: 'leftAxisId', showMark: false, color: 'green' },
-                                    { data: volatility.pv, label: 'PUT IV', yAxisId: 'leftAxisId', showMark: false, color: 'red' },
-                                    { data: volatility.cp, label: 'CALL Price', yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
-                                    { data: volatility.pp, label: 'PUT Price', yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
+                                    { data: disabledDataPoints.includes('iv30') ? []: volatility.iv30, label: 'IV30', id: "iv30", yAxisId: 'leftAxisId', showMark: false, color: 'cyan' },
+                                    { data: disabledDataPoints.includes('cv') ? []: volatility.cv, label: 'CALL IV', id: "cv", yAxisId: 'leftAxisId', showMark: false, color: 'green' },
+                                    { data: disabledDataPoints.includes('pv') ? []: volatility.pv, label: 'PUT IV', id: "pv", yAxisId: 'leftAxisId', showMark: false, color: 'red' },
+                                    { data: disabledDataPoints.includes('cp') ? []: volatility.cp, label: 'CALL Price', id: "cp", yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
+                                    { data: disabledDataPoints.includes('pp') ? []: volatility.pp, label: 'PUT Price', id: "pp", yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
+                                    { data: disabledDataPoints.includes('close') ? []: volatility.close, label: 'Stock Price', id: "close", yAxisId: 'rightAxisId', showMark: false, color: 'orange',  },
                                 ]}
                                 xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}
                                 yAxis={[
                                     { id: 'leftAxisId', label: 'IV %', valueFormatter: percentageNoDecimalFormatter },
-                                    { id: 'rightAxisId', position: 'right', label: 'Contract Price $' }
+                                    { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price $' }
                                 ]}
-                            //grid={{ horizontal: true, vertical: true }}
+                                slotProps={{
+                                    legend: {
+                                        onItemClick: (args: any, li: SeriesLegendItemContext)=> {
+                                            setDisabledDataPoints(v=> {
+                                                if(v.includes(li.seriesId.toString()))
+                                                    return v.filter(k=> k !== li.seriesId.toString());
+                                                return [...v, li.seriesId.toString()];
+                                            });
+                                        }
+                                    }
+                                }}
+                                //grid={{ horizontal: true, vertical: true }}
                             />
                             <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
-                                Implied Volatility and option contact pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : `$${strike} strike`} options expiring on {expiration}
+                                Implied Volatility and option contact pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} options expiring on {expiration}
                             </Typography>
                         </Box>
                 }
