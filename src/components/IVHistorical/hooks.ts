@@ -25,14 +25,14 @@ export const useExpirations = (symbol: string) => {
             setExpiration(nextMonthlyExpiration?.expiration || data[0]?.expiration || '');
         };
         fetchData();
-    }, [symbol]);
+    }, [symbol, expiration]);
 
     useEffect(() => {
         const allStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
         if (allStrikes.includes(strike)) return;
         const midIndexStrike = allStrikes.at(Math.abs(allStrikes.length / 2)) || 0;  //for now let's default it to mid index
         setStrike(midIndexStrike);
-    }, [expiration, expirations]);
+    }, [expiration, expirations, strike]);
 
     return { isLoading, expirations, expiration, setExpiration, strike, setStrike };
 }
