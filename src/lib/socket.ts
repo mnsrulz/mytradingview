@@ -81,6 +81,9 @@ const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [] }
 export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike') => {
     const [volatility, setVolatility] = useState<VolatilityResponse>(defaultVoltility);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasError, setHasError] = useState(true);
+    const [error, setError] = useState('');
+
     useEffect(() => {
         console.log(`Fetching volatility data for ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`);
         if (!symbol || !expiration) {
@@ -89,19 +92,28 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
             return;
         }
         setIsLoading(true);
+        setHasError(false);
+        setError('');
         const requestId = crypto.randomUUID();
+        const timeoutSeconds = 10;
         const noResponseSignal = setTimeout(() => {
             socket.emit('log-message', {
-                message: `Failed to receive the response for fetching volatility within 3 seconds. Request Id: ${requestId},  ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`
+                message: `Failed to receive the response for fetching volatility within ${timeoutSeconds} seconds. Request Id: ${requestId},  ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`
             });
-        }, 3000);
-        const fetchVolatility = async () => {
+            setHasError(true);
+            setError(`Failed to receive the response for fetching volatility within ${timeoutSeconds} seconds. Please try again.`)
+        }, timeoutSeconds * 1000);
+        const fetchVolatility = () => {
             socket.once(`volatility-response-${requestId}`, (data: { hasError: boolean, value: VolatilityResponse }) => {
                 clearTimeout(noResponseSignal);
-                if (data.hasError) {
-                    console.error(`Error fetching volatility data for ${symbol} - ${lookbackDays} - ${delta} - ${expiration} - ${mode}`);
+                if (data.hasError || !data.value?.dt) { //checking dt, if it's null, likely there's no data returned from server.
+                    setHasError(true);
+                    setError(`Error fetching volatility data for ${symbol}`);
                     setVolatility(defaultVoltility);
                 } else {
+                    debugger;
+                    setHasError(false);
+                    setError('');
                     setVolatility(data.value);
                 }
                 setIsLoading(false);
@@ -119,5 +131,5 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
         fetchVolatility();
         return () => { socket.off(`volatility-response-${requestId}`); clearTimeout(noResponseSignal); };
     }, [symbol, lookbackDays, delta, expiration, mode, strike]);
-    return { volatility, isLoading };
+    return { volatility, isLoading, hasError, error };
 }

@@ -15,12 +15,14 @@ export const useExpirations = (symbol: string) => {
         const fetchData = async () => {
             setIsLoading(true);
             const data = await getHistoricalExpirationsBySymbol(symbol);
-            const next30day = dayjs().add(30, 'day');
-            const nextMonthlyExpiration = data.find(k => k.isMonthly && dayjs(k.expiration) > next30day);
             setExpirations(data);
-            setExpiration(nextMonthlyExpiration?.expiration || data[0]?.expiration || '');
             setIsLoading(false);
 
+            if(data.find(k=> k.expiration === expiration)) return;
+            
+            const next30day = dayjs().add(30, 'day');
+            const nextMonthlyExpiration = data.find(k => k.isMonthly && dayjs(k.expiration) > next30day);
+            setExpiration(nextMonthlyExpiration?.expiration || data[0]?.expiration || '');
         };
         fetchData();
     }, [symbol]);
