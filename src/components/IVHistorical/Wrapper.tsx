@@ -43,6 +43,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
         if (!disabledDataPoints.includes('close')) values.push(...volatility.close);
         if (!disabledDataPoints.includes('cp')) values.push(...volatility.cp);
         if (!disabledDataPoints.includes('pp')) values.push(...volatility.pp);
+        if (!disabledDataPoints.includes('straddle')) values.push(...volatility.straddle);
 
         return Math.min(...values) * .8 || 0;
     }
@@ -125,6 +126,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                                     { data: disabledDataPoints.includes('pv') ? [] : volatility.pv, label: 'PUT IV', id: "pv", yAxisId: 'leftAxisId', showMark: false, color: 'red' },
                                     { data: disabledDataPoints.includes('cp') ? [] : volatility.cp, label: 'CALL Price', id: "cp", yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
                                     { data: disabledDataPoints.includes('pp') ? [] : volatility.pp, label: 'PUT Price', id: "pp", yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
+                                    { data: disabledDataPoints.includes('straddle') ? [] : volatility.straddle, label: 'STRADDLE Price', id: "straddle", yAxisId: 'rightAxisId', showMark: false, color: 'purple' },
                                     { data: disabledDataPoints.includes('close') ? [] : volatility.close, label: 'Stock Price', id: "close", yAxisId: 'rightAxisId', showMark: false, color: 'orange' },
                                 ]}
                                 xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}

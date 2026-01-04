@@ -58,7 +58,7 @@ export const useLivePageTrackingViews = () => {
         }, 3000);
         return () => { clearInterval(timer); }
     }, []);
-    return {views, isLoading};
+    return { views, isLoading };
 }
 
 export const subscribeStockPriceBatchRequest = (tickers: SearchTickerItem[]) => {
@@ -79,9 +79,9 @@ type VolatilityResponse = {
 //     cv: [0.2, 0.25, 0.22, 0.1, 0.91],
 //     pv: [0.18, 0.23, 0.21, 0.15, 0.89]
 // }
-const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], iv30: [], close: [] }
+const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], iv30: [], close: [], straddle: [] }
 export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike') => {
-    const [volatility, setVolatility] = useState<VolatilityResponse>(defaultVoltility);
+    const [volatility, setVolatility] = useState<VolatilityResponse & { straddle: number[] }>(defaultVoltility);
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [error, setError] = useState('');
@@ -116,7 +116,8 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
                     debugger;
                     setHasError(false);
                     setError('');
-                    setVolatility(data.value);
+                    const straddle = data.value.cp.map((v, x) => data.value.pp[x] + v);
+                    setVolatility({ ...data.value, straddle });
                 }
                 setIsLoading(false);
             });
