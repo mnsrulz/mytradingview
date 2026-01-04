@@ -1,4 +1,4 @@
-import { getHistoricalExpirationsBySymbol } from "@/lib/mzDataService";
+import { getAllHistoricalExpirationsBySymbol } from "@/lib/mzDataService";
 import { OIExpirationsDataResponse } from "@/lib/types";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ export const useExpirations = (symbol: string) => {
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
-            const data = await getHistoricalExpirationsBySymbol(symbol);
+            const data = await getAllHistoricalExpirationsBySymbol(symbol);
             setExpirations(data);
             setIsLoading(false);
 
