@@ -38,6 +38,8 @@
     "human-format": "^1.2.1",
     "instantsearch.css": "^8.5.1",
     "ky": "^1.8.1",
+    "lightweight-charts": "^5.1.0",
+    "lightweight-charts-react-components": "^1.4.0",
     "localforage": "^1.10.0",
     "lodash.chunk": "^4.2.0",
     "lodash.debounce": "^4.0.8",

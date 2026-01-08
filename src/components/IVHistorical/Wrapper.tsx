@@ -1,15 +1,13 @@
 'use client';
 import { useOptionHistoricalVolatility } from "@/lib/socket";
-import { Box, FormControl, InputLabel, LinearProgress, MenuItem, Paper, Select, Skeleton, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { LineChart } from "@mui/x-charts/LineChart";
-import dayjs from "dayjs";
+import { Box, Checkbox, Divider, FormControl, FormControlLabel, InputLabel, MenuItem, Paper, Select, Skeleton, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useState } from "react";
 import { SymbolsSelector } from "./SymbolsSelector";
 import { useExpirations } from "./hooks";
-import { percentageNoDecimalFormatter } from "@/lib/formatters";
 import { getDayOfYear } from 'date-fns';
 import Alert from '@mui/material/Alert';
-import { SeriesLegendItemContext } from "@mui/x-charts/ChartsLegend";
+import { BasicChart } from "./BasicChart";
+import { TVChart } from "./TVChart";
 
 const deltaOptions = [10,
     25,
@@ -30,23 +28,13 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
     const [lookbackPeriod, setLookbackPeriod] = useState(180);
     const { expirations, expiration, setExpiration, strike, setStrike } = useExpirations(symbol);
     const [delta, setDelta] = useState(25);
-    const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
+    const [showTVChart, setShowTVChart] = useState(false);
+
 
     const availableStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
     const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike');
-    const xAxisFormatter = (v: string) => dayjs(v).format("MMM D");
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-    const getMinYAxisValue = () => {
-        const values: number[] = [];
-        if (!disabledDataPoints.includes('close')) values.push(...volatility.close);
-        if (!disabledDataPoints.includes('cp')) values.push(...volatility.cp);
-        if (!disabledDataPoints.includes('pp')) values.push(...volatility.pp);
-        if (!disabledDataPoints.includes('straddle')) values.push(...volatility.straddle);
-
-        return Math.min(...values) * .8 || 0;
-    }
 
     return <>
         <Paper sx={{ mb: 2 }}>
@@ -105,48 +93,22 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                         <MenuItem key="ALL" value={99999}>ALL</MenuItem>
                     </Select>
                 </FormControl>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+                {/* <Box sx={{ flexGrow: 1 }} /> */}
                 <Stack direction="row" gap={isMobile ? 0.5 : 1}>
+                    <FormControl size="small">
+                        <FormControlLabel control={<Checkbox checked={showTVChart} onChange={(ev) => setShowTVChart(ev.target.checked)} />}
+                            label="V2" />
+                    </FormControl>
                 </Stack>
             </Stack>
         </Paper>
         {
-            isLoading ? <Paper sx={{ p: 2, textAlign: 'center', height: 400 }}><Skeleton variant="rectangular" height={360} /></Paper> : <Paper>
+            hasError ? <Alert severity="error">{error}</Alert> : <Paper>
                 {
-                    hasError ? <Alert severity="error">{error}</Alert> :
+                    isLoading ? <Skeleton variant="rectangular" height={360} /> :
                         <Box sx={{ width: '100%' }}>
-                            <LineChart
-                                sx={{
-                                    width: '100%',
-                                    minWidth: 600,
-                                    height: 400
-                                }}
-                                series={[
-                                    { data: disabledDataPoints.includes('iv30') ? [] : volatility.iv30, label: 'IV30', id: "iv30", yAxisId: 'leftAxisId', showMark: false, color: 'cyan' },
-                                    { data: disabledDataPoints.includes('cv') ? [] : volatility.cv, label: 'CALL IV', id: "cv", yAxisId: 'leftAxisId', showMark: false, color: 'green' },
-                                    { data: disabledDataPoints.includes('pv') ? [] : volatility.pv, label: 'PUT IV', id: "pv", yAxisId: 'leftAxisId', showMark: false, color: 'red' },
-                                    { data: disabledDataPoints.includes('cp') ? [] : volatility.cp, label: 'CALL Price', id: "cp", yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
-                                    { data: disabledDataPoints.includes('pp') ? [] : volatility.pp, label: 'PUT Price', id: "pp", yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
-                                    { data: disabledDataPoints.includes('straddle') ? [] : volatility.straddle, label: 'STRADDLE Price', id: "straddle", yAxisId: 'rightAxisId', showMark: false, color: 'purple' },
-                                    { data: disabledDataPoints.includes('close') ? [] : volatility.close, label: 'Stock Price', id: "close", yAxisId: 'rightAxisId', showMark: false, color: 'orange' },
-                                ]}
-                                xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}
-                                yAxis={[
-                                    { id: 'leftAxisId', label: 'IV %', valueFormatter: percentageNoDecimalFormatter },
-                                    { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price $', min: getMinYAxisValue() }
-                                ]}
-                                slotProps={{
-                                    legend: {
-                                        onItemClick: (args: any, li: SeriesLegendItemContext) => {
-                                            setDisabledDataPoints(v => {
-                                                if (v.includes(li.seriesId.toString()))
-                                                    return v.filter(k => k !== li.seriesId.toString());
-                                                return [...v, li.seriesId.toString()];
-                                            });
-                                        }
-                                    }
-                                }}
-                            //grid={{ horizontal: true, vertical: true }}
-                            />
+                            {showTVChart ? <TVChart volatility={volatility} /> : <BasicChart volatility={volatility} />}
                             <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
                                 Implied Volatility and option contact pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} options expiring on {expiration}
                             </Typography>

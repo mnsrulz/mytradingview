@@ -65,7 +65,7 @@ export const subscribeStockPriceBatchRequest = (tickers: SearchTickerItem[]) => 
     socket.emit('stock-price-subscribe-batch-request', { tickers, frequency: WatchlistUpdateFrequency });
 }
 
-type VolatilityResponse = {
+export type VolatilityResponse = {
     dt: string[];
     cv: number[];
     pv: number[];
@@ -110,10 +110,9 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
                 clearTimeout(noResponseSignal);
                 if (data.hasError || !data.value?.dt) { //checking dt, if it's null, likely there's no data returned from server.
                     setHasError(true);
-                    setError(`Error fetching volatility data for ${symbol}`);
+                    setError(`Error fetching volatility data for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
                     setVolatility(defaultVoltility);
                 } else {
-                    debugger;
                     setHasError(false);
                     setError('');
                     const straddle = data.value.cp.map((v, x) => data.value.pp[x] + v);
