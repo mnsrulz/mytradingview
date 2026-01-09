@@ -37,7 +37,7 @@
     "he": "^1.2.0",
     "human-format": "^1.2.1",
     "instantsearch.css": "^8.9.0",
-    "ky": "^1.8.1",
+    "ky": "^1.14.2",
     "lightweight-charts": "^5.1.0",
     "lightweight-charts-react-components": "^1.4.0",
     "localforage": "^1.10.0",
