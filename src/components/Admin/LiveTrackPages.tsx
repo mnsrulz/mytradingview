@@ -15,6 +15,23 @@ export const LiveTrackPages = () => {
         getRowId={(row) => row.page}
         rows={views}
         columns={columns}
+        initialState={
+            {
+                sorting: {
+                    sortModel: [{ field: "count", sort: "desc" }]
+                }
+            }
+        }
+        sx={{
+            display: 'grid',
+            '& .MuiDataGrid-columnSeparator': { display: 'none' },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+                outline: 'none'
+            }
+        }}
         disableRowSelectionOnClick
+        disableColumnMenu
+        disableColumnSelector
+        disableColumnResize
     />
 }

@@ -3,8 +3,6 @@ import { OIExpirationsDataResponse } from "@/lib/types";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
-export const availableSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX']; //for now, hardcode some symbols
-
 export const useExpirations = (symbol: string) => {
     const [expirations, setExpirations] = useState<OIExpirationsDataResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);

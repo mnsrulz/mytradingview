@@ -37,18 +37,22 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     return <>
-        <Paper sx={{ mb: 2 }}>
+        <Paper sx={{
+            mb: 2,
+            overflowX: 'auto',          // enable horizontal scroll
+            WebkitOverflowScrolling: 'touch', // smooth scroll on iOS
+        }}>
             <Stack direction="row" gap={1} p={1} alignItems="center">
                 <FormControl sx={{ minWidth: 125 }} size="small">
                     <SymbolsSelector symbols={symbols} symbol={symbol} handleSymbolChange={onSymbolChange} />
                 </FormControl>
-                <FormControl size="small">
+                <FormControl sx={{ flexShrink: 0 }} size="small">
                     <InputLabel>EXPIRY</InputLabel>
                     <Select id="expiry" value={expiration} label="EXPIRY" onChange={(e) => setExpiration(e.target.value as string)}>
                         {expirations.map((d) => (<MenuItem key={d.expiration} value={d.expiration}>{d.expiration}</MenuItem>))}
                     </Select>
                 </FormControl>
-                <FormControl size="small">
+                <FormControl sx={{ flexShrink: 0 }} size="small">
                     <Tooltip title={
                         <>
                             <div><b>DELTA</b>: View options based on delta value.</div>
@@ -65,7 +69,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                     </Select>
                 </FormControl>
                 {
-                    mode == 'delta' && <FormControl size="small">
+                    mode == 'delta' && <FormControl size="small" sx={{ flexShrink: 0 }}>
                         <InputLabel>DELTA</InputLabel>
                         <Select id="delta" value={delta} label="DELTA" onChange={(e) => setDelta(e.target.value as number)}>
                             {deltaOptions.map((d) => (<MenuItem key={d} value={d}>{d}</MenuItem>))}
@@ -74,14 +78,14 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
 
                 }
                 {
-                    mode == 'strike' && <FormControl sx={{ minWidth: 80 }} size="small">
+                    mode == 'strike' && <FormControl sx={{ minWidth: 80 }} size="small" >
                         <InputLabel>STRIKES</InputLabel>
                         <Select id="strike" value={strike} label="STRIKE" onChange={(e) => setStrike(e.target.value as number)}>
                             {availableStrikes.map((d) => (<MenuItem key={d} value={d}>{d}</MenuItem>))}
                         </Select>
                     </FormControl>
                 }
-                <FormControl size="small">
+                <FormControl size="small" sx={{ flexShrink: 0 }}>
                     <InputLabel>PERIOD</InputLabel>
                     <Select id="lookback" value={lookbackPeriod} label="PERIOD" onChange={(e) => setLookbackPeriod(e.target.value as number)}>
                         <MenuItem key="ytd" value={getDayOfYear(new Date())}>YTD</MenuItem>

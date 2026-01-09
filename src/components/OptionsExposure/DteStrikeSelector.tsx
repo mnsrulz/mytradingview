@@ -44,7 +44,7 @@ export const DteStrikeSelector = (props: {
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const enableCustomDte = isMobile == false && dte == -1;
+    const enableCustomDte = dte == -1;
     const handleCustomDteSelectionChange = (event: SelectChangeEvent<typeof selectedExpirations>) => {
         const {
             target: { value },
@@ -57,29 +57,32 @@ export const DteStrikeSelector = (props: {
     };
 
     return <Paper
-    // sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+        // sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+        sx={{
+            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+        }}
     >
         <Stack direction="row" gap={1} p={1} justifyContent="space-between" alignItems={"center"}>
-            <FormControl size="small">
+            <FormControl size="small"  sx={{ flexShrink: 0 }}>
                 <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
             </FormControl>
-            <Stack direction="row" gap={isMobile ? 0.5 : 1}>
+            <Stack direction="row" gap={isMobile ? 0.5 : 1} >
                 {timestamp && <RefreshCboeData dataMode={dataMode} timestamp={timestamp} symbol={symbol} onRefresh={onRefresh} />}
-                <FormControl size="small">
+                <FormControl size="small" sx={{ flexShrink: 0 }}>
                     <InputLabel>Mode</InputLabel>
                     <Select id="dataMode" value={dataMode} label="Mode" onChange={(e) => setDataMode(e.target.value as DataModeType)}>
                         {dataModes.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
                     </Select>
                 </FormControl>
-                <FormControl size="small">
+                <FormControl size="small" sx={{ flexShrink: 0 }}>
                     <InputLabel>DTE</InputLabel>
                     <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
                         {dteOptions.filter(k => k > 1 || showZeroAndNextDte).map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
-                        {!isMobile && <MenuItem key="custom" value="-1">Custom</MenuItem>}
+                        <MenuItem key="custom" value="-1">Custom</MenuItem>
                     </Select>
                 </FormControl>
                 {
-                    enableCustomDte && <FormControl sx={{ width: 120 }} size="small">
+                    enableCustomDte && <FormControl sx={{ flexShrink: 0, maxWidth: 120 }} size="small">
                         <InputLabel>Custom DTE</InputLabel>
                         <Select
                             multiple
