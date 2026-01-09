@@ -56,7 +56,7 @@
     "react-resize-detector": "^12.1.0",
     "react-router": "^7.6.3",
     "react-router-dom": "^7.7.1",
-    "socket.io-client": "^4.8.1",
+    "socket.io-client": "^4.8.3",
     "sort-by": "^1.2.0",
     "uplot": "^1.6.32",
     "uplot-react": "^1.2.2",
