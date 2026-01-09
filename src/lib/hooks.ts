@@ -145,6 +145,7 @@ export const useMultiWatchlists = () => {
                     : wl
             )
         );
+        ky.post(`/api/watchlist`, { json: ticker });    //let it be async
     };
 
     const removeTickerFromWatchlist = (watchlistId: string, symbol: string) => {
@@ -426,6 +427,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
     useEffect(() => {
         (async () => {
             try {
+                setIsLoading(true);
                 setHasError(false);
                 const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${refreshToken}-${dataMode}`;
                 let exposureResponse = cacheStore[cacheKey];

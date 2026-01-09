@@ -4,7 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
 import { Box, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StockTickerSymbolView, StockTickerView } from './StockTicker';
 import AddTradeIcon from '@mui/icons-material/Add';
 import { AddTradeDialog } from './AddTradeDialog';
@@ -15,7 +15,7 @@ import { TradingViewWidgetDialog } from './TradingViewWidgetDialog';
 import { subscribeStockPriceBatchRequest } from '@/lib/socket';
 import collect from 'collect.js';
 import { useMultiWatchlists } from "@/lib/hooks";
-import { DialogProps, DialogsProvider, useDialogs } from '@toolpad/core';
+import { DialogProps, useDialogs } from '@toolpad/core';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Delete';
 import { NumberFlowGroup } from '@number-flow/react';
@@ -24,28 +24,30 @@ export const Watchlist = () => {
   const dialogs = useDialogs();
   const { watchlists, addWatchlist, removeWatchlist, addTickerToWatchlist, removeTickerFromWatchlist } = useMultiWatchlists();
   const [watchlistId, setWatchlistId] = useState('');
-
-  const selectedWatchListId = watchlistId || watchlists[0]?.id;
-
-  const wl = watchlists.find(w => w.id === selectedWatchListId)?.tickers || [];
-
+  
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const [sortMode, setSortMode] = useState('symbol');
   const [menuOpen, setMenuOpen] = useState(false);
+  const sortedSymbols = useMemo(() => collect(watchlists.find(w => w.id === watchlistId)?.tickers || []).sortBy(sortMode).all(), [watchlists, watchlistId, sortMode]);
+
+  useEffect(() => {
+    if (!watchlistId && watchlists.length > 0) {
+      setWatchlistId(watchlists[0].id);
+    }
+  }, [watchlists, watchlistId])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      subscribeStockPriceBatchRequest(wl);
+      subscribeStockPriceBatchRequest(sortedSymbols);
     }, 1000); //every one second just ping the server to resubscribe
 
     return () => clearInterval(interval);
-  }, [wl]);
+  }, [sortedSymbols]);
 
   const handleAddToWatchlistClick = async () => {
     const result = await dialogs.open(AddToWatchlistDialog);
-    debugger;
     if (!result) return;
-    addTickerToWatchlist(selectedWatchListId, result);
+    addTickerToWatchlist(watchlistId, result);
   }
 
   const columns: GridColDef<SearchTickerItem>[] = [
@@ -78,7 +80,7 @@ export const Watchlist = () => {
           key='Remove'
           icon={<DeleteIcon />}
           label="Remove"
-          onClick={() => removeTickerFromWatchlist(selectedWatchListId, row.symbol)}
+          onClick={() => removeTickerFromWatchlist(watchlistId, row.symbol)}
           showInMenu
         />,
         <GridLinkAction
@@ -137,114 +139,114 @@ export const Watchlist = () => {
 
   const handleCloseAddTrade = () => { setOpenAddTrade(false); };
 
-  return <DialogsProvider>
-    <Grid container>
-      <Grid size={12}>
-        <Stack direction="row" spacing={1} alignItems='center' justifyContent='space-between' sx={{ mb: 1 }}>
-          <Box>
-            <FormControl variant="standard" sx={{ m: 1, minWidth: 220 }} size='small'>
-              <InputLabel id="watchlist-select-label">Watchlists</InputLabel>
-              <Select
-                labelId="watchlist-select-label"
-                value={selectedWatchListId}
-                onChange={(e) => {
-                  setWatchlistId(e.target.value);
-                }}
-                label="Watchlist"
-                size='small'
-                autoWidth
-                // Track open state to show delete icon only when menu is open
-                MenuProps={{
-                  PaperProps: {
-                    sx: { minWidth: 220 }
-                  }
-                }}
-                onOpen={() => setMenuOpen(true)}
-                onClose={() => setMenuOpen(false)}
-                renderValue={(value) => { return <span>{watchlists.find(w => w.id === value)?.name}</span> }}
-              >
-                {watchlists.map((w) => (
-                  <MenuItem key={w.id} value={w.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{w.name}</span>
-                    {menuOpen && watchlists.length > 1 && (
-                      <Box>
-                        <IconButton
-                          size="small"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            handleRemoveWatchlistClick(w);
-                          }}
-                          title="Remove"
-                        >
-                          <RemoveIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </MenuItem>
-                ))}
-                <MenuItem
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    handleNewWatchlistClick();
-                  }}
-                  sx={{ display: 'flex', justifyContent: 'center', color: 'primary.main' }}
-                >
-                  <AddIcon fontSize="small" sx={{ mr: 1 }} /> Add new watchlist
+  return <Grid container>
+    <Grid size={12}>
+      <Stack direction="row" spacing={1} alignItems='center' justifyContent='space-between' sx={{ mb: 1 }}>
+        <Box>
+          <FormControl variant="standard" sx={{ m: 1, minWidth: 220 }} size='small'>
+            <InputLabel id="watchlist-select-label">Watchlists</InputLabel>
+            <Select
+              labelId="watchlist-select-label"
+              value={watchlistId}
+              onChange={(e) => {
+                setWatchlistId(e.target.value);
+              }}
+              label="Watchlist"
+              size='small'
+              autoWidth
+              // Track open state to show delete icon only when menu is open
+              MenuProps={{
+                PaperProps: {
+                  sx: { minWidth: 220 }
+                }
+              }}
+              onOpen={() => setMenuOpen(true)}
+              onClose={() => setMenuOpen(false)}
+              renderValue={(value) => { return <span>{watchlists.find(w => w.id === value)?.name}</span> }}
+            >
+              {watchlists.map((w) => (
+                <MenuItem key={w.id} value={w.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{w.name}</span>
+                  {menuOpen && watchlists.length > 1 && (
+                    <Box>
+                      <IconButton
+                        size="small"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          handleRemoveWatchlistClick(w);
+                        }}
+                        title="Remove"
+                      >
+                        <RemoveIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
                 </MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-          <Box>
-            <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }} size='small'>
-              <InputLabel id="sort-by-label">Sort by</InputLabel>
-              <Select
-                labelId="sort-by-label"
-                value={sortMode}
-                onChange={(e) => setSortMode(e.target.value)}
-                label="Sort by"
-                size='small'
-                autoWidth
+              ))}
+              <MenuItem
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  handleNewWatchlistClick();
+                }}
+                sx={{ display: 'flex', justifyContent: 'center', color: 'primary.main' }}
               >
-                <MenuItem value="symbol">Ticker</MenuItem>
-                <MenuItem value="name">Name</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </Stack>
-      </Grid>
-      <NumberFlowGroup>
-        <DataGrid rows={collect(wl).sortBy(sortMode).all()}
-          columns={columns}
-          //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
-          sx={{
-            display: 'grid',
-            '& .MuiDataGrid-columnSeparator': { display: 'none' },
-            // '& .MuiDataGrid-cell.actions': { paddingX: 0, width: '12px' },
-          }}
-          // columnHeaderHeight={0}
-          // slots={{
-          //   columnHeaders: () => <div></div>,
-          // }}      
-          disableColumnMenu
-          disableColumnSorting
-          disableColumnSelector
-          disableColumnResize
-          rowHeight={72}
-          //apiRef={apiRef}
-          // rowSelection={true}
-          disableRowSelectionOnClick
-          hideFooter={true}
-          density='compact'
-          getRowId={(r) => `${r.symbol} - ${r.name}`} />
-      </NumberFlowGroup>
-      <AddTradeDialog onClose={handleCloseAddTrade}
-        open={openAddTrade}
-        ticker={currentStock} />
-
-
-      {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
+                <AddIcon fontSize="small" sx={{ mr: 1 }} /> Add new watchlist
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        <Box>
+          <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }} size='small'>
+            <InputLabel id="sort-by-label">Sort by</InputLabel>
+            <Select
+              labelId="sort-by-label"
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value)}
+              label="Sort by"
+              size='small'
+              autoWidth
+            >
+              <MenuItem value="symbol">Ticker</MenuItem>
+              <MenuItem value="name">Name</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      </Stack>
     </Grid>
-  </DialogsProvider>
+    <NumberFlowGroup>
+      <DataGrid rows={sortedSymbols}
+        columns={columns}
+        //sx={{ '& .MuiDataGrid-columnSeparator': { display: 'none' } }}
+        sx={{
+          display: 'grid',
+          '& .MuiDataGrid-columnSeparator': { display: 'none' },
+          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+            outline: 'none'
+          }
+        }}
+        // columnHeaderHeight={0}
+        // slots={{
+        //   columnHeaders: () => <div></div>,
+        // }}      
+        disableColumnMenu
+        disableColumnSorting
+        disableColumnSelector
+        disableColumnResize
+        rowHeight={72}
+        //apiRef={apiRef}
+        // rowSelection={true}
+        disableRowSelectionOnClick
+        hideFooter={true}
+        density='compact'
+        getRowId={(r) => `${r.symbol} - ${r.name}`} />
+    </NumberFlowGroup>
+    <AddTradeDialog onClose={handleCloseAddTrade}
+      open={openAddTrade}
+      ticker={currentStock} />
+
+
+    {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
+  </Grid>
 }
 
 function AddToWatchlistDialog({ open, onClose }: DialogProps<undefined, SearchTickerItem | null>) {
