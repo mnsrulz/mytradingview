@@ -1,12 +1,14 @@
 import ky from "ky";
 import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, ExposureSnapshotBySymbolResponse, OIAnomalyReportDataResponse, OIReportDataResponse, OIExpirationsDataResponse, OptionGreeksExposureWallsByDateResponse, } from "./types";
 
+const MZDATA_URL = process.env.MZDATA_URL || 'https://mztrading-data.deno.dev';
+
 export type CachedReleasesType = {
     name: string
 }
 
 const client = ky.create({
-    prefixUrl: 'https://mztrading-data.deno.dev',
+    prefixUrl: MZDATA_URL,
     headers: {
         'Accept': 'application/json'
     },

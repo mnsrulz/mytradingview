@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react';
 import { SearchTickerItem, StockPriceData } from './types';
 import { io } from 'socket.io-client';
-const URL = `https://mztrading-socket.deno.dev`
+const URL = process.env.MZDATA_SOCKET_URL || `https://mztrading-socket.deno.dev`;
 const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
+const TrackPageInterval = parseInt(process.env.TRACK_PAGE_INTERVAL_MS || '9000');
 const socket = io(URL, {
     reconnectionDelayMax: 10000,
     transports: ['websocket', 'polling']
@@ -17,14 +18,14 @@ socket.on("connect", () => {
 export const useTrackPage = (pathName: string) => {
     useEffect(() => {
         const timer = setInterval(() => {
-            socket.emit('track-page', {
+            socket.volatile.emit('track-page', {
                 pageUrl: pathName,
             });
-        }, 3000);
+        }, TrackPageInterval);
 
         return () => {
             clearInterval(timer);
-            socket.emit('untrack-page', {
+            socket.volatile.emit('untrack-page', {
                 pageUrl: pathName,
             });
         }
@@ -62,7 +63,7 @@ export const useLivePageTrackingViews = () => {
 }
 
 export const subscribeStockPriceBatchRequest = (tickers: SearchTickerItem[]) => {
-    socket.emit('stock-price-subscribe-batch-request', { tickers, frequency: WatchlistUpdateFrequency });
+    socket.volatile.emit('stock-price-subscribe-batch-request', { tickers, frequency: WatchlistUpdateFrequency });
 }
 
 export type VolatilityResponse = {
