@@ -4,8 +4,17 @@ import { LineChart } from "@mui/x-charts/LineChart";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { percentageNoDecimalFormatter } from "@/lib/formatters";
-import { SeriesLegendItemContext } from "@mui/x-charts/ChartsLegend";
+import { Box, Stack, Typography } from "@mui/material";
 
+const seriesDefinition = [
+    { id: 'iv30', label: 'IV30', color: 'cyan', yAxisId: 'leftAxisId' },
+    { id: 'cv', label: 'CALL IV', color: 'green', yAxisId: 'leftAxisId' },
+    { id: 'pv', label: 'PUT IV', color: 'red', yAxisId: 'leftAxisId' },
+    { id: 'straddle', label: 'STRADDLE Price', color: 'purple', yAxisId: 'rightAxisId' },
+    { id: 'close', label: 'Stock Price', color: 'orange', yAxisId: 'rightAxisId' },
+    { id: 'cp', label: 'CALL Price', color: 'lightgreen', yAxisId: 'rightAxisId' },
+    { id: 'pp', label: 'PUT Price', color: 'pink', yAxisId: 'rightAxisId' },
+] as { id: 'cv' | 'pv' | 'straddle' | 'close' | 'cp' | 'pp' | 'iv30', label: string, color: string, yAxisId: string }[];
 
 export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { straddle: number[] } }) => {
     const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
@@ -20,37 +29,55 @@ export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { 
         return Math.min(...values) * .8 || 0;
     }
 
+    const items = seriesDefinition.filter(j => !disabledDataPoints.includes(j.id));
+    const series = items.map(j => ({
+        data: volatility[j.id], label: j.label, id: j.id, yAxisId: j.yAxisId, color: j.color, showMark: false
+    }));
+
     return <LineChart
         sx={{
             width: '100%',
             minWidth: 600,
             height: 540
         }}
-        series={[
-            { data: disabledDataPoints.includes('iv30') ? [] : volatility.iv30, label: 'IV30', id: "iv30", yAxisId: 'leftAxisId', showMark: false, color: 'cyan' },
-            { data: disabledDataPoints.includes('cv') ? [] : volatility.cv, label: 'CALL IV', id: "cv", yAxisId: 'leftAxisId', showMark: false, color: 'green' },
-            { data: disabledDataPoints.includes('pv') ? [] : volatility.pv, label: 'PUT IV', id: "pv", yAxisId: 'leftAxisId', showMark: false, color: 'red' },
-            { data: disabledDataPoints.includes('cp') ? [] : volatility.cp, label: 'CALL Price', id: "cp", yAxisId: 'rightAxisId', showMark: false, color: 'lightgreen' },
-            { data: disabledDataPoints.includes('pp') ? [] : volatility.pp, label: 'PUT Price', id: "pp", yAxisId: 'rightAxisId', showMark: false, color: 'pink' },
-            { data: disabledDataPoints.includes('straddle') ? [] : volatility.straddle, label: 'STRADDLE Price', id: "straddle", yAxisId: 'rightAxisId', showMark: false, color: 'purple' },
-            { data: disabledDataPoints.includes('close') ? [] : volatility.close, label: 'Stock Price', id: "close", yAxisId: 'rightAxisId', showMark: false, color: 'orange' },
-        ]}
+        series={series}
         xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}
         yAxis={[
             { id: 'leftAxisId', label: 'IV %', valueFormatter: percentageNoDecimalFormatter },
             { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price $', min: getMinYAxisValue() }
         ]}
+        slots={{
+            legend: () => <ChartLegend items={seriesDefinition} onItemClick={(seriesId) => {
+                setDisabledDataPoints(v => {
+                    if (v.includes(seriesId.toString()))
+                        return v.filter(k => k !== seriesId.toString());
+                    return [...v, seriesId.toString()];
+                });
+            }} />
+        }}
         slotProps={{
             legend: {
-                onItemClick: (args: any, li: SeriesLegendItemContext) => {
-                    setDisabledDataPoints(v => {
-                        if (v.includes(li.seriesId.toString()))
-                            return v.filter(k => k !== li.seriesId.toString());
-                        return [...v, li.seriesId.toString()];
-                    });
+                direction: 'horizontal',
+                position: {
+                    horizontal: 'center'
                 }
             }
         }}
-        // grid={{ horizontal: true, vertical: true }}
+    // grid={{ horizontal: true, vertical: true }}
     />
+}
+
+const ChartLegend = (props: { items: { label: string, color: string, id: string }[], onItemClick: (id: string) => void }) => {
+    const { items } = props;
+    return <Stack direction={'row'} sx={{ flexWrap: 'wrap' }} columnGap={2}>
+        {
+            items.map(item => <Stack key={item.id} direction={'column'} justifyContent={'space-evenly'}
+                onClick={() => props.onItemClick(item.id)}>
+                <Stack direction="row" alignItems="center" columnGap={1} >
+                    <Box width={16} height={4} sx={{ bgcolor: item.color }}></Box>
+                    <Typography variant="caption">{item.label}</Typography>
+                </Stack>
+            </Stack>)
+        }
+    </Stack>
 }
