@@ -6,15 +6,32 @@ import { useState } from "react";
 import { percentageNoDecimalFormatter } from "@/lib/formatters";
 import { Box, Stack, Typography } from "@mui/material";
 
+import {
+  cyan,
+  purple,
+  green,
+  red,
+  orange,
+  pink,
+  blueGrey,
+  lightGreen
+} from '@mui/material/colors';
+
 const seriesDefinition = [
-    { id: 'iv30', label: 'IV30', color: 'cyan', yAxisId: 'leftAxisId' },
-    { id: 'cv', label: 'CALL IV', color: 'green', yAxisId: 'leftAxisId' },
-    { id: 'pv', label: 'PUT IV', color: 'red', yAxisId: 'leftAxisId' },
-    { id: 'straddle', label: 'STRADDLE Price', color: 'purple', yAxisId: 'rightAxisId' },
-    { id: 'close', label: 'Stock Price', color: 'orange', yAxisId: 'rightAxisId' },
-    { id: 'cp', label: 'CALL Price', color: 'lightgreen', yAxisId: 'rightAxisId' },
-    { id: 'pp', label: 'PUT Price', color: 'pink', yAxisId: 'rightAxisId' },
-] as { id: 'cv' | 'pv' | 'straddle' | 'close' | 'cp' | 'pp' | 'iv30', label: string, color: string, yAxisId: string }[];
+  // Volatility (cool spectrum)
+  { id: 'iv30',           label: 'IV30',          color: cyan[500],       yAxisId: 'leftAxisId' },
+  { id: 'iv_percentile', label: 'IV Percentile', color: purple[400],     yAxisId: 'leftAxisId' },
+
+  // Option IVs (directional)
+  { id: 'cv',             label: 'CALL IV',       color: green[600],      yAxisId: 'leftAxisId' },
+  { id: 'pv',             label: 'PUT IV',        color: red[600],        yAxisId: 'leftAxisId' },
+
+  // Prices (warm / neutral)
+  { id: 'straddle',       label: 'STRADDLE Price',color: blueGrey[500], yAxisId: 'rightAxisId' },
+  { id: 'close',          label: 'Stock Price',   color: orange[500],     yAxisId: 'rightAxisId' },
+  { id: 'cp',             label: 'CALL Price',    color: lightGreen[400], yAxisId: 'rightAxisId' },
+  { id: 'pp',             label: 'PUT Price',     color: pink[400],       yAxisId: 'rightAxisId' },
+];
 
 export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { straddle: number[] } }) => {
     const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
@@ -43,8 +60,8 @@ export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { 
         series={series}
         xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}
         yAxis={[
-            { id: 'leftAxisId', label: 'IV %', valueFormatter: percentageNoDecimalFormatter },
-            { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price $', min: getMinYAxisValue() }
+            { id: 'leftAxisId', label: 'IV / Percentile (%)', valueFormatter: percentageNoDecimalFormatter },
+            { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price ($)', min: getMinYAxisValue() }
         ]}
         slots={{
             legend: () => <ChartLegend items={seriesDefinition} onItemClick={(seriesId) => {

@@ -73,6 +73,7 @@ export type VolatilityResponse = {
     cp: number[];
     pp: number[];
     iv30: number[];
+    iv_percentile: number[];
     close: number[];
 };
 // const dummyVolatilityResponse: VolatilityResponse = {
