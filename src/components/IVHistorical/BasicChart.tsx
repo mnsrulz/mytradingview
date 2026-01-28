@@ -31,7 +31,7 @@ const seriesDefinition = [
   { id: 'close',          label: 'Stock Price',   color: orange[500],     yAxisId: 'rightAxisId' },
   { id: 'cp',             label: 'CALL Price',    color: lightGreen[400], yAxisId: 'rightAxisId' },
   { id: 'pp',             label: 'PUT Price',     color: pink[400],       yAxisId: 'rightAxisId' },
-];
+] as { id: 'cv' | 'pv' | 'straddle' | 'close' | 'cp' | 'pp' | 'iv30' | 'iv_percentile', label: string, color: string, yAxisId: string }[];
 
 export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { straddle: number[] } }) => {
     const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
