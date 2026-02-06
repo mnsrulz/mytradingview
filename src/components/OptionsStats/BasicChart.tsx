@@ -6,16 +6,10 @@ import { useState } from "react";
 import { currencyCompactFormatter, numberCompactFormatter } from "@/lib/formatters";
 import { Grid } from "@mui/material";
 
-export const BasicChart = ({ stats }: { stats: OptionsStatsResponse }) => {
-    const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
+export const BasicChart = ({ stats, multiplyPriceForCalculateDelta }: { stats: OptionsStatsResponse, multiplyPriceForCalculateDelta: boolean }) => {
     const xAxisFormatter = (v: string) => dayjs(v).format("MMM D");
-    const getMinYAxisValue = () => {
-        const values: number[] = [];
-        if (!disabledDataPoints.includes('close')) values.push(...stats.close);
-        return Math.min(...values) * .8 || 0;
-    }
-
     return <Grid container spacing={1}>
+        {multiplyPriceForCalculateDelta}
         <Grid size={6}>
             <LineChart
                 sx={{
@@ -39,12 +33,12 @@ export const BasicChart = ({ stats }: { stats: OptionsStatsResponse }) => {
                     height: 320
                 }}
                 series={[
-                    { data: stats.cd.map(k => k), label: 'Calls Total Delta', yAxisId: 'leftAxisId', showMark: false },
-                    { data: stats.pd.map(k => k), label: 'Puts Total Delta', yAxisId: 'leftAxisId', showMark: false }
+                    { data: stats.cd.map((k, ix) => multiplyPriceForCalculateDelta ? k * stats.close[ix] : k), label: 'Calls Total Delta', yAxisId: 'leftAxisId', showMark: false },
+                    { data: stats.pd.map((k, ix) => multiplyPriceForCalculateDelta ? k * stats.close[ix] : k), label: 'Puts Total Delta', yAxisId: 'leftAxisId', showMark: false }
                 ]}
                 xAxis={[{ scaleType: 'point', data: stats.dt, valueFormatter: xAxisFormatter }]}
                 yAxis={[
-                    { id: 'leftAxisId', label: 'Total Delta', valueFormatter: numberCompactFormatter }
+                    { id: 'leftAxisId', label: `Total Delta ${multiplyPriceForCalculateDelta ? '(in $)' : ''}`, valueFormatter: (v: number) => multiplyPriceForCalculateDelta ? currencyCompactFormatter(v) : numberCompactFormatter(v) }
                 ]}
             />
         </Grid>

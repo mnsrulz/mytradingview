@@ -1,6 +1,6 @@
 'use client';
 import { useOptionsStats } from "@/lib/socket";
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Skeleton, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Checkbox, Divider, FormControl, FormControlLabel, InputLabel, MenuItem, Paper, Select, Skeleton, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useState } from "react";
 import { SymbolsSelector } from "./SymbolsSelector";
 import { getDayOfYear } from 'date-fns';
@@ -16,7 +16,7 @@ export const Wrapper = (props: { symbols: string[] }) => {
 const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void }) => {
     const { symbols, symbol, onSymbolChange } = props;
     const [lookbackPeriod, setLookbackPeriod] = useState(180);
-
+    const [multiplyPriceForCalculateDelta, setMultiplyPriceForCalculateDelta] = useState(false);
     const { stats, isLoading, hasError, error } = useOptionsStats(symbol, lookbackPeriod);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -43,14 +43,24 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                         <MenuItem key="ALL" value={99999}>ALL</MenuItem>
                     </Select>
                 </FormControl>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+                {/* <Box sx={{ flexGrow: 1 }} /> */}
+                <Stack direction="row" gap={isMobile ? 0.5 : 1}>
+                    <FormControl size="small">
+                        <FormControlLabel control={<Checkbox checked={multiplyPriceForCalculateDelta} 
+                            onChange={(ev) => setMultiplyPriceForCalculateDelta(ev.target.checked)} />}
+                            label="Multiply Price for Delta Calculation" />
+                    </FormControl>
+                </Stack>
             </Stack>
+
         </Paper>
         {
             hasError ? <Alert severity="error">{error}</Alert> : <Paper>
                 {
                     isLoading ? <Skeleton variant="rectangular" height={360} /> :
                         <Box sx={{ width: '100%' }}>
-                            <BasicChart stats={stats} />
+                            <BasicChart stats={stats} multiplyPriceForCalculateDelta={multiplyPriceForCalculateDelta} />
                             <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
                                 Stats shown for the symbol {symbol} for the past {lookbackPeriod} days.
                             </Typography>
