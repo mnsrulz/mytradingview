@@ -9,10 +9,11 @@ import FunctionsIcon from '@mui/icons-material/Functions';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import TimelineIcon  from '@mui/icons-material/Timeline';
-import BorderVerticalIcon  from '@mui/icons-material/BorderVertical';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import BorderVerticalIcon from '@mui/icons-material/BorderVertical';
 // or
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -41,7 +42,7 @@ export const NAVIGATION: Navigation = [
     },
     {
         kind: 'header',
-        title: 'Options'        
+        title: 'Options'
     },
     {
         segment: 'options/analyze',
@@ -100,7 +101,7 @@ export const NAVIGATION: Navigation = [
         segment: 'seasonal',
         title: 'Seasonal',
         icon: <CalendarMonthIcon />,
-    },    
+    },
     {
         segment: 'history',
         title: 'History',
@@ -115,6 +116,9 @@ export const NAVIGATION: Navigation = [
 
 export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
     {
+        kind: 'divider',
+    }, 
+    {
         kind: 'header',
         title: 'Admin',
     },
@@ -127,5 +131,10 @@ export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
         segment: 'admin/live-tracker',
         title: 'Live Tracker',
         icon: <TrackChangesIcon />,
+    },
+    {
+        segment: 'options/stats',
+        title: 'Options Stats',
+        icon: <QueryStatsIcon />,
     }
 ]);

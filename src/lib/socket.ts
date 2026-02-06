@@ -76,12 +76,25 @@ export type VolatilityResponse = {
     iv_percentile: number[];
     close: number[];
 };
+
+export type OptionsStatsResponse = {
+    dt: string[];
+    cd: number[];
+    pd: number[];
+    cp: number[];
+    pp: number[];
+    co: number[];
+    po: number[];
+    options_count: number[];
+    close: number[];
+};
 // const dummyVolatilityResponse: VolatilityResponse = {
 //     dt: ['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05'],
 //     cv: [0.2, 0.25, 0.22, 0.1, 0.91],
 //     pv: [0.18, 0.23, 0.21, 0.15, 0.89]
 // }
 const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], iv30: [], close: [], straddle: [], iv_percentile: [] };
+const defaultOptionsStats = { dt: [], cd: [], pd: [], cp: [], pp: [], co: [], po: [], close: [], options_count: [] };
 export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike') => {
     const [volatility, setVolatility] = useState<VolatilityResponse & { straddle: number[] }>(defaultVoltility);
     const [isLoading, setIsLoading] = useState(true);
@@ -108,7 +121,7 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
             setError(`Failed to receive the response for fetching volatility within ${timeoutSeconds} seconds. Please try again.`)
         }, timeoutSeconds * 1000);
         const fetchVolatility = () => {
-            socket.once(`volatility-response-${requestId}`, (data: { hasError: boolean, value: VolatilityResponse }) => {
+            socket.once(`query-response-${requestId}`, (data: { hasError: boolean, value: VolatilityResponse }) => {
                 clearTimeout(noResponseSignal);
                 if (data.hasError || !data.value?.dt) { //checking dt, if it's null, likely there's no data returned from server.
                     setHasError(true);
@@ -122,18 +135,70 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
                 }
                 setIsLoading(false);
             });
-            socket.emit('query-volatility', {
+            socket.emit('submit-query', {
                 symbol,
                 lookbackDays,
                 delta: mode == 'delta' ? delta : null,
                 expiration,
                 mode,
                 requestId,
-                strike: mode == 'strike' ? strike : null
+                strike: mode == 'strike' ? strike : null,
+                requestType: 'volatility-query'
             });
         };
         fetchVolatility();
-        return () => { socket.off(`volatility-response-${requestId}`); clearTimeout(noResponseSignal); };
+        return () => { socket.off(`query-response-${requestId}`); clearTimeout(noResponseSignal); };
     }, [symbol, lookbackDays, delta, expiration, mode, strike]);
     return { volatility, isLoading, hasError, error };
+}
+
+export const useOptionsStats = (symbol: string, lookbackDays: number) => {
+    const [stats, setStats] = useState<OptionsStatsResponse>(defaultOptionsStats);
+    const [isLoading, setIsLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
+    const [error, setError] = useState('');
+    useEffect(() => {
+        console.log(`Fetching options stats data for ${symbol} - ${lookbackDays}`);
+        if (!symbol) {
+            setStats(defaultOptionsStats);
+            setIsLoading(true);
+            return;
+        }
+        setIsLoading(true);
+        setHasError(false);
+        setError('');
+        const requestId = crypto.randomUUID();
+        const timeoutSeconds = 10;
+        const noResponseSignal = setTimeout(() => {
+            socket.emit('log-message', {
+                message: `Failed to receive the response for fetching options stats within ${timeoutSeconds} seconds. Request Id: ${requestId},  ${symbol} - ${lookbackDays}`
+            });
+            setHasError(true);
+            setError(`Failed to receive the response for fetching options stats within ${timeoutSeconds} seconds. Please try again.`)
+        }, timeoutSeconds * 1000);
+        const fetchOptionsStats = () => {
+            socket.once(`query-response-${requestId}`, (data: { hasError: boolean, value: OptionsStatsResponse }) => {
+                clearTimeout(noResponseSignal);
+                if (data.hasError || !data.value?.dt) { //checking dt, if it's null, likely there's no data returned from server.
+                    setHasError(true);
+                    setError(`Error fetching options stats data for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
+                    setStats(defaultOptionsStats);
+                } else {
+                    setHasError(false);
+                    setError('');
+                    setStats({ ...data.value });
+                }
+                setIsLoading(false);
+            });
+            socket.emit('submit-query', {
+                symbol,
+                lookbackDays,
+                requestId,
+                requestType: 'options-stat-query'
+            });
+        };
+        fetchOptionsStats();
+        return () => { socket.off(`query-response-${requestId}`); clearTimeout(noResponseSignal); };
+    }, [symbol, lookbackDays]);
+    return { stats, isLoading, hasError, error };
 }
