@@ -2,14 +2,12 @@
 import { OptionsStatsResponse } from "@/lib/socket";
 import { LineChart } from "@mui/x-charts/LineChart";
 import dayjs from "dayjs";
-import { useState } from "react";
 import { currencyCompactFormatter, numberCompactFormatter } from "@/lib/formatters";
 import { Grid } from "@mui/material";
 
 export const BasicChart = ({ stats, multiplyPriceForCalculateDelta }: { stats: OptionsStatsResponse, multiplyPriceForCalculateDelta: boolean }) => {
     const xAxisFormatter = (v: string) => dayjs(v).format("MMM D");
     return <Grid container spacing={1}>
-        {multiplyPriceForCalculateDelta}
         <Grid size={6}>
             <LineChart
                 sx={{
@@ -33,8 +31,8 @@ export const BasicChart = ({ stats, multiplyPriceForCalculateDelta }: { stats: O
                     height: 320
                 }}
                 series={[
-                    { data: stats.cd.map((k, ix) => multiplyPriceForCalculateDelta ? k * stats.close[ix] : k), label: 'Calls Total Delta', yAxisId: 'leftAxisId', showMark: false },
-                    { data: stats.pd.map((k, ix) => multiplyPriceForCalculateDelta ? k * stats.close[ix] : k), label: 'Puts Total Delta', yAxisId: 'leftAxisId', showMark: false }
+                    { data: stats.cd.map((k, ix) => multiplyPriceForCalculateDelta ? k * stats.close[ix] * 100 : k), label: 'Calls Total Delta', yAxisId: 'leftAxisId', showMark: false },
+                    { data: stats.pd.map((k, ix) => multiplyPriceForCalculateDelta ? k * stats.close[ix] * 100 : k), label: 'Puts Total Delta', yAxisId: 'leftAxisId', showMark: false }
                 ]}
                 xAxis={[{ scaleType: 'point', data: stats.dt, valueFormatter: xAxisFormatter }]}
                 yAxis={[

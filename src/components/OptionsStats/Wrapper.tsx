@@ -10,10 +10,10 @@ import { BasicChart } from "./BasicChart";
 export const Wrapper = (props: { symbols: string[] }) => {
     const { symbols } = props;
     const [symbol, setSymbol] = useState(symbols[0]);
-    return <IVComponent symbols={symbols} symbol={symbol} onSymbolChange={setSymbol} />
+    return <OptionsStatComponent symbols={symbols} symbol={symbol} onSymbolChange={setSymbol} />
 }
 
-const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void }) => {
+const OptionsStatComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void }) => {
     const { symbols, symbol, onSymbolChange } = props;
     const [lookbackPeriod, setLookbackPeriod] = useState(180);
     const [multiplyPriceForCalculateDelta, setMultiplyPriceForCalculateDelta] = useState(false);
