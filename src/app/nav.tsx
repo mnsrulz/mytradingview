@@ -14,6 +14,7 @@ import BorderVerticalIcon from '@mui/icons-material/BorderVertical';
 // or
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -36,6 +37,11 @@ export const NAVIGATION: Navigation = [
         segment: 'trades',
         title: 'Trades',
         icon: <TrendingUpIcon />,
+    },
+    {
+        segment: 'portfolio',
+        title: 'Portfolio',
+        icon: <WorkOutlineIcon />,
     },
     {
         kind: 'divider',

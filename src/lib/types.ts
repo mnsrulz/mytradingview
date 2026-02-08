@@ -256,3 +256,20 @@ export type WatchlistItem = {
 };
 
 export type Watchlists = WatchlistItem[];
+
+export interface BrokerAccount {
+  id: string
+  broker: string
+  accountName: string
+  accountNumber: string | null
+}
+
+export interface Position {
+  id: string
+  symbol: string
+  quantity: number
+  brokerAccountId: string
+  costBasis: number | null
+  notes: string | null
+  brokerAccount: BrokerAccount
+}
