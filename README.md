@@ -65,6 +65,16 @@ To get started with development, follow these steps:
    ```bash
    npx prisma migrate dev
    ```
+   NOTE: The above command would reset the database (wipe any existing data) 
+
+   Deploying the migrations without reseting the database
+   ```
+   prisma migrate deploy
+   ```
+   OR
+   ```
+   npm run pdeploy
+   ```
 
 5. **Start the Development Server**
 

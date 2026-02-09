@@ -6,6 +6,7 @@
     "prebuild": "prisma generate",
     "pgen": "prisma generate",
     "pmigrate": "prisma migrate dev",
+    "pdeploy": "prisma migrate deploy",
     "dev": "next dev --turbo",
     "devtz": "TZ=utc next dev",
     "build": "next build",

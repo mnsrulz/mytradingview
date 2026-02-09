@@ -273,3 +273,9 @@ export interface Position {
   notes: string | null
   brokerAccount: BrokerAccount
 }
+
+export type LivePageTrackingView = {
+  page: string;
+  count: number;
+  clients: { lastActive: Date; origin: string; ip: string }[];
+}

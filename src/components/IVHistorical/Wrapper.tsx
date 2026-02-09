@@ -114,7 +114,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                         <Box sx={{ width: '100%' }}>
                             {showTVChart ? <TVChart volatility={volatility} /> : <BasicChart volatility={volatility} />}
                             <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
-                                Implied Volatility and option contact pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} options expiring on {expiration}
+                                Implied Volatility and option contract pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} options expiring on {expiration}
                             </Typography>
                         </Box>
                 }

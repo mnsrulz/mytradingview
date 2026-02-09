@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { SearchTickerItem, StockPriceData } from './types';
+import { SearchTickerItem, StockPriceData, LivePageTrackingView } from './types';
 import { io } from 'socket.io-client';
 const URL = process.env.MZDATA_SOCKET_URL || `https://mztrading-socket.deno.dev`;
 const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
@@ -46,7 +46,7 @@ export const useStockPrice = (item: SearchTickerItem) => {
 }
 
 export const useLivePageTrackingViews = () => {
-    const [views, setViews] = useState<{ page: string, count: number }[]>([]);
+    const [views, setViews] = useState<LivePageTrackingView[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const handleDataCb = (data: any) => {
         setIsLoading(false);
