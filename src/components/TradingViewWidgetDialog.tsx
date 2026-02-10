@@ -1,5 +1,7 @@
-import { Dialog, DialogContent, DialogActions, Button } from "@mui/material";
+'use client';
+import { Dialog, DialogContent, DialogActions, Button, DialogTitle, Stack } from "@mui/material";
 import { useRef, useEffect } from "react";
+import { DialogProps } from "@toolpad/core";
 
 interface ITickerProps {
     symbol: string,
@@ -50,25 +52,29 @@ const TradingViewWidget = (props: { symbol: string }) => {
     return (
         <div className="tradingview-widget-container" ref={container} style={{ height: "100%", width: "100%" }}>
             <div className="tradingview-widget-container__widget" style={{ height: "calc(100% - 32px)", width: "100%" }}></div>
-            <div className="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span className="blue-text">Track all markets on TradingView</span></a></div>
         </div>
     );
 }
 
-
-export const TradingViewWidgetDialog = (props: ITickerProps) => {
-    const { onClose } = props;
-
+export const TradingViewWidgetDialog = ({
+    payload,
+    open,
+    onClose,
+}: DialogProps<{ symbol: string }>) => {
     return (
-        <Dialog fullWidth={true} fullScreen={true} open={true} onClose={onClose} aria-labelledby="trading-view-dialog" >
-            <DialogContent style={{ padding: '8px' }}>
-                <TradingViewWidget symbol={props.symbol} />
+        <Dialog fullWidth={true} fullScreen={true} open={open} onClose={() => onClose()}>
+            <DialogContent>
+                <TradingViewWidget symbol={payload.symbol} />
             </DialogContent>
             <DialogActions>
-                <Button variant="contained" onClick={onClose} color="secondary">
-                    Close
-                </Button>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" width="100%">
+                    <div className="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span className="blue-text">Track all markets on TradingView</span></a></div>
+                    <Button variant="contained" onClick={() => onClose()} color="secondary">
+                        Close
+                    </Button>
+
+                </Stack>
             </DialogActions>
         </Dialog>
     );
-};
+}

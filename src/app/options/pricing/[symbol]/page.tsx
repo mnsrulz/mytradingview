@@ -5,6 +5,7 @@ export default async function Page(props: { params: Promise<{ symbol: string }> 
     const { symbol } = params;
     return (
         // <span>{JSON.stringify({symbol: decodeURIComponent(symbol).replace(/\W/g, '')})}</span>
-        <StockOptionsView symbol={decodeURIComponent(symbol).replace(/\W/g, '')} />
+        // symbols like BRK.B not loading with replace regex
+        <StockOptionsView symbol={symbol} />
     );
 }

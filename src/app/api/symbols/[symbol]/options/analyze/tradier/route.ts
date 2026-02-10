@@ -7,7 +7,7 @@ import { getCurrentPrice, getOptionData, getOptionExpirations } from '@/lib/trad
 export async function GET(request: NextRequest, p: { params: Promise<{ symbol: string }> }) {
   const { searchParams } = new URL(request.url);
   const dteValue = parseInt(searchParams.get("dte") || '30');
-  const strikeCountValue = parseInt(searchParams.get("sc") || '30');
+  const strikeCountValue = searchParams.get("sc") || '30';
   console.log(`calling with ${dteValue} dtes`);
   const { symbol } = await p.params;
   const cleanSymbol = symbol.replace(/\W/g, '');  //to support ^spx and other similar symbols

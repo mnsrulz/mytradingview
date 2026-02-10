@@ -11,7 +11,7 @@ datasource db {
 }
 
 model Watchlist {
-  symbol String @unique
+  symbol String @id
   name String
 }
 
@@ -51,4 +51,43 @@ enum MessageStatus {
   REVIEWED
   RESPONDED
   CLOSED
+}
+
+enum Broker {
+  ROBINHOOD
+  WEBULL
+  FIDELITY
+  THINKORSWIM
+  INTERACTIVE_BROKERS
+  TRADIER
+  OTHER
+}
+
+model BrokerAccount {
+  id            String     @default(cuid()) @id
+  broker        String     // e.g., "Robinhood", "Webull", "Fidelity"
+  accountName   String     // e.g., "RH - Cash", "Webull - Margin", "Fidelity IRA"
+  accountNumber String?    // optional account number for reference
+  createdAt     DateTime   @default(now()) @map(name: "created_at")
+  updatedAt     DateTime   @updatedAt @map(name: "updated_at")
+  
+  portfolio     Portfolio[]
+  
+  @@unique([broker, accountName])  // Prevent duplicate account names per broker
+  @@map(name: "broker_accounts")
+}
+
+model Portfolio {
+  id               String     @default(cuid()) @id
+  symbol           String
+  quantity         Int
+  brokerAccountId  String
+  brokerAccount    BrokerAccount @relation(fields: [brokerAccountId], references: [id], onDelete: Cascade)
+  costBasis        Decimal?   // Optional: cost per share
+  notes            String?
+  createdAt        DateTime   @default(now()) @map(name: "created_at")
+  updatedAt        DateTime   @updatedAt @map(name: "updated_at")
+  
+  @@unique([symbol, brokerAccountId])  // Prevent duplicate positions in same account
+  @@map(name: "portfolio")
 }

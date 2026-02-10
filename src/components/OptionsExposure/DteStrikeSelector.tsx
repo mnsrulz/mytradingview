@@ -3,6 +3,7 @@ import { DataModeType } from "@/lib/types";
 import { FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
 import { useState } from "react";
 import RefreshCboeData from "../RefreshCboeData";
+import StrikesSelectorDropdown from "./StrikesSelectorDropdown";
 
 const dteOptions = [0,
     1,
@@ -33,11 +34,11 @@ const MenuProps = {
 };
 
 export const DteStrikeSelector = (props: {
-    symbol: string, dte: number, availableDates: string[], strikeCounts: number, timestamp?: Date,
+    symbol: string, dte: number, availableDates: string[], strikeCounts: string, timestamp?: Date,
     setCustomExpirations: (v: string[]) => void,
     onRefresh?: () => void,
     showZeroAndNextDte?: boolean,
-    setDte: (v: number) => void, setStrikesCount: (v: number) => void, hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
+    setDte: (v: number) => void, setStrikesCount: (value: string) => void, hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
 }) => {
     const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations, timestamp, onRefresh, showZeroAndNextDte } = props;
     const dataModes = hasHistoricalData ? ['CBOE', 'TRADIER', 'HISTORICAL'] : ['CBOE', 'TRADIER'];
@@ -63,7 +64,7 @@ export const DteStrikeSelector = (props: {
         }}
     >
         <Stack direction="row" gap={1} p={1} justifyContent="space-between" alignItems={"center"}>
-            <FormControl size="small"  sx={{ flexShrink: 0 }}>
+            <FormControl size="small" sx={{ flexShrink: 0 }}>
                 <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
             </FormControl>
             <Stack direction="row" gap={isMobile ? 0.5 : 1} >
@@ -101,12 +102,9 @@ export const DteStrikeSelector = (props: {
                         </Select>
                     </FormControl>
                 }
-                <FormControl size="small">
-                    <InputLabel>Strikes</InputLabel>
-                    <Select id="strikes" value={strikeCounts} label="Strikes" onChange={(e) => setStrikesCount(e.target.value as number)}>
-                        {strikeOptions.map((strike) => <MenuItem key={strike} value={strike}>{strike}</MenuItem>)}
-                    </Select>
-                </FormControl>
+                    <StrikesSelectorDropdown options={strikeOptions} value={strikeCounts} onChange={setStrikesCount} />
+                {/* <FormControl size="small" sx={{ flexShrink: 0, maxWidth: 120 }}>
+                </FormControl> */}
             </Stack>
         </Stack>
     </Paper>

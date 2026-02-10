@@ -403,7 +403,7 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
 }
 
 //This hook has potential performance issues
-export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: number, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
+export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: string, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
