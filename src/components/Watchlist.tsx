@@ -24,7 +24,7 @@ export const Watchlist = () => {
   const dialogs = useDialogs();
   const { watchlists, addWatchlist, removeWatchlist, addTickerToWatchlist, removeTickerFromWatchlist } = useMultiWatchlists();
   const [watchlistId, setWatchlistId] = useState('');
-  
+
   const [currentStock, setCurrentStock] = useState<SearchTickerItem | null>(null);
   const [sortMode, setSortMode] = useState('symbol');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -106,10 +106,7 @@ export const Watchlist = () => {
           icon={<AddTradeIcon />}
           label="Show in Trading view"
           showInMenu
-          onClick={() => {
-            setCurrentStock(row);
-            setOpenTradingViewDialog(true);
-          }}
+          onClick={() => dialogs.open(TradingViewWidgetDialog, { symbol: row.symbol })}
         />
         ]
       }
@@ -117,7 +114,6 @@ export const Watchlist = () => {
   ];
 
   const [openAddTrade, setOpenAddTrade] = useState(false);
-  const [openTradingViewDialog, setOpenTradingViewDialog] = useState(false);
 
   const handleNewWatchlistClick = async () => {
     const watchlistName = await dialogs.prompt("Watchlist Name");
@@ -243,9 +239,6 @@ export const Watchlist = () => {
     <AddTradeDialog onClose={handleCloseAddTrade}
       open={openAddTrade}
       ticker={currentStock} />
-
-
-    {openTradingViewDialog && currentStock?.symbol && <TradingViewWidgetDialog symbol={currentStock.symbol} onClose={() => { setOpenTradingViewDialog(false) }} />}
   </Grid>
 }
 

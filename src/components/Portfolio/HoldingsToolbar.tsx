@@ -19,6 +19,7 @@ export function HoldingsToolbar({
   viewMode,
   onViewModeChange,
   onAddPosition,
+  onAddAccount,
   onRefresh
 }: {
   accounts: BrokerAccount[]
@@ -27,6 +28,7 @@ export function HoldingsToolbar({
   viewMode: 'table' | 'pie'
   onViewModeChange: (mode: 'table' | 'pie') => void
   onAddPosition: () => void
+  onAddAccount: (broker: string, accountName: string, accountNumber?: string | undefined) => Promise<any>
   onRefresh: () => void
 }) {
   const [open, setOpen] = useState(false);
@@ -83,6 +85,7 @@ export function HoldingsToolbar({
       open={open}
       onClose={() => setOpen(false)}
       onSaved={onRefresh}
+      onAdd={onAddAccount}
     />
   </>
   )

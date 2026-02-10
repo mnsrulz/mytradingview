@@ -34,6 +34,7 @@ export const useTrackPage = (pathName: string) => {
 
 export const useStockPrice = (item: SearchTickerItem) => {
     const [stockPrice, setStockPrice] = useState<StockPriceData>();
+
     useEffect(() => {
         socket.emit('stock-price-subscribe-request', { ...item, frequency: WatchlistUpdateFrequency });
         socket.on(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
@@ -42,7 +43,13 @@ export const useStockPrice = (item: SearchTickerItem) => {
             socket.off(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
         }
     }, [item]);
-    return stockPrice;
+    if (!stockPrice) return null;
+    const { quoteSummary } = stockPrice;
+    const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
+        [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
+        : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
+
+    return { price, change, changePercent, quoteSummary };
 }
 
 export const useLivePageTrackingViews = () => {

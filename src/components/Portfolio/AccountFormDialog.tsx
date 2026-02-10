@@ -10,21 +10,21 @@ import {
   Stack,
   TextField,
 } from '@mui/material'
-import { usePortfolio } from '@/lib/usePortfolio'
 import { useNotifications } from '@toolpad/core'
 
 interface Props {
   open: boolean
   onClose: () => void
   onSaved: () => void
+  onAdd: (broker: string, accountName: string, accountNumber?: string) => Promise<void>
 }
 
 export function AccountFormDialog({
   open,
   onClose,
   onSaved,
+  onAdd
 }: Props) {
-  const { addAccount } = usePortfolio();
   const notifications = useNotifications();
   const [form, setForm] = useState({
     broker: '',
@@ -34,7 +34,7 @@ export function AccountFormDialog({
 
   const submit = async () => {
     try {
-      await addAccount(form.broker, form.accountName, form.accountNumber);
+      await onAdd(form.broker, form.accountName, form.accountNumber);
       notifications.show('Account created successfully', { severity: 'success' });
     } catch (err) {
       notifications.show('Error creating account', { severity: 'error' });
@@ -44,7 +44,7 @@ export function AccountFormDialog({
     setForm({ broker: '', accountName: '', accountNumber: '' })
     onSaved()
     onClose()
-  }    
+  }
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">

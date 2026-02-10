@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { Position } from '@/lib/types'
 import { HoldingsToolbar } from './HoldingsToolbar'
-import { PositionsTable } from './PositionsTable'
+import { PositionsDataGrid } from './PositionsTable'
 import { PositionsPieChart } from './PositionsPieChart'
 import { PositionFormDialog } from './PositionFormDialog'
 import { usePortfolio } from '@/lib/usePortfolio'
 
 export const Portfolio = () => {
-    const { accounts, positions, isLoading, reloadAccounts, reloadPositions } = usePortfolio();
+    const { accounts, positions, isLoading, reloadAccounts, reloadPositions, deletePosition, addPosition, updatePosition, addAccount } = usePortfolio();
 
     const [selectedAccountId, setSelectedAccountId] = useState<string>('')
     const [viewMode, setViewMode] = useState<'table' | 'pie'>('table')
@@ -29,6 +29,7 @@ export const Portfolio = () => {
                     setEditingPosition(null)
                     setPositionFormOpen(true)
                 }}
+                onAddAccount={addAccount}
                 onRefresh={reloadAccounts}
             />
 
@@ -38,7 +39,7 @@ export const Portfolio = () => {
                     selectedAccountId={selectedAccountId}
                 />
             ) : (
-                <PositionsTable
+                <PositionsDataGrid
                     loading={isLoading}
                     positions={positions}
                     selectedAccountId={selectedAccountId}
@@ -46,6 +47,7 @@ export const Portfolio = () => {
                         setEditingPosition(pos)
                         setPositionFormOpen(true)
                     }}
+                    onDelete={deletePosition}
                     onDeleted={reloadPositions}
                 />
             )}
@@ -56,6 +58,8 @@ export const Portfolio = () => {
                 position={editingPosition}
                 accounts={accounts}
                 onSaved={reloadPositions}
+                onAdd={addPosition}
+                onUpdate={updatePosition}
                 defaultAccountId={selectedAccountId}
             />
         </>

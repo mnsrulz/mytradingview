@@ -1,15 +1,8 @@
 'use client';
 import ky from "ky";
 import { useEffect, useState } from "react";
-import { BrokerAccount, Position } from "./types";
+import { BrokerAccount, Position, PositionPayload } from "./types";
 
-type PositionPayload = {
-  symbol: string
-  quantity: number
-  brokerAccountId: string
-  costBasis?: number
-  notes?: string
-}
 
 export const usePortfolio = () => {
     const [accounts, setAccounts] = useState<BrokerAccount[]>([])

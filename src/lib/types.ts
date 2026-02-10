@@ -279,3 +279,11 @@ export type LivePageTrackingView = {
   count: number;
   clients: { lastActive: Date; origin: string; ip: string }[];
 }
+
+export type PositionPayload = {
+  symbol: string
+  quantity: number
+  brokerAccountId: string
+  costBasis?: number
+  notes?: string
+}

@@ -18,16 +18,13 @@ interface ITickerProps {
 export const StockTickerView = (props: ITickerProps) => {
     const oddata = useStockPrice(props.item);
     if (oddata && oddata.quoteSummary) {
-        return <StockTickerViewInternal oddata={oddata} />;
+        return <StockTickerViewInternal {...oddata} />;
     }
     return <div></div>;
 }
 
-const StockTickerViewInternal = (props: { oddata: StockPriceData }) => {
-    const { quoteSummary } = props.oddata;
-    const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
-        [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
-        : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
+const StockTickerViewInternal = (props: { price: number, change: number, changePercent: number }) => {
+    const { price, change, changePercent } = props;
 
     const secondaryColor = changePercent < 0 ? red[500] : green[500];
     const [ref, inView] = useInView();

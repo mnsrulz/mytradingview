@@ -1,8 +1,9 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -11,14 +12,15 @@ import {
   Stack,
   TextField,
 } from '@mui/material'
-import { BrokerAccount, Position } from '@/lib/types'
+import { BrokerAccount, Position, PositionPayload } from '@/lib/types'
 import { useNotifications } from '@toolpad/core'
-import { usePortfolio } from '@/lib/usePortfolio'
 
 interface Props {
   open: boolean
   onClose: () => void
   onSaved: () => void
+  onAdd: (position:PositionPayload)=> Promise<any>
+  onUpdate: (positionId: string, payload: PositionPayload)=> Promise<any>
   accounts: BrokerAccount[]
   defaultAccountId?: string
   position: Position | null
@@ -30,10 +32,11 @@ export const PositionFormDialog = ({
   onSaved,
   accounts,
   position,
-  defaultAccountId
+  defaultAccountId,
+  onAdd,
+  onUpdate,
 }: Props) => {
   const notifications = useNotifications();
-  const { addPosition, updatePosition } = usePortfolio();
   const isEdit = Boolean(position)
 
   const [form, setForm] = useState({
@@ -79,9 +82,9 @@ export const PositionFormDialog = ({
       }
 
       if (isEdit) {
-        await updatePosition(position!.id, payload)
+        await onUpdate(position!.id, payload)
       } else {
-        await addPosition(payload)
+        await onAdd(payload)
       }
       notifications.show(`Position ${isEdit ? 'updated' : 'added'} successfully`, { severity: 'success' });
       onSaved()
