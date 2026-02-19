@@ -69,7 +69,7 @@ export const PositionFormDialog = ({
 
   const submit = async () => {
     if (!form.brokerAccountId) {
-      notifications.show('Please select a broker account', { severity: 'error' });
+      notifications.show('Please select a broker account', { severity: 'error', autoHideDuration: 3000 });
       return
     }
     try {
@@ -86,11 +86,11 @@ export const PositionFormDialog = ({
       } else {
         await onAdd(payload)
       }
-      notifications.show(`Position ${isEdit ? 'updated' : 'added'} successfully`, { severity: 'success' });
+      notifications.show(`Position ${isEdit ? 'updated' : 'added'} successfully`, { severity: 'success', autoHideDuration: 3000 });
       onSaved()
       onClose()
     } catch (error) {
-      notifications.show('Error saving position', { severity: 'error' });
+      notifications.show('Error saving position', { severity: 'error', autoHideDuration: 3000 });
     }
   }
 

@@ -16,14 +16,14 @@ interface ITickerProps {
 }
 
 export const StockTickerView = (props: ITickerProps) => {
-    const oddata = useStockPrice(props.item);
-    if (oddata && oddata.quoteSummary) {
-        return <StockTickerViewInternal {...oddata} />;
+    const oddata = useStockPrice(props.item.symbol);
+    if (oddata && oddata[props.item.symbol]?.quoteSummary) {
+        return <StockTickerViewInternal {...oddata[props.item.symbol]} />;
     }
     return <div></div>;
 }
 
-const StockTickerViewInternal = (props: { price: number, change: number, changePercent: number }) => {
+export const StockTickerViewInternal = (props: { price: number, change: number, changePercent: number }) => {
     const { price, change, changePercent } = props;
 
     const secondaryColor = changePercent < 0 ? red[500] : green[500];
