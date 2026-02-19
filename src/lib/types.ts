@@ -287,3 +287,8 @@ export type PositionPayload = {
   costBasis?: number
   notes?: string
 }
+
+export type PriceMap = Record<string, {price: number, 
+    change: number, 
+    changePercent: number, 
+    quoteSummary: StockPriceData['quoteSummary']}>;

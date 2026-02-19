@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { SearchTickerItem, StockPriceData, LivePageTrackingView } from './types';
+import { useEffect, useMemo, useState } from 'react';
+import { SearchTickerItem, StockPriceData, LivePageTrackingView, PriceMap } from './types';
 import { io } from 'socket.io-client';
 const URL = process.env.MZDATA_SOCKET_URL || `https://mztrading-socket.deno.dev`;
 const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
@@ -32,24 +32,57 @@ export const useTrackPage = (pathName: string) => {
     }, [pathName]);
 }
 
-export const useStockPrice = (item: SearchTickerItem) => {
-    const [stockPrice, setStockPrice] = useState<StockPriceData>();
+export const useStockPrice = (input: string | string[]) => {
+  const [prices, setPrices] = useState<PriceMap>({});
 
-    useEffect(() => {
-        socket.emit('stock-price-subscribe-request', { ...item, frequency: WatchlistUpdateFrequency });
-        socket.on(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
-        return () => {
-            socket.emit('stock-price-unsubscribe-request', item);
-            socket.off(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
-        }
-    }, [item]);
-    if (!stockPrice) return null;
-    const { quoteSummary } = stockPrice;
-    const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
-        [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
-        : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
+  const symbols = useMemo(() => {
+    return (Array.isArray(input) ? input : [input])
+      .map(s => s.toUpperCase())
+      .filter(Boolean);
+  }, [input]);
 
-    return { price, change, changePercent, quoteSummary };
+  useEffect(() => {
+    if (!symbols.length) return;
+
+    const uniqueSymbols = [...new Set(symbols)];
+
+    const handlers: Record<string, (data: StockPriceData) => void> = {};
+
+    uniqueSymbols.forEach(symbol => {
+      socket.emit('stock-price-subscribe-request', {
+        symbol,
+        frequency: WatchlistUpdateFrequency,
+      });
+
+      const handler = (data: StockPriceData) => {
+
+        const { quoteSummary } = data;
+        const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
+            [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
+            : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
+
+        setPrices(prev => ({
+          ...prev,
+          [symbol]: { price, change, changePercent, quoteSummary },
+        }));
+      };
+
+      handlers[symbol] = handler;
+      socket.on(`stock-price-subscribe-response-${symbol}`, handler);
+    });
+
+    return () => {
+      uniqueSymbols.forEach(symbol => {
+        socket.emit('stock-price-unsubscribe-request', { symbol });
+        socket.off(
+          `stock-price-subscribe-response-${symbol}`,
+          handlers[symbol]
+        );
+      });
+    };
+  }, [symbols]); // stable dependency
+
+  return prices;
 }
 
 export const useLivePageTrackingViews = () => {

@@ -49,31 +49,34 @@ export default function StrikesSelectorDropdown({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [min, setMin] = useState(value.split('-')[0] || '1');
   const [max, setMax] = useState(value.split('-')[1] || '100');
-  const [strikesCount, setStrikesCount] = useState(value.split('-')[0]);
-
   const [selectedRange, setSelectedRange] = useState(getRangeLabel(value));
+  const isMultiRange = selectedRange.includes('-');
   const [tab, setTab] = useState(0);
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
+  const handleClose = (forceTab?: number) => {
+    if (forceTab !== undefined) {
+      setTab(forceTab);
+    } else {
+      setTab(isMultiRange ? 1 : 0);
+    }
     setAnchorEl(null);
   };
 
   const handleSingleValueChange = (v: string | number) => {
     setSelectedRange(`${v}`);
-    setStrikesCount(`${v}`);
     onChange(`${v}`);
-    handleClose();
+    handleClose(0);
   }
-  const handleApply = () => {
+  const handleMultiRangeChange = () => {
     const valueToApply = `${min}-${max}`;
     const range = getRangeLabel(valueToApply);
     setSelectedRange(range);
     onChange(valueToApply);
-    handleClose();
+    handleClose(1);
   };
 
   const handleClear = () => {
@@ -83,12 +86,12 @@ export default function StrikesSelectorDropdown({
 
   return (
     <>
-      <FormControl size="small" sx={{ maxWidth: 120 }}>
-        <InputLabel shrink>Strikes</InputLabel>
+      <FormControl size="small" sx={{ width: isMultiRange ? 120 : 60, maxWidth: 120 }}>
+        <InputLabel shrink title='Strikes'>Strikes</InputLabel>
         <OutlinedInput
           readOnly
           value={selectedRange}
-          onClick={handleClick}
+          onClick={handleMenuClick}
           label="Strikes"
           sx={{
             cursor: 'pointer',
@@ -98,14 +101,14 @@ export default function StrikesSelectorDropdown({
           }}
         />
       </FormControl>
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} sx={{ p: 0, m: 0 }}>
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>handleClose()} sx={{ p: 0, m: 0 }}>
         <Tabs variant="fullWidth" value={tab} onChange={(_, v) => setTab(v)} sx={{ p: 0, m: 0 }}>
           <Tab label="Strikes" value={0} sx={{ p: 0, m: 0 }}></Tab>
           <Tab label="Custom" value={1} sx={{ p: 0, m: 0 }}></Tab>
         </Tabs>
         {tab == 0 && <Box sx={{ p: 0, width: 240 }}>
           <FormControl fullWidth size="small">
-            {options.map((strike) => <MenuItem key={strike} value={strike} onClick={(ev) => handleSingleValueChange(strike)}>{strike}</MenuItem>)}
+            {options.map((strike) => <MenuItem key={strike} selected={selectedRange === `${strike}`} value={strike} onClick={(ev) => handleSingleValueChange(strike)}>{strike}</MenuItem>)}
           </FormControl>
         </Box>
         }
@@ -137,7 +140,7 @@ export default function StrikesSelectorDropdown({
             </Button>
             <Button
               variant="contained"
-              onClick={handleApply}
+              onClick={handleMultiRangeChange}
               disabled={(min && max) && (parseInt(min) > parseInt(max)) || false}
             >
               Apply
