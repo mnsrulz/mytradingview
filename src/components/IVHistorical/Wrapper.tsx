@@ -29,6 +29,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
     const { expirations, expiration, setExpiration, strike, setStrike } = useExpirations(symbol);
     const [delta, setDelta] = useState(25);
     const [showTVChart, setShowTVChart] = useState(false);
+    const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
 
 
     const availableStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
@@ -112,7 +113,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                 {
                     isLoading ? <Skeleton variant="rectangular" height={360} /> :
                         <Box sx={{ width: '100%' }}>
-                            {showTVChart ? <TVChart volatility={volatility} /> : <BasicChart volatility={volatility} />}
+                            {showTVChart ? <TVChart volatility={volatility} /> : <BasicChart volatility={volatility} disabledDataPoints={disabledDataPoints} setDisabledDataPoints={setDisabledDataPoints} />}
                             <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
                                 Implied Volatility and option contract pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} options expiring on {expiration}
                             </Typography>

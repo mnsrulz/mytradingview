@@ -2,7 +2,6 @@
 import { VolatilityResponse } from "@/lib/socket";
 import { LineChart } from "@mui/x-charts/LineChart";
 import dayjs from "dayjs";
-import { useState } from "react";
 import { percentageNoDecimalFormatter } from "@/lib/formatters";
 import { Box, Stack, Typography } from "@mui/material";
 
@@ -20,7 +19,7 @@ import {
 const seriesDefinition = [
   // Volatility (cool spectrum)
   { id: 'iv30',           label: 'IV30',          color: cyan[500],       yAxisId: 'leftAxisId' },
-  { id: 'iv_percentile', label: 'IV Percentile', color: purple[400],     yAxisId: 'leftAxisId' },
+  { id: 'iv_percentile', label: 'IV30 Percentile', color: purple[400],     yAxisId: 'leftAxisId' },
 
   // Option IVs (directional)
   { id: 'cv',             label: 'CALL IV',       color: green[600],      yAxisId: 'leftAxisId' },
@@ -33,8 +32,7 @@ const seriesDefinition = [
   { id: 'pp',             label: 'PUT Price',     color: pink[400],       yAxisId: 'rightAxisId' },
 ] as { id: 'cv' | 'pv' | 'straddle' | 'close' | 'cp' | 'pp' | 'iv30' | 'iv_percentile', label: string, color: string, yAxisId: string }[];
 
-export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { straddle: number[] } }) => {
-    const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
+export const BasicChart = ({ volatility, disabledDataPoints, setDisabledDataPoints }: { volatility: VolatilityResponse & { straddle: number[] }, disabledDataPoints: string[], setDisabledDataPoints: (value: string[] | ((prev: string[]) => string[])) => void }) => {
     const xAxisFormatter = (v: string) => dayjs(v).format("MMM D");
     const getMinYAxisValue = () => {
         const values: number[] = [];
@@ -64,7 +62,7 @@ export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { 
             { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price ($)', min: getMinYAxisValue() }
         ]}
         slots={{
-            legend: () => <ChartLegend items={seriesDefinition} onItemClick={(seriesId) => {
+            legend: () => <ChartLegend items={seriesDefinition} disabledDataPoints={disabledDataPoints} onItemClick={(seriesId) => {
                 setDisabledDataPoints(v => {
                     if (v.includes(seriesId.toString()))
                         return v.filter(k => k !== seriesId.toString());
@@ -84,17 +82,27 @@ export const BasicChart = ({ volatility }: { volatility: VolatilityResponse & { 
     />
 }
 
-const ChartLegend = (props: { items: { label: string, color: string, id: string }[], onItemClick: (id: string) => void }) => {
-    const { items } = props;
+const ChartLegend = (props: { items: { label: string, color: string, id: string }[], disabledDataPoints: string[], onItemClick: (id: string) => void }) => {
+    const { items, disabledDataPoints } = props;
     return <Stack direction={'row'} sx={{ flexWrap: 'wrap' }} columnGap={2}>
         {
-            items.map(item => <Stack key={item.id} direction={'column'} justifyContent={'space-evenly'}
-                onClick={() => props.onItemClick(item.id)}>
-                <Stack direction="row" alignItems="center" columnGap={1} >
-                    <Box width={16} height={4} sx={{ bgcolor: item.color }}></Box>
-                    <Typography variant="caption">{item.label}</Typography>
+            items.map(item => {
+                const isDisabled = disabledDataPoints.includes(item.id);
+                return <Stack key={item.id} direction={'column'} justifyContent={'space-evenly'}
+                    onClick={() => props.onItemClick(item.id)}
+                    sx={{
+                        cursor: 'pointer',
+                        opacity: isDisabled ? 0.5 : 1,
+                        '&:hover': {
+                            opacity: 0.8,
+                        }
+                    }}>
+                    <Stack direction="row" alignItems="center" columnGap={1} >
+                        <Box width={16} height={4} sx={{ bgcolor: item.color, opacity: isDisabled ? 0.5 : 1 }}></Box>
+                        <Typography variant="caption" sx={{ color: isDisabled ? 'text.disabled' : 'text.primary' }}>{item.label}</Typography>
+                    </Stack>
                 </Stack>
-            </Stack>)
+            })
         }
     </Stack>
 }
