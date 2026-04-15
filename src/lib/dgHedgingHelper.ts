@@ -1,13 +1,14 @@
+import { StrikeValueType } from "@/components/OptionsExposure/StrikesSelectorDropdown";
 import { OptionsHedgingDataset } from "./hooks";
 import { MiniOptionContract, TradierOptionContractData, TradierOptionData } from "./types";
 
 ///responsible for returning the strikes which we have to return in response.
-export const getCalculatedStrikes = (currentPrice: number, value: string, strikes: number[]) => {
-    const [from, to] = value.split('-');    //value could be in single value form or a range form like 20 or 500-600
-    if (to) {
-        return strikes.filter(k => k >= Number(from) && k <= Number(to)).sort((a, b) => a - b);
+export const getCalculatedStrikes = (currentPrice: number, value: StrikeValueType, strikes: number[]) => {
+    //const [from, to] = value.split('-');    //value could be in single value form or a range form like 20 or 500-600
+    if (value.mode == 'range') {
+        return strikes.filter(k => k >= Number(value.from) && k <= Number(value.to)).sort((a, b) => a - b);
     } else {
-        const maxStrikes = Number(from);
+        const maxStrikes = Number(value.value);
         const currentOrAboveStrikes = strikes.filter(j => j >= currentPrice).sort((a, b) => a - b).reverse();
         const belowCurrentStrikes = strikes.filter(j => j < currentPrice).sort((a, b) => a - b);
         let result = [];

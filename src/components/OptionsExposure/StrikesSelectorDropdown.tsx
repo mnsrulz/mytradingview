@@ -11,7 +11,14 @@ import {
   Tabs,
   TextField,
   OutlinedInput,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
+
+type IncrementConfig = {
+  enabled: boolean;
+  step?: number;
+};
 
 type SingleValue = {
   mode: "single";
@@ -22,23 +29,23 @@ type RangeValue = {
   mode: "range";
   from?: string;
   to?: string;
+  increment?: IncrementConfig;
 };
 
-export type NumericRangeChange = SingleValue | RangeValue;
+export type StrikeValueType = SingleValue | RangeValue;
 
 interface NumericRangeTextDropdownProps {
-  value: string
-  onChange: (value: string) => void;
+  value: StrikeValueType;
+  onChange: (value: StrikeValueType) => void;
   options: string[] | number[];
 }
 
 // Helper for label
-function getRangeLabel(value: string) {
-  const [min, max] = value.split('-');
-  if (max) {
-    return `$${min} - $${max}`;
+function getRangeLabel(value: StrikeValueType) {
+  if (value.mode == 'range') {
+    return `$${value.from} - $${value.to}`;
   }
-  return `${min}`;
+  return `${value.value}`;
 }
 
 export default function StrikesSelectorDropdown({
@@ -47,12 +54,18 @@ export default function StrikesSelectorDropdown({
   value
 }: NumericRangeTextDropdownProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [min, setMin] = useState(value.split('-')[0] || '1');
-  const [max, setMax] = useState(value.split('-')[1] || '100');
+  // const [min, setMin] = useState('1');
+  // const [max, setMax] = useState('100');
+  // const [selectedRange, setSelectedRange] = useState('');
+  // const [tab, setTab] = useState(0);
+
+  const [min, setMin] = useState((value.mode == 'range' && value.from) || '1');
+  const [max, setMax] = useState((value.mode == 'range' && value.to) || '100');
   const [selectedRange, setSelectedRange] = useState(getRangeLabel(value));
   const isMultiRange = selectedRange.includes('-');
-  const [tab, setTab] = useState(0);
-
+  const [tab, setTab] = useState(value.mode == 'range' ? 1 : 0);
+  const [incrementEnabled, setIncrementEnabled] = useState((value.mode == 'range' && value.increment?.enabled) || false);
+  const [incrementValue, setIncrementValue] = useState((value.mode == 'range' && value.increment?.step) || 1);
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -68,14 +81,27 @@ export default function StrikesSelectorDropdown({
 
   const handleSingleValueChange = (v: string | number) => {
     setSelectedRange(`${v}`);
-    onChange(`${v}`);
+    onChange({
+      mode: "single",
+      value: v,
+    });
     handleClose(0);
   }
   const handleMultiRangeChange = () => {
-    const valueToApply = `${min}-${max}`;
-    const range = getRangeLabel(valueToApply);
+    const v: RangeValue = {
+      mode: "range",
+      from: min,
+      to: max,
+      increment: incrementEnabled ? {
+        enabled: true,
+        step: incrementValue,
+      } : {
+        enabled: false,
+      }
+    }
+    const range = getRangeLabel(v);
     setSelectedRange(range);
-    onChange(valueToApply);
+    onChange(v);
     handleClose(1);
   };
 
@@ -101,8 +127,8 @@ export default function StrikesSelectorDropdown({
           }}
         />
       </FormControl>
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>handleClose()} sx={{ p: 0, m: 0 }}>
-        <Tabs variant="fullWidth" value={tab} onChange={(_, v) => setTab(v)} sx={{ p: 0, m: 0 }}>
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => handleClose()} sx={{ p: 0, m: 0 }}>
+        <Tabs variant="fullWidth" value={tab} onChange={(_, v) => setTab(v)} sx={{ p: 0, pt: 0, m: 0 }}>
           <Tab label="Strikes" value={0} sx={{ p: 0, m: 0 }}></Tab>
           <Tab label="Custom" value={1} sx={{ p: 0, m: 0 }}></Tab>
         </Tabs>
@@ -133,6 +159,25 @@ export default function StrikesSelectorDropdown({
                 onChange={e => setMax(e.target.value)}
               />
             </FormControl>
+          </Box>
+          <Box display="flex" alignItems="center" gap={2}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={incrementEnabled}
+                  onChange={(e) => setIncrementEnabled(e.target.checked)}
+                />
+              }
+              label="Increment"
+            />
+            <TextField
+              label="Value"
+              size="small"
+              type="number"
+              onChange={e => setIncrementValue(parseInt(e.target.value))}
+              value={incrementValue}
+              disabled={!incrementEnabled}
+            />
           </Box>
           <Box display="flex" justifyContent="space-between">
             <Button variant="text" onClick={handleClear}>

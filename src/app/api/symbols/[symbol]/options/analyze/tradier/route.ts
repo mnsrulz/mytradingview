@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, p: { params: Promise<{ symbol: s
   const allDates = [...new Set(expresp.expirations.date.filter(j => dayjs(j).isBefore(tillDate)))];
   const allOptionChains = await Promise.all(allDates.map(d => getOptionData(cleanSymbol, d)));
 
-  const allStrikes = getCalculatedStrikes(currentPrice, strikeCountValue, [...new Set(allOptionChains.flatMap(j => j.options.option.map(s => s.strike)))]);
+  const allStrikes = getCalculatedStrikes(currentPrice, { mode: 'single', value: strikeCountValue }, [...new Set(allOptionChains.flatMap(j => j.options.option.map(s => s.strike)))]);
   const finalResponse = calculateHedging(allOptionChains, allStrikes, allDates, currentPrice)
   return NextResponse.json(finalResponse);
 }

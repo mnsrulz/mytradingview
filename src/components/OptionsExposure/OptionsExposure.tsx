@@ -4,12 +4,17 @@ import { Box, Container, Dialog, Grid, IconButton, LinearProgress, Paper } from 
 import { useState } from "react";
 import { ChartTypeSelectorTab } from "./ChartTypeSelectorTab";
 import { DataModeType, DexGexType } from "@/lib/types";
-import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
+import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, createParser, useQueryState } from "nuqs";
 import { MemoizedGreeksExposureChart } from "./GreeksExposureChart";
 import { UpdateFrequencyDisclaimer } from "./UpdateFrequencyDisclaimer";
 import { HistoricalDateSlider } from "./HistoricalDateSlider";
 import { DteStrikeSelector } from "./DteStrikeSelector";
+import { StrikeValueType } from "./StrikesSelectorDropdown";
 const symbolsWithDailyOptions = ["NDX", "RUT", "XSP", "SPX", "QQQ", "SPY", "IWM"]; //will make it configurable later
+const defaultStrikeValue = {
+    mode: "single",
+    value: 30,
+} as StrikeValueType;
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
@@ -17,10 +22,11 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     const showZeroAndNextDte = symbolsWithDailyOptions.includes(symbol);
     const [dte, setDte] = useQueryState('dte', parseAsInteger.withDefault(symbolsWithDailyOptions.includes(symbol) ? 7 : 50));   //
     const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
-    const [strikeCounts, setStrikesCount] = useQueryState('sc', parseAsString.withDefault('30'));
+    const [strikeCounts, setStrikesCount] = useQueryState('sc', strikeRangeParser.withDefault(defaultStrikeValue));   //sc means strike counts
+
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
-    const [refreshToken, setRefreshToken]  = useState('');
+    const [refreshToken, setRefreshToken] = useState('');
     const { exposureData, isLoading, hasError, expirationData } = useOptionExposure(symbol, dte, selectedExpirations, strikeCounts, exposureTab, dataMode, historicalDate, refreshToken);
     const timestamp = exposureData?.timestamp;
 
@@ -59,7 +65,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     }
 
     return <Container maxWidth="md" sx={{ p: 0 }}>
-        
+
         <DteStrikeSelector dte={dte} strikeCounts={strikeCounts}
             availableDates={expirationData.map(k => k.expiration)}
             setCustomExpirations={setSelectedExpirations}
@@ -78,3 +84,45 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
     </Container>
 }
 
+const strikeRangeParser = createParser<StrikeValueType>({
+    /*
+    sc=20  -> single value form, means 20 strikes in total from current price
+    sc=20-50x5 -> range form, means all strikes between 20 and 50
+    */
+    parse(value) {
+        if (value.includes('-')) {
+            const [rangePart, incrementPart] = value.split('x');
+            const [from, to] = rangePart.split('-');
+            const incrementEnabled = incrementPart == '' ? false : true;
+            const incrementValue = incrementEnabled ? Number(incrementPart) : undefined;
+            return {
+                mode: "range",
+                from,
+                to,
+                increment: incrementEnabled ? {
+                    enabled: true,
+                    step: incrementValue,
+                } : {
+                    enabled: false,
+                }
+            }
+        } else {
+            return {
+                mode: "single",
+                value: value,
+            }
+        }
+    },
+    serialize(value) {
+        if (!value) return '';
+        if (value.mode == 'range') {
+            return `${value.from}-${value.to}${value.increment?.enabled ? `x${value.increment.step}` : ''}`;
+        } else {
+            return `${value.value}`;
+        }
+    },
+    // eq(a, b) {
+    //     console.log(`Comparing strike counts: ${JSON.stringify(a)} and ${JSON.stringify(b)}`);
+    //     return JSON.stringify(a) === JSON.stringify(b);
+    // },
+});

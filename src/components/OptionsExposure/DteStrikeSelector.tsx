@@ -3,7 +3,7 @@ import { DataModeType } from "@/lib/types";
 import { FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
 import { useState } from "react";
 import RefreshCboeData from "../RefreshCboeData";
-import StrikesSelectorDropdown from "./StrikesSelectorDropdown";
+import StrikesSelectorDropdown, { StrikeValueType } from "./StrikesSelectorDropdown";
 
 const dteOptions = [0,
     1,
@@ -34,11 +34,15 @@ const MenuProps = {
 };
 
 export const DteStrikeSelector = (props: {
-    symbol: string, dte: number, availableDates: string[], strikeCounts: string, timestamp?: Date,
+    symbol: string, dte: number, availableDates: string[], 
+    strikeCounts: StrikeValueType, 
+    timestamp?: Date,
     setCustomExpirations: (v: string[]) => void,
     onRefresh?: () => void,
     showZeroAndNextDte?: boolean,
-    setDte: (v: number) => void, setStrikesCount: (value: string) => void, hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
+    setDte: (v: number) => void, 
+    setStrikesCount: (value: StrikeValueType) => void, 
+    hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
 }) => {
     const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations, timestamp, onRefresh, showZeroAndNextDte } = props;
     const dataModes = hasHistoricalData ? ['CBOE', 'TRADIER', 'HISTORICAL'] : ['CBOE', 'TRADIER'];
