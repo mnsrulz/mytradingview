@@ -15,6 +15,7 @@ import BorderVerticalIcon from '@mui/icons-material/BorderVertical';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import StorageIcon from '@mui/icons-material/Storage';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -142,5 +143,10 @@ export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
         segment: 'options/stats',
         title: 'Options Stats',
         icon: <QueryStatsIcon />,
+    },
+    {
+        segment: 'admin/sql-playground',
+        title: 'SQL Playground',
+        icon: <StorageIcon />,
     }
 ]);

@@ -244,3 +244,66 @@ export const useOptionsStats = (symbol: string, lookbackDays: number) => {
     }, [symbol, lookbackDays]);
     return { stats, isLoading, hasError, error };
 }
+
+export const useDynamicQuery = (symbol: string, sql: string) => {
+    const [result, setResult] = useState<{}[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
+    const [error, setError] = useState('');
+    useEffect(() => {
+        if (!symbol) {
+            setResult([]);
+            setIsLoading(true);
+            return;
+        }
+        setIsLoading(true);
+        setHasError(false);
+        setError('');
+        const requestId = crypto.randomUUID();
+        const timeoutSeconds = 10;
+        const noResponseSignal = setTimeout(() => {
+            socket.emit('log-message', {
+                message: `Failed to receive the response within ${timeoutSeconds} seconds. Request Id: ${requestId},  ${symbol}`
+            });
+            setHasError(true);
+            setError(`Failed to receive the response for fetching options stats within ${timeoutSeconds} seconds. Please try again.`)
+        }, timeoutSeconds * 1000);
+        const executeSql = () => {
+            socket.once(`query-response-${requestId}`, (data: { hasError: boolean, value: {
+                rows: [][],
+                columns: {
+                    columnNames: string[]
+                } 
+            } }) => {
+                debugger;
+                clearTimeout(noResponseSignal);
+                if (data.hasError) { //checking dt, if it's null, likely there's no data returned from server.
+                    setHasError(true);
+                    setError(`Error executing query for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
+                } else {
+                    setHasError(false);
+                    setError('');
+
+                    const final = data.value.rows.map((k, ix)=> {
+                        const rowObj: Record<string, any> = {};
+                        data.value.columns.columnNames.forEach((col, colIx) => {
+                            rowObj[col] = k[colIx];
+                        });
+                        return rowObj;
+                    })
+                    setResult(final);
+                }
+                setIsLoading(false);
+            });
+            socket.emit('submit-query', {
+                symbol,
+                sql,
+                requestId,
+                requestType: 'dynamic-sql-query',
+            });
+        };
+        executeSql();
+        return () => { socket.off(`query-response-${requestId}`); clearTimeout(noResponseSignal); };
+    }, [symbol, sql]);
+    return { result, isLoading, hasError, error };
+}
