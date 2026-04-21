@@ -210,10 +210,11 @@ export const GexHeatmapChart = (props: { exposureData: ExposureDataType, skipAni
 
     return <Box pb={1}><HeatMap data={data}
         yLabels={yAxisLabels}
-        xLabels={expirations} formatter="currency"
+        xLabels={expirations.map(k=> k.substring(5))} 
+        formatter="currency"
         zeroHeaderLabel=""
         useMinMaxValuesForColorScale={true}
-        columnWidth={100}
+        columnWidth={80}
         displayZeroValues={false}
         highlightRowIndex={yAxisLabels.indexOf(spotPriceLineValue.toString())}
         getColorCallback={colorScale}

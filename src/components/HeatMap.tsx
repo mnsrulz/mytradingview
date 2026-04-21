@@ -48,7 +48,7 @@ export const HeatMap = ({
     const fmt = formatters[formatter];
     const minValue = Math.min(...data.flat().map(v => v));
     const maxValue = Math.max(...data.flat().map(v => v));
-    const cellWidth = 100;
+    const cellWidth = columnWidth;
     return (
         <Box>
             <TableContainer
@@ -65,7 +65,7 @@ export const HeatMap = ({
                         tableLayout: columnWidth ? "fixed" : "auto", // Ensure fixed layout for consistent cell sizes
                         //width: columnWidth ? `${columnWidth}px` : '100%', // Set table width based on columnWidth or default to 100%
                         width: 'auto',
-                        minWidth: 'unset',
+                        minWidth: 'max-content',
                         "& th, & td": {
                             //borderColor: "divider",
                         },
@@ -86,7 +86,7 @@ export const HeatMap = ({
                                     fontWeight: 600,
                                     color: "text.secondary",
                                     fontFamily: "Inter, Roboto, sans-serif",
-                                    px: 1,
+                                    px: 0,
                                     py: 0.5,
                                 },
                             }}
