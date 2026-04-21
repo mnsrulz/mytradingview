@@ -13,6 +13,7 @@ import {
   OutlinedInput,
   Checkbox,
   FormControlLabel,
+  Divider,
 } from '@mui/material';
 
 type IncrementConfig = {
@@ -179,6 +180,7 @@ export default function StrikesSelectorDropdown({
               disabled={!incrementEnabled}
             />
           </Box>
+          <Divider sx={{ my: 1 }} />
           <Box display="flex" justifyContent="space-between">
             <Button variant="text" onClick={handleClear}>
               Clear

@@ -27,32 +27,46 @@ const GreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
+const MobileScreenGreeksChartLabelMapping = {
+    'DEX': 'ABS DEX',
+    'GEX': 'NET GEX',
+    'OI': 'Open interest',
+    'VOLUME': 'Volume'
+}
+
 export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
     const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
     const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall, volTrigger, timestamp } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const height = calculateChartHeight(expirations, strikes);
     const yaxisline = strikes.length > 0 ? Math.max(...strikes.filter(j => j <= spotPrice)) : 0;
     const maxStrike = strikes.length > 0 ? Math.max(...strikes) : 0;
     const leftMarginValue = calculateYAxisTickWidth(maxStrike);
-    const gammaOrDelta = GreeksChartLabelMapping[exposureType]
+    const gammaOrDelta = isSmallScreen ? MobileScreenGreeksChartLabelMapping[exposureType] : GreeksChartLabelMapping[exposureType];
     const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
     const [showAsHeatmap, setShowAsHeatmap] = useQueryState('showHeatmap', parseAsBoolean.withDefault(false));
-    const theme = useTheme();
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const testid = `EXPSOURE-CHART-${symbol}-${exposureType}`
     const enableHeatmap = exposureType == DexGexType.GEX && showAsHeatmap;
     console.log(`Renderring GreeksExposureChart... ${symbol} ${dte} ${exposureType} ${isLoading} items:${items.length} expirations:${expirations.length} strikes:${strikes.length} maxPosition:${maxPosition} spotPrice:${spotPrice} callWall:${callWall} putWall:${putWall} gammaWall:${gammaWall} volTrigger:${volTrigger} timestamp:${timestamp}`)
     return <Box>
         <Stack direction="row" alignItems="center" justifyContent="center" position={"relative"} mb={1}>
-            {exposureType == DexGexType.GEX && (
-                <FormControl size="small" sx={{ position: 'absolute', left: 0 }}>
-                    <FormControlLabel control={<Checkbox checked={showAsHeatmap} onChange={(ev) => setShowAsHeatmap(ev.target.checked)} />}
-                        label="Heatmap" />
-                </FormControl>
-            )}
-            <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center">{title}</Typography>
+            {/* Left */}
+            <Box sx={{ minWidth: 80 }}>
+                {exposureType == DexGexType.GEX && (
+                    <FormControl size="small">
+                        <FormControlLabel control={<Checkbox checked={showAsHeatmap} 
+                            onChange={(ev) => setShowAsHeatmap(ev.target.checked)} />}
+                            label="Heatmap" />
+                    </FormControl>
+                )}
+            </Box>
+            {/* Center */}
+            <Typography variant={isSmallScreen ? "subtitle1" : "h6"} align="center" sx={{ flex: 1 }}>{title}</Typography>
+            {/* Right (spacer to balance layout) */}
+            <Box sx={{ minWidth: 80 }} />
         </Stack>
         {!isLoading && <div data-testid={testid}></div>}
         {enableHeatmap ? <GexHeatmapChart {...props} spotPriceLineValue={yaxisline} /> : <BarChart
