@@ -12,6 +12,7 @@ const colorCodes = getColorPallete();
 import { ghUrl } from '@/lib/constants'
 import { GetColorProps, HeatMap } from "../HeatMap";
 import { parseAsBoolean, useQueryState } from "nuqs";
+import { sendGAEvent } from '@next/third-parties/google';
 
 const xAxixFormatter = (datasetType: DexGexType, v: number) => {
     if (datasetType == 'GEX' && v < 0) {
@@ -58,7 +59,10 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
                 {exposureType == DexGexType.GEX && (
                     <FormControl size="small">
                         <FormControlLabel control={<Checkbox checked={showAsHeatmap} 
-                            onChange={(ev) => setShowAsHeatmap(ev.target.checked)} />}
+                            onChange={(ev) => {
+                                sendGAEvent('event', 'exposure_heatmap_toggle', { value: ev.target.checked });
+                                setShowAsHeatmap(ev.target.checked);
+                            }} />}
                             label="Heatmap" />
                     </FormControl>
                 )}

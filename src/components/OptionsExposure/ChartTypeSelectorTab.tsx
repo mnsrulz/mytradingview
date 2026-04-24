@@ -1,10 +1,15 @@
 import { DexGexType } from "@/lib/types";
 import { Tabs, Tab } from "@mui/material";
+import { sendGAEvent } from '@next/third-parties/google';
 
 export const ChartTypeSelectorTab = (props: { tab: DexGexType; onChange: (v: DexGexType) => void }) => {
+    const handleChange = (_: React.SyntheticEvent, newValue: DexGexType) => {
+        sendGAEvent('event', 'exposure_tab_change', { value: newValue });
+        props.onChange(newValue);
+    }
     return <Tabs
         value={props.tab}
-        onChange={(e, v) => { props.onChange(v) }}
+        onChange={handleChange}
         indicatorColor="secondary"
         textColor="inherit"
         variant="fullWidth">
