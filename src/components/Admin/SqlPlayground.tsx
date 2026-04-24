@@ -43,27 +43,29 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
         }
     ]);
     const [showAsJson, setShowAsJson] = useState(false);
+    const [activeTabId, setActiveTabId] = useState("1");
     // had to use ref since monaco's onMount only gets the initial query value, and doesn't update with state changes. This caused the executeQuery function to always use the initial query value, even after edits. 
     const tabsRef = useRef(tabs);
+    const activeTabIdRef = useRef(activeTabId);
 
     useEffect(() => {
         tabsRef.current = tabs;
-    }, [tabs]);
+        activeTabIdRef.current = activeTabId;
+    }, [tabs, activeTabId]);
 
-    const [activeTabId, setActiveTabId] = useState("1");
     const activeTab = tabs.find(t => t.id === activeTabId)!;
 
     const { mode } = useColorScheme();
     const isDarkMode = mode === 'dark';
 
-    const updateActiveTab = (tab: PlaygroundTab) => {
-        setTabs(prev => prev.map(t => t.id === activeTabId ? tab : t));
+    const updateTab = (tab: PlaygroundTab) => {
+        setTabs(prev => prev.map(t => t.id === tab.id ? tab : t));
     }
 
     const executeQuery = async () => {
-        const currentTab = tabsRef.current.find(t => t.id === activeTabId)!;
+        const currentTab = tabsRef.current.find(t => t.id === activeTabIdRef.current)!;
         const { id, query, symbol } = currentTab;
-        updateActiveTab({ ...currentTab, isLoading: true, error: '' });
+        updateTab({ ...currentTab, isLoading: true, error: '' });
         let result: any[] = [], error = '';
         try {
             result = await runDynamicQuery(symbol, query);
@@ -134,6 +136,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                     {tab.title}
                                     <IconButton
                                         size="small"
+                                        component="span"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             closeTab(tab.id);
@@ -163,7 +166,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                 symbols={symbols}
                                 symbol={activeTab.symbol}
                                 handleSymbolChange={(newSymbol) => {
-                                    updateActiveTab({ ...activeTab, symbol: newSymbol });
+                                    updateTab({ ...activeTab, symbol: newSymbol });
                                 }}
                             />
                         </FormControl>
@@ -193,10 +196,9 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                 <Panel style={{ padding: 1 }}>
                     <Paper sx={{ height: '100%', display: 'flex' }}>
                         <Editor
-                            key={`monaco-editor-${activeTab.id}`}
                             language="sql"
                             value={activeTab.query}
-                            onChange={(v) => updateActiveTab({ ...activeTab, query: v || '' })}
+                            onChange={(v) => updateTab({ ...activeTab, query: v || '' })}
                             theme={isDarkMode ? 'vs-dark' : 'light'}
                             options={{
                                 minimap: { enabled: false },
