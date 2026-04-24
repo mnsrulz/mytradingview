@@ -3,11 +3,12 @@ import { Autocomplete, TextField } from "@mui/material";
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 
-export const SymbolsSelector = ({ symbols, symbol, handleSymbolChange }: { symbols: string[], symbol: string, handleSymbolChange: (value: string) => void }) => {
+export const SymbolsSelector = ({ symbols, symbol, handleSymbolChange, disabled }: { symbols: string[], symbol: string, disabled?: boolean, handleSymbolChange: (value: string) => void }) => {
     return <Autocomplete
         // sx={{ width: 300 }}
         options={symbols}
         value={symbol}
+        disabled={disabled}
         getOptionLabel={(option) => option}
         onChange={(ev, value) => handleSymbolChange(value || '')}
         disableClearable

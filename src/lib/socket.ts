@@ -33,56 +33,56 @@ export const useTrackPage = (pathName: string) => {
 }
 
 export const useStockPrice = (input: string | string[]) => {
-  const [prices, setPrices] = useState<PriceMap>({});
+    const [prices, setPrices] = useState<PriceMap>({});
 
-  const symbols = useMemo(() => {
-    return (Array.isArray(input) ? input : [input])
-      .map(s => s.toUpperCase())
-      .filter(Boolean);
-  }, [input]);
+    const symbols = useMemo(() => {
+        return (Array.isArray(input) ? input : [input])
+            .map(s => s.toUpperCase())
+            .filter(Boolean);
+    }, [input]);
 
-  useEffect(() => {
-    if (!symbols.length) return;
+    useEffect(() => {
+        if (!symbols.length) return;
 
-    const uniqueSymbols = [...new Set(symbols)];
+        const uniqueSymbols = [...new Set(symbols)];
 
-    const handlers: Record<string, (data: StockPriceData) => void> = {};
+        const handlers: Record<string, (data: StockPriceData) => void> = {};
 
-    uniqueSymbols.forEach(symbol => {
-      socket.emit('stock-price-subscribe-request', {
-        symbol,
-        frequency: WatchlistUpdateFrequency,
-      });
+        uniqueSymbols.forEach(symbol => {
+            socket.emit('stock-price-subscribe-request', {
+                symbol,
+                frequency: WatchlistUpdateFrequency,
+            });
 
-      const handler = (data: StockPriceData) => {
+            const handler = (data: StockPriceData) => {
 
-        const { quoteSummary } = data;
-        const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
-            [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
-            : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
+                const { quoteSummary } = data;
+                const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
+                    [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
+                    : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
 
-        setPrices(prev => ({
-          ...prev,
-          [symbol]: { price, change, changePercent, quoteSummary },
-        }));
-      };
+                setPrices(prev => ({
+                    ...prev,
+                    [symbol]: { price, change, changePercent, quoteSummary },
+                }));
+            };
 
-      handlers[symbol] = handler;
-      socket.on(`stock-price-subscribe-response-${symbol}`, handler);
-    });
+            handlers[symbol] = handler;
+            socket.on(`stock-price-subscribe-response-${symbol}`, handler);
+        });
 
-    return () => {
-      uniqueSymbols.forEach(symbol => {
-        socket.emit('stock-price-unsubscribe-request', { symbol });
-        socket.off(
-          `stock-price-subscribe-response-${symbol}`,
-          handlers[symbol]
-        );
-      });
-    };
-  }, [symbols]); // stable dependency
+        return () => {
+            uniqueSymbols.forEach(symbol => {
+                socket.emit('stock-price-unsubscribe-request', { symbol });
+                socket.off(
+                    `stock-price-subscribe-response-${symbol}`,
+                    handlers[symbol]
+                );
+            });
+        };
+    }, [symbols]); // stable dependency
 
-  return prices;
+    return prices;
 }
 
 export const useLivePageTrackingViews = () => {
@@ -245,65 +245,44 @@ export const useOptionsStats = (symbol: string, lookbackDays: number) => {
     return { stats, isLoading, hasError, error };
 }
 
-export const useDynamicQuery = (symbol: string, sql: string) => {
-    const [result, setResult] = useState<{}[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasError, setHasError] = useState(false);
-    const [error, setError] = useState('');
-    useEffect(() => {
-        if (!symbol) {
-            setResult([]);
-            setIsLoading(true);
-            return;
-        }
-        setIsLoading(true);
-        setHasError(false);
-        setError('');
+export const runDynamicQuery = (symbol: string, sql: string) => {
+    return new Promise<any[]>((resolve, reject) => {
         const requestId = crypto.randomUUID();
         const timeoutSeconds = 10;
         const noResponseSignal = setTimeout(() => {
             socket.emit('log-message', {
                 message: `Failed to receive the response within ${timeoutSeconds} seconds. Request Id: ${requestId},  ${symbol}`
             });
-            setHasError(true);
-            setError(`Failed to receive the response for fetching options stats within ${timeoutSeconds} seconds. Please try again.`)
+            reject(`Failed to receive the response for fetching options stats within ${timeoutSeconds} seconds. Please try again.`)
         }, timeoutSeconds * 1000);
-        const executeSql = () => {
-            socket.once(`query-response-${requestId}`, (data: { hasError: boolean, value: {
+
+        socket.once(`query-response-${requestId}`, (data: {
+            hasError: boolean, value: {
                 rows: [][],
                 columns: {
                     columnNames: string[]
-                } 
-            } }) => {
-                debugger;
-                clearTimeout(noResponseSignal);
-                if (data.hasError) { //checking dt, if it's null, likely there's no data returned from server.
-                    setHasError(true);
-                    setError(`Error executing query for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
-                } else {
-                    setHasError(false);
-                    setError('');
-
-                    const final = data.value.rows.map((k, ix)=> {
-                        const rowObj: Record<string, any> = {};
-                        data.value.columns.columnNames.forEach((col, colIx) => {
-                            rowObj[col] = k[colIx];
-                        });
-                        return rowObj;
-                    })
-                    setResult(final);
                 }
-                setIsLoading(false);
-            });
-            socket.emit('submit-query', {
-                symbol,
-                sql,
-                requestId,
-                requestType: 'dynamic-sql-query',
-            });
-        };
-        executeSql();
-        return () => { socket.off(`query-response-${requestId}`); clearTimeout(noResponseSignal); };
-    }, [symbol, sql]);
-    return { result, isLoading, hasError, error };
+            }
+        }) => {
+            clearTimeout(noResponseSignal);
+            if (data.hasError) { //checking dt, if it's null, likely there's no data returned from server.
+                reject(`Error executing query for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
+            } else {
+                const final = data.value.rows.map((k, ix) => {
+                    const rowObj: Record<string, any> = {};
+                    data.value.columns.columnNames.forEach((col, colIx) => {
+                        rowObj[col] = k[colIx];
+                    });
+                    return rowObj;
+                })
+                resolve(final);
+            }
+        });
+        socket.emit('submit-query', {
+            symbol,
+            sql,
+            requestId,
+            requestType: 'dynamic-sql-query',
+        });
+    });
 }
