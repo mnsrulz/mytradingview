@@ -113,7 +113,7 @@ export default function StrikesSelectorDropdown({
 
   return (
     <>
-      <FormControl size="small" sx={{ width: isMultiRange ? 120 : 60, maxWidth: 120 }}>
+      <FormControl size="small" sx={{ width: isMultiRange ? 120 : 72, maxWidth: 120 }}>
         <InputLabel shrink title='Strikes'>Strikes</InputLabel>
         <OutlinedInput
           readOnly
@@ -129,13 +129,25 @@ export default function StrikesSelectorDropdown({
         />
       </FormControl>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => handleClose()} sx={{ p: 0, m: 0 }}>
-        <Tabs variant="fullWidth" value={tab} onChange={(_, v) => setTab(v)} sx={{ p: 0, pt: 0, m: 0 }}>
-          <Tab label="Strikes" value={0} sx={{ p: 0, m: 0 }}></Tab>
-          <Tab label="Custom" value={1} sx={{ p: 0, m: 0 }}></Tab>
+        <Tabs variant="fullWidth" value={tab} onChange={(_, v) => setTab(v)} sx={{
+          minHeight: 40,
+          '& .MuiTab-root': {
+            minHeight: 32,
+            py: 1,
+          },
+        }}>
+          <Tab label="Strikes" value={0} />
+          <Tab label="Custom" value={1} />
         </Tabs>
         {tab == 0 && <Box sx={{ p: 0, width: 240 }}>
           <FormControl fullWidth size="small">
-            {options.map((strike) => <MenuItem key={strike} selected={selectedRange === `${strike}`} value={strike} onClick={(ev) => handleSingleValueChange(strike)}>{strike}</MenuItem>)}
+            {options.map((strike) =>
+              <MenuItem key={strike}  
+                selected={selectedRange === `${strike}`} 
+                value={strike} 
+                onClick={(ev) => handleSingleValueChange(strike)}>{strike}
+              </MenuItem>)
+            }
           </FormControl>
         </Box>
         }

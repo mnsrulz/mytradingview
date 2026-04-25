@@ -6,6 +6,7 @@ import { useLocalStorage } from '@uidotdev/usehooks';
 import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getOptionsPricing, getExposureSnapshotByDate, getAvailableExposureDates } from './mzDataService';
 import { nanoid } from 'nanoid';
 import { StrikeValueType } from '@/components/OptionsExposure/StrikesSelectorDropdown';
+import { ExpiryValue } from '@/components/OptionsExposure/ExpirySelectorDropdown';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -430,7 +431,7 @@ function applyBuckets(values: number[], strikesIndexMap: Map<number, number>, bu
 
 
 //This hook has potential performance issues
-export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: StrikeValueType, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
+export const useOptionExposure = (symbol: string, expiryValue: ExpiryValue, strikeCount: StrikeValueType, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -470,7 +471,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 setExpirationData(exposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || []);
 
                 const start = performance.now();
-                let filteredData = dte >= 0 ? exposureResponse.data.filter(j => j.dte <= dte) : exposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+                let filteredData = expiryValue.mode === "dte" ? exposureResponse.data.filter(j => j.dte <= expiryValue.value) : exposureResponse.data.filter(j => expiryValue.values.includes(j.expiration));
                 const expirations = filteredData.map(j => j.expiration);
 
 
@@ -639,7 +640,7 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 setIsLoading(false);
             }
         })();
-    }, [symbol, dt, dataMode, refreshToken, chartType, dte, strikeCount, selectedExpirations]);
+    }, [symbol, dt, dataMode, refreshToken, chartType, expiryValue, strikeCount]);
 
     return {
         exposureData, isLoading, hasError, expirationData

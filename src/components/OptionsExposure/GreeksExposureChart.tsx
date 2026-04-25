@@ -13,6 +13,7 @@ import { ghUrl } from '@/lib/constants'
 import { GetColorProps, HeatMap } from "../HeatMap";
 import { parseAsBoolean, useQueryState } from "nuqs";
 import { sendGAEvent } from '@next/third-parties/google';
+import { ExpiryValue } from "./ExpirySelectorDropdown";
 
 const xAxixFormatter = (datasetType: DexGexType, v: number) => {
     if (datasetType == 'GEX' && v < 0) {
@@ -35,8 +36,8 @@ const MobileScreenGreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
-export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, isLoading: boolean }) => {
-    const { symbol, exposureType, dte, exposureData, skipAnimation, isLoading } = props;
+export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, expiryValue: ExpiryValue, exposureType: DexGexType, isLoading: boolean }) => {
+    const { symbol, exposureType, expiryValue, exposureData, skipAnimation, isLoading } = props;
     const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall, volTrigger, timestamp } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
@@ -47,11 +48,11 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
     const maxStrike = strikes.length > 0 ? Math.max(...strikes) : 0;
     const leftMarginValue = calculateYAxisTickWidth(maxStrike);
     const gammaOrDelta = isSmallScreen ? MobileScreenGreeksChartLabelMapping[exposureType] : GreeksChartLabelMapping[exposureType];
-    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${dte == -1 ? 'Custom' : dte} DTE)`;
+    const title = `$${symbol.toUpperCase()} ${gammaOrDelta} (${expiryValue.mode === "dte" ? expiryValue.value : "Custom"} DTE)`;
     const [showAsHeatmap, setShowAsHeatmap] = useQueryState('showHeatmap', parseAsBoolean.withDefault(false));
     const testid = `EXPSOURE-CHART-${symbol}-${exposureType}`
     const enableHeatmap = exposureType == DexGexType.GEX && showAsHeatmap;
-    console.log(`Renderring GreeksExposureChart... ${symbol} ${dte} ${exposureType} ${isLoading} items:${items.length} expirations:${expirations.length} strikes:${strikes.length} maxPosition:${maxPosition} spotPrice:${spotPrice} callWall:${callWall} putWall:${putWall} gammaWall:${gammaWall} volTrigger:${volTrigger} timestamp:${timestamp}`)
+    console.log(`Renderring GreeksExposureChart... ${symbol} ${expiryValue} ${exposureType} ${isLoading} items:${items.length} expirations:${expirations.length} strikes:${strikes.length} maxPosition:${maxPosition} spotPrice:${spotPrice} callWall:${callWall} putWall:${putWall} gammaWall:${gammaWall} volTrigger:${volTrigger} timestamp:${timestamp}`)
     return <Box>
         <Stack direction="row" alignItems="center" justifyContent="center" position={"relative"} mb={1}>
             {/* Left */}
@@ -153,7 +154,7 @@ const transpose = (matrix: number[][]): number[][] => {
 };
 
 
-export const GexHeatmapChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, dte: number, exposureType: DexGexType, spotPriceLineValue: number }) => {
+export const GexHeatmapChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, exposureType: DexGexType, spotPriceLineValue: number }) => {
     const { exposureData, spotPriceLineValue } = props;
     const { expirations, strikes, items } = exposureData;
     const yAxisLabels = strikes.toReversed().map(k => k.toString());

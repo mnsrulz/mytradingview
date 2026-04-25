@@ -1,9 +1,9 @@
 import { TickerSearchDialog } from "@/components/TickerSearchDialog";
 import { DataModeType } from "@/lib/types";
-import { FormControl, InputLabel, MenuItem, Paper, Select, Checkbox, ListItemText, SelectChangeEvent, useMediaQuery, useTheme, Stack } from "@mui/material";
-import { useState } from "react";
+import { FormControl, InputLabel, MenuItem, Paper, Select, useMediaQuery, useTheme, Stack } from "@mui/material";
 import RefreshCboeData from "../RefreshCboeData";
 import StrikesSelectorDropdown, { StrikeValueType } from "./StrikesSelectorDropdown";
+import ExpirySelectorDropdown, { ExpiryValue } from "./ExpirySelectorDropdown";
 
 const dteOptions = [0,
     1,
@@ -34,32 +34,21 @@ const MenuProps = {
 };
 
 export const DteStrikeSelector = (props: {
-    symbol: string, dte: number, availableDates: string[], 
-    strikeCounts: StrikeValueType, 
+    symbol: string, availableDates: string[],
+    strikeCounts: StrikeValueType,
+    expiryValue: ExpiryValue,
     timestamp?: Date,
-    setCustomExpirations: (v: string[]) => void,
     onRefresh?: () => void,
     showZeroAndNextDte?: boolean,
-    setDte: (v: number) => void, 
-    setStrikesCount: (value: StrikeValueType) => void, 
+    setExpiryValue: (v: ExpiryValue) => void,
+    setStrikesCount: (value: StrikeValueType) => void,
     hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
 }) => {
-    const { symbol, setDte, setStrikesCount, strikeCounts, dte, dataMode, setDataMode, hasHistoricalData, availableDates, setCustomExpirations, timestamp, onRefresh, showZeroAndNextDte } = props;
+    const { symbol, setStrikesCount, strikeCounts, expiryValue, dataMode, showZeroAndNextDte, setDataMode, hasHistoricalData, availableDates, timestamp, onRefresh, setExpiryValue } = props;
+
     const dataModes = hasHistoricalData ? ['CBOE', 'TRADIER', 'HISTORICAL'] : ['CBOE', 'TRADIER'];
-    const [selectedExpirations, setSelectedExpirations] = useState<string[]>([]);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const enableCustomDte = dte == -1;
-    const handleCustomDteSelectionChange = (event: SelectChangeEvent<typeof selectedExpirations>) => {
-        const {
-            target: { value },
-        } = event;
-        setSelectedExpirations(
-            // On autofill we get a stringified value.
-            typeof value === 'string' ? value.split(',') : value,
-        );
-        setCustomExpirations(typeof value === 'string' ? value.split(',') : value)
-    };
 
     return <Paper
         // sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
@@ -79,36 +68,9 @@ export const DteStrikeSelector = (props: {
                         {dataModes.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
                     </Select>
                 </FormControl>
-                <FormControl size="small" sx={{ flexShrink: 0 }}>
-                    <InputLabel>DTE</InputLabel>
-                    <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
-                        {dteOptions.filter(k => k > 1 || showZeroAndNextDte).map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
-                        <MenuItem key="custom" value="-1">Custom</MenuItem>
-                    </Select>
-                </FormControl>
-                {
-                    enableCustomDte && <FormControl sx={{ flexShrink: 0, maxWidth: 120 }} size="small">
-                        <InputLabel>Custom DTE</InputLabel>
-                        <Select
-                            multiple
-                            value={selectedExpirations}
-                            onChange={handleCustomDteSelectionChange}
-                            label="Custom DTE"
-                            renderValue={(selected) => selected.join(', ')}
-                            MenuProps={MenuProps}
-                        >
-                            {availableDates.map((name) => (
-                                <MenuItem key={name} value={name}>
-                                    <Checkbox size="small" checked={selectedExpirations.includes(name)} />
-                                    <ListItemText primary={name} />
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                }
-                    <StrikesSelectorDropdown options={strikeOptions} value={strikeCounts} onChange={setStrikesCount} />
-                {/* <FormControl size="small" sx={{ flexShrink: 0, maxWidth: 120 }}>
-                </FormControl> */}
+                <ExpirySelectorDropdown dteOptions={dteOptions.filter(k => k > 1 || showZeroAndNextDte)} expirations={availableDates}
+                    value={expiryValue} onChange={setExpiryValue} />
+                <StrikesSelectorDropdown options={strikeOptions} value={strikeCounts} onChange={setStrikesCount} />
             </Stack>
         </Stack>
     </Paper>
