@@ -1,19 +1,24 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { SearchTickerItem, StockPriceData, LivePageTrackingView, PriceMap } from './types';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 const URL = process.env.MZDATA_SOCKET_URL || `https://mztrading-socket.deno.dev`;
 const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
 const TrackPageInterval = parseInt(process.env.TRACK_PAGE_INTERVAL_MS || '9000');
-const socket = io(URL, {
-    reconnectionDelayMax: 10000,
-    transports: ['websocket', 'polling']
-    // transports: ['websocket']
-});
+let socket: Socket;
 
-socket.on("connect", () => {
-    console.log("Connected to the client!")
-})
+if (typeof window === 'undefined') {
+    // SSR env, no need to connect socket.
+} else {
+    socket = io(URL, {
+        reconnectionDelayMax: 10000,
+        transports: ['websocket', 'polling']
+        // transports: ['websocket']
+    });
+    socket.on("connect", () => {
+        console.log("Connected to the client!")
+    })
+}
 
 export const useTrackPage = (pathName: string) => {
     useEffect(() => {
