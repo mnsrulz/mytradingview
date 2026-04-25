@@ -39,6 +39,7 @@ interface NumericRangeTextDropdownProps {
   value: StrikeValueType;
   onChange: (value: StrikeValueType) => void;
   options: string[] | number[];
+  size?: "small" | "normal";
 }
 
 // Helper for label
@@ -52,7 +53,8 @@ function getRangeLabel(value: StrikeValueType) {
 export default function StrikesSelectorDropdown({
   onChange,
   options,
-  value
+  value,
+  size = "normal",
 }: NumericRangeTextDropdownProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // const [min, setMin] = useState('1');
@@ -128,7 +130,7 @@ export default function StrikesSelectorDropdown({
           }}
         />
       </FormControl>
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => handleClose()} sx={{ p: 0, m: 0 }}>
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => handleClose()}>
         <Tabs variant="fullWidth" value={tab} onChange={(_, v) => setTab(v)} sx={{
           minHeight: 40,
           '& .MuiTab-root': {
@@ -143,6 +145,7 @@ export default function StrikesSelectorDropdown({
           <FormControl fullWidth size="small">
             {options.map((strike) =>
               <MenuItem key={strike}  
+                dense={size === "small"}
                 selected={selectedRange === `${strike}`} 
                 value={strike} 
                 onClick={(ev) => handleSingleValueChange(strike)}>{strike}

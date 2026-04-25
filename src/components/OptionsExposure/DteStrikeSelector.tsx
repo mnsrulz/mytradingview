@@ -69,8 +69,8 @@ export const DteStrikeSelector = (props: {
                     </Select>
                 </FormControl>
                 <ExpirySelectorDropdown dteOptions={dteOptions.filter(k => k > 1 || showZeroAndNextDte)} expirations={availableDates}
-                    value={expiryValue} onChange={setExpiryValue} />
-                <StrikesSelectorDropdown options={strikeOptions} value={strikeCounts} onChange={setStrikesCount} />
+                    value={expiryValue} onChange={setExpiryValue} size={isMobile ? 'small' : 'normal'} />
+                <StrikesSelectorDropdown options={strikeOptions} value={strikeCounts} onChange={setStrikesCount} size={isMobile ? 'small' : 'normal'} />
             </Stack>
         </Stack>
     </Paper>

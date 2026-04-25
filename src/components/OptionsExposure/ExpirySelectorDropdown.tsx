@@ -23,6 +23,7 @@ interface ExpirySelectorDropdownProps {
     onChange: (value: ExpiryValue) => void;
     dteOptions: number[];
     expirations: string[];
+    size?: "small" | "normal";
 }
 
 // Label helper
@@ -42,6 +43,7 @@ export default function ExpirySelectorDropdown({
     onChange,
     dteOptions,
     expirations,
+    size = "normal",
 }: ExpirySelectorDropdownProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -133,7 +135,7 @@ export default function ExpirySelectorDropdown({
                         {dteOptions.map((v) => (
                             <MenuItem
                                 key={v}
-                                dense
+                                dense={size === "small"}
                                 selected={selectedLabel === `${v} DTE`}
                                 onClick={() => handleDteSelect(v)}
                             >
@@ -165,7 +167,6 @@ export default function ExpirySelectorDropdown({
                                 p: 1,
                                 position: 'sticky',
                                 bottom: 0,
-                                backgroundColor: 'background.paper',
                                 zIndex: 1,
                             }}
                             display="flex"

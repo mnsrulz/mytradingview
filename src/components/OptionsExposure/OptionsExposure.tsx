@@ -20,13 +20,19 @@ const defaultExpiryValue = {
     mode: "dte",
     value: 50,
 } as ExpiryValue;
+
+const defaultExpiryValueForIndex = {
+    mode: "dte",
+    value: 7,
+} as ExpiryValue;
+
 export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
     const { symbol, cachedDates } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
     const [historicalDate, setHistoricalDate] = useQueryState('historical', parseAsString.withDefault(cachedDates.at(-1) || ''));
     const showZeroAndNextDte = symbolsWithDailyOptions.includes(symbol);
     const [strikeCounts, setStrikesCount] = useQueryState('sc', strikeRangeParser.withDefault(defaultStrikeValue));   //sc means strike counts
-    const [expiryValue, setExpiryValue] = useQueryState('expiry', expiryParser.withDefault(defaultExpiryValue));
+    const [expiryValue, setExpiryValue] = useQueryState('expiry', expiryParser.withDefault(symbolsWithDailyOptions.includes(symbol) ? defaultExpiryValueForIndex : defaultExpiryValue));
 
     const [exposureTab, setexposureTab] = useQueryState<DexGexType>('dgextab', parseAsStringEnum<DexGexType>(Object.values(DexGexType)).withDefault(DexGexType.DEX));
     const [dataMode, setDataMode] = useQueryState<DataModeType>('mode', parseAsStringEnum<DataModeType>(Object.values(DataModeType)).withDefault(DataModeType.CBOE));
