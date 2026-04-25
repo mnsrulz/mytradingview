@@ -59,7 +59,7 @@ export const CallPutWallLine = (props: { strikes: number[], callWall: number; pu
 
     return Object.keys(lines).map((value) => {
         const lineValue = Number(value);
-        if (lineValue == 0 || !strikes.includes(lineValue)) return <></>;
+        if (lineValue == 0 || !strikes.includes(lineValue)) return null;
         const { label, color } = getLineLabelAndColor(lines[lineValue]);
         return <ChartsReferenceLine key={label} y={lineValue} label={`${GAMMA_CHAR} ${label} WALL: $${lineValue}`}
             labelAlign={spotPriceLineValue == lineValue ? "end" : "start"}

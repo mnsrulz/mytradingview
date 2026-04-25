@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import dayjs from "dayjs";
 import ky from "ky";
 import delay from 'delay';
 import relativeTime from "dayjs/plugin/relativeTime";
 import { DataModeType } from "@/lib/types";
+import { sendGAEvent } from "@next/third-parties/google";
 dayjs.extend(relativeTime);
 
 const client = ky.create({
@@ -48,6 +48,7 @@ export default function RefreshCboeData({ timestamp, symbol, onRefresh, dataMode
     }, [stale]);
 
     const handleClick = async () => {
+        sendGAEvent('event', 'refresh_cboe_data', { symbol });
         setLoading(true);
         if (dataMode == DataModeType.CBOE) {
             await client(exceptionSymbols.includes(symbol.toUpperCase()) ? `^${symbol}` : symbol);

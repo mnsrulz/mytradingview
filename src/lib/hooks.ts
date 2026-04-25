@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ky from 'ky';
-import { DataModeType, DexGexType, NumberRange, OptionsInnerData, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, TradierOptionData, ExposureDataResponse, Watchlists } from './types';
-import { calculateHedging, getCalculatedStrikes } from './dgHedgingHelper';
-import dayjs from 'dayjs';
+import { DataModeType, DexGexType, NumberRange, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, Watchlists } from './types';
+import { getCalculatedStrikes } from './dgHedgingHelper';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getEmaDataForExpsoure, getOptionsPricing, getExposureSnapshotByDate, getAvailableExposureDates } from './mzDataService';
+import { getHistoricalOptionExposure, getLiveCboeOptionExposure, searchTicker, getOptionsPricing, getExposureSnapshotByDate, getAvailableExposureDates } from './mzDataService';
 import { nanoid } from 'nanoid';
+import { StrikeValueType } from '@/components/OptionsExposure/StrikesSelectorDropdown';
+import { ExpiryValue } from '@/components/OptionsExposure/ExpirySelectorDropdown';
 
 export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
     const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
@@ -402,8 +403,35 @@ const getLiveTradierOptionExposure = async (symbol: string) => {
     return await ky(`/api/symbols/${symbol}/options/exposure`).json<ExposureDataResponse>();
 }
 
+/**
+ * Apply bucket logic to the original values. For example, if we have strikes [1,2,3,4,5,6,7,8,9,10] and 
+ * we want to bucket them with from=1, to=10 and step=3. We will have buckets like [1-3], [4-6], [7-9], [10]. 
+ * And if the original values for these strikes are [10,20,30,40,50,60,70,80,90,100]. 
+ * The resulting values after applying bucket logic will be [60 (10+20+30), 150 (40+50+60), 240 (70+80+90), 100].
+ * @param values 
+ * @param strikesIndexMap 
+ * @param bucketMap 
+ * @returns 
+ */
+function applyBuckets(values: number[], strikesIndexMap: Map<number, number>, bucketMap: Map<number, { strikes: number[], ix: number }>,) {
+    const nodes = new Float64Array(bucketMap.size).fill(0);
+    for (const bucketedStrike of bucketMap.keys()) {
+        const bucketedStrikeValue = bucketMap.get(bucketedStrike);
+        if (bucketedStrikeValue) {
+            bucketedStrikeValue.strikes.forEach(k => {
+                if (strikesIndexMap.has(k)) {
+                    const indexInOriginalValues = strikesIndexMap.get(k) || 0;
+                    nodes[bucketedStrikeValue.ix] = (nodes[bucketedStrikeValue.ix] || 0) + values[indexInOriginalValues];
+                }
+            })
+        }
+    }
+    return Array.from(nodes);
+}
+
+
 //This hook has potential performance issues
-export const useOptionExposure = (symbol: string, dte: number, selectedExpirations: string[], strikeCount: string, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
+export const useOptionExposure = (symbol: string, expiryValue: ExpiryValue, strikeCount: StrikeValueType, chartType: DexGexType, dataMode: DataModeType, dt: string, refreshToken: string) => {
     const [exposureData, setExposureData] = useState<ExposureDataType>();
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -432,9 +460,10 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 const cacheKey = dataMode == DataModeType.HISTORICAL ? `${symbol}-${dt}` : `${symbol}-${refreshToken}-${dataMode}`;
                 let exposureResponse = cacheStore[cacheKey];
                 if (!exposureResponse) {
-                    exposureResponse =  dataMode == DataModeType.HISTORICAL ? await getHistoricalOptionExposure(symbol, dt) : await getLiveExposure(symbol, dataMode);
+                    exposureResponse = dataMode == DataModeType.HISTORICAL ? await getHistoricalOptionExposure(symbol, dt) : await getLiveExposure(symbol, dataMode);
                     setCache((prev) => { prev[cacheKey] = exposureResponse; return prev; });
-                    for (const d of exposureResponse.data) {  //for better performance, we are converting the strikes to number only once
+                    //for better performance, we are converting the strikes to number only once
+                    for (const d of exposureResponse.data) {
                         d.strikesMap = new Map(d.strikes.map((j, ix) => [Number(j), ix]));
                     }
                 }
@@ -442,8 +471,64 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 setExpirationData(exposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || []);
 
                 const start = performance.now();
-                const filteredData = dte >= 0 ? exposureResponse.data.filter(j => j.dte <= dte) : exposureResponse.data.filter(j => selectedExpirations.includes(j.expiration));
+                let filteredData = expiryValue.mode === "dte" ? exposureResponse.data.filter(j => j.dte <= expiryValue.value) : exposureResponse.data.filter(j => expiryValue.values.includes(j.expiration));
                 const expirations = filteredData.map(j => j.expiration);
+
+
+
+
+
+                if (strikeCount.mode == 'range' && strikeCount.increment?.enabled && strikeCount.increment?.step) {
+                    const from = Number(strikeCount.from);
+                    const to = Number(strikeCount.to);
+                    const step = strikeCount.increment.step;
+                    const filterdDataClone = [] as typeof filteredData
+                    filteredData.forEach((d, ix) => {
+                        /**
+                         For given strikes ["1","2","3","4","5","6","7","8","9","10","1.5","2.5","3.5","4.5","5.5","6.5","7.5","8.5","9.5","12.5"];
+                         We are constructing a bucketed strike map like
+                        {
+                            3, 
+                            6, 
+                            9, 
+                            12, 
+                            15
+                        }
+                        */
+                        const buckets = new Map<number, { strikes: number[], ix: number }>();
+                        let strikeIx = 0;
+                        d.strikes.forEach((s, sIx) => {
+                            const strike = Number(s);
+                            if (strike < from || strike > to) return;
+                            const bucket = from + Math.floor((strike - from) / step) * step;
+                            if (!buckets.has(bucket)) {
+                                buckets.set(bucket, { strikes: [], ix: strikeIx++ });
+                            }
+                            buckets.get(bucket)?.strikes.push(strike);
+                        });
+
+                        filterdDataClone.push({
+                            call: {
+                                absDelta: applyBuckets(d.call.absDelta, d.strikesMap, buckets),
+                                absGamma: applyBuckets(d.call.absGamma, d.strikesMap, buckets),
+                                openInterest: applyBuckets(d.call.openInterest, d.strikesMap, buckets),
+                                volume: applyBuckets(d.call.volume, d.strikesMap, buckets)
+                            },
+                            put: {
+                                absDelta: applyBuckets(d.put.absDelta, d.strikesMap, buckets),
+                                absGamma: applyBuckets(d.put.absGamma, d.strikesMap, buckets),
+                                openInterest: applyBuckets(d.put.openInterest, d.strikesMap, buckets),
+                                volume: applyBuckets(d.put.volume, d.strikesMap, buckets)
+                            },
+                            dte: d.dte,
+                            expiration: d.expiration,
+                            strikes: Array.from(buckets.keys()).map(String),
+                            strikesMap: new Map(Array.from(buckets.keys()).map(k => [k, buckets.get(k)?.ix || 0])),
+                            netGamma: applyBuckets(d.netGamma, d.strikesMap, buckets)
+                        });
+                    });
+                    filteredData = filterdDataClone;
+                }
 
                 const allAvailableStikesForFilteredExpirations = new Set<number>();
                 for (const { strikes } of filteredData) {
@@ -548,14 +633,14 @@ export const useOptionExposure = (symbol: string, dte: number, selectedExpiratio
                 setExposureData(exposureDataValue);
                 const end = performance.now();
                 console.log(`exposure-calculation took ${end - start}ms`);
-            
+
             } catch (error) {
                 setHasError(true);
             } finally {
                 setIsLoading(false);
             }
         })();
-    }, [symbol, dt, dataMode, refreshToken, chartType, dte, strikeCount, selectedExpirations]);
+    }, [symbol, dt, dataMode, refreshToken, chartType, expiryValue, strikeCount]);
 
     return {
         exposureData, isLoading, hasError, expirationData

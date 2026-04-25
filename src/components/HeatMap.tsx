@@ -9,52 +9,65 @@ import {
     Box,
 } from "@mui/material";
 import { ConditionalFormattingCell } from "./ConditionalFormattingBox";
-import { numberFormatter, percentageFormatter } from "@/lib/formatters";
+import { numberFormatter, percentageFormatter, currencyCompactFormatter } from "@/lib/formatters";
+import { getColorV2 } from "@/lib/color";
 
+export type GetColorProps = { value: number, minValue: number, maxValue: number, rowIndex: number, colIndex: number }
 type HeatMapProps = {
     zeroHeaderLabel: string;
     xLabels: string[];
     yLabels: string[];
     data: number[][];
-    formatter: "percent" | "number";
+    formatter: "percent" | "number" | "currency";
     showLegend?: boolean;
+    useMinMaxValuesForColorScale?: boolean;
+    columnWidth?: number;
+    highlightRowIndex?: number;
+    displayZeroValues?: boolean;
+    getColorCallback?: (p: GetColorProps) => string;
 };
 
 const formatters = {
     percent: percentageFormatter,
     number: numberFormatter,
+    currency: currencyCompactFormatter
 };
 
+//expose a color callback that takes the value and returns the color, instead of calculating the color inside the cell component. This way we can reuse the color logic for other components like conditional formatting box, and also have more control over the color scale (e.g., using percentiles instead of min/max)
 export const HeatMap = ({
     xLabels,
     yLabels,
     data,
     formatter,
-    zeroHeaderLabel
+    zeroHeaderLabel,
+    columnWidth,
+    highlightRowIndex,
+    displayZeroValues = false,
+    getColorCallback,
 }: HeatMapProps) => {
     const fmt = formatters[formatter];
-
+    const minValue = Math.min(...data.flat().map(v => v));
+    const maxValue = Math.max(...data.flat().map(v => v));
+    const cellWidth = columnWidth;
     return (
         <Box>
             <TableContainer
                 component={Paper}
-                elevation={2}
+                elevation={1}
                 sx={{
-                    width: 'auto', // Set width of the TableContainer to auto
-                    //   borderRadius: 1.5,
-                    // overflow: "hidden",
-                    //   display: "inline-block",
+                    display: "inline-block",
                     maxWidth: "100%",
-                    display: 'inline-block', // Make sure the container doesn't stretch
-                    mt: 2,
                 }}
             >
                 <Table
                     size="small"
                     sx={{
-                        tableLayout: "auto",
+                        tableLayout: columnWidth ? "fixed" : "auto", // Ensure fixed layout for consistent cell sizes
+                        //width: columnWidth ? `${columnWidth}px` : '100%', // Set table width based on columnWidth or default to 100%
+                        width: 'auto',
+                        minWidth: 'max-content',
                         "& th, & td": {
-                            borderColor: "divider",
+                            //borderColor: "divider",
                         },
                         "& td": {
                             fontFamily: "Roboto Mono, monospace",
@@ -73,14 +86,16 @@ export const HeatMap = ({
                                     fontWeight: 600,
                                     color: "text.secondary",
                                     fontFamily: "Inter, Roboto, sans-serif",
-                                    px: 1,
+                                    px: 0,
                                     py: 0.5,
                                 },
                             }}
                         >
-                            <TableCell>{zeroHeaderLabel}</TableCell>
+                            <TableCell key="zero-header" sx={{ width: columnWidth ? `${columnWidth}px` : 'auto' }}>
+                                {zeroHeaderLabel}
+                            </TableCell>
                             {xLabels.map((label) => (
-                                <TableCell key={label} align="center">
+                                <TableCell key={label} align="center" width={cellWidth}>
                                     {label}
                                 </TableCell>
                             ))}
@@ -98,14 +113,14 @@ export const HeatMap = ({
                                         fontSize: "0.7rem",
                                         fontFamily: "Inter, Roboto, sans-serif",
                                         fontWeight: 500,
-                                        color: "text.secondary",
+                                        //color: "text.secondary",
                                         px: 1,
                                         py: 0.5,
                                     },
                                     "& td": {
                                         fontSize: "0.85rem",
                                         fontWeight: 500,
-                                        color: "text.secondary",
+                                        //color: "text.secondary",
                                         px: 0.5,
                                         py: 0.5,
                                     },
@@ -116,7 +131,33 @@ export const HeatMap = ({
                                     component="th"
                                     scope="row"
                                     align="right"
-                                    sx={{ whiteSpace: "nowrap" }}
+                                    sx={{
+                                        whiteSpace: "nowrap",
+                                        //backgroundColor: highlightRowIndex === ix ? "rgba(255, 0, 0, 0.1)" : "inherit"
+                                        backgroundColor: highlightRowIndex === ix ? "action.selected" : "transparent",
+                                        //border: highlightRowIndex === ix ? '5px solid blue': undefined,
+                                        fontWeight: highlightRowIndex === ix ? 900 : undefined,
+                                        
+                                        position: "relative",
+
+                                        ...(highlightRowIndex === ix && {
+                                        animation: "glow 1.5s ease-in-out infinite",
+                                        }),
+
+                                        "@keyframes glow": {
+                                        "0%": {
+                                            boxShadow: "0 0 0px rgba(210, 99, 25, 0.4)",
+                                        },
+                                        "50%": {
+                                            boxShadow: "0 0 10px rgba(210, 99, 25, 0.9)",
+                                        },
+                                        "100%": {
+                                            boxShadow: "0 0 0px rgba(210, 99, 25, 0.4)",
+                                        },
+                                        },
+
+                                        transition: "all 150ms ease",
+                                    }}
                                 >
                                     {yLabels[ix]}
                                 </TableCell>
@@ -124,9 +165,17 @@ export const HeatMap = ({
                                 {/* Heatmap Cells */}
                                 {row.map((val, ixx) => (
                                     <ConditionalFormattingCell
+                                        width={cellWidth}
                                         key={`${ix}-${ixx}`}
-                                        value={val}
+                                        value={val == 0 && !displayZeroValues ? NaN : val} // Treat zero as NaN if displayZeroValues is false
                                         formattedValue={fmt(val)}
+                                        color={getColorCallback ? getColorCallback({
+                                            value: val,
+                                            minValue,
+                                            maxValue,
+                                            colIndex: ixx,
+                                            rowIndex: ix
+                                        }) : getColorV2(val, minValue, maxValue)}
                                     />
                                 ))}
                             </TableRow>

@@ -1,19 +1,24 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { SearchTickerItem, StockPriceData, LivePageTrackingView } from './types';
-import { io } from 'socket.io-client';
+import { useEffect, useMemo, useState } from 'react';
+import { SearchTickerItem, StockPriceData, LivePageTrackingView, PriceMap } from './types';
+import { io, Socket } from 'socket.io-client';
 const URL = process.env.MZDATA_SOCKET_URL || `https://mztrading-socket.deno.dev`;
 const WatchlistUpdateFrequency = parseInt(process.env.WATCHLIST_UPDATE_FREQUENCY_MS || '1000');
 const TrackPageInterval = parseInt(process.env.TRACK_PAGE_INTERVAL_MS || '9000');
-const socket = io(URL, {
-    reconnectionDelayMax: 10000,
-    transports: ['websocket', 'polling']
-    // transports: ['websocket']
-});
+let socket: Socket;
 
-socket.on("connect", () => {
-    console.log("Connected to the client!")
-})
+if (typeof window === 'undefined') {
+    // SSR env, no need to connect socket.
+} else {
+    socket = io(URL, {
+        reconnectionDelayMax: 10000,
+        transports: ['websocket', 'polling']
+        // transports: ['websocket']
+    });
+    socket.on("connect", () => {
+        console.log("Connected to the client!")
+    })
+}
 
 export const useTrackPage = (pathName: string) => {
     useEffect(() => {
@@ -32,24 +37,57 @@ export const useTrackPage = (pathName: string) => {
     }, [pathName]);
 }
 
-export const useStockPrice = (item: SearchTickerItem) => {
-    const [stockPrice, setStockPrice] = useState<StockPriceData>();
+export const useStockPrice = (input: string | string[]) => {
+    const [prices, setPrices] = useState<PriceMap>({});
+
+    const symbols = useMemo(() => {
+        return (Array.isArray(input) ? input : [input])
+            .map(s => s.toUpperCase())
+            .filter(Boolean);
+    }, [input]);
 
     useEffect(() => {
-        socket.emit('stock-price-subscribe-request', { ...item, frequency: WatchlistUpdateFrequency });
-        socket.on(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
-        return () => {
-            socket.emit('stock-price-unsubscribe-request', item);
-            socket.off(`stock-price-subscribe-response-${item.symbol}`, setStockPrice);
-        }
-    }, [item]);
-    if (!stockPrice) return null;
-    const { quoteSummary } = stockPrice;
-    const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
-        [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
-        : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
+        if (!symbols.length) return;
 
-    return { price, change, changePercent, quoteSummary };
+        const uniqueSymbols = [...new Set(symbols)];
+
+        const handlers: Record<string, (data: StockPriceData) => void> = {};
+
+        uniqueSymbols.forEach(symbol => {
+            socket.emit('stock-price-subscribe-request', {
+                symbol,
+                frequency: WatchlistUpdateFrequency,
+            });
+
+            const handler = (data: StockPriceData) => {
+
+                const { quoteSummary } = data;
+                const [price, change, changePercent] = (quoteSummary.hasPrePostMarketData && ['POST', 'POSTPOST', 'PRE'].includes(quoteSummary.marketState) && (quoteSummary.postMarketPrice || quoteSummary.preMarketPrice)) ?
+                    [quoteSummary.postMarketPrice || quoteSummary.preMarketPrice, quoteSummary.postMarketChange || quoteSummary.preMarketChange, quoteSummary.postMarketChangePercent || quoteSummary.preMarketChangePercent]
+                    : [quoteSummary.regularMarketPrice, quoteSummary.regularMarketChange, quoteSummary.regularMarketChangePercent];
+
+                setPrices(prev => ({
+                    ...prev,
+                    [symbol]: { price, change, changePercent, quoteSummary },
+                }));
+            };
+
+            handlers[symbol] = handler;
+            socket.on(`stock-price-subscribe-response-${symbol}`, handler);
+        });
+
+        return () => {
+            uniqueSymbols.forEach(symbol => {
+                socket.emit('stock-price-unsubscribe-request', { symbol });
+                socket.off(
+                    `stock-price-subscribe-response-${symbol}`,
+                    handlers[symbol]
+                );
+            });
+        };
+    }, [symbols]); // stable dependency
+
+    return prices;
 }
 
 export const useLivePageTrackingViews = () => {
@@ -102,7 +140,7 @@ export type OptionsStatsResponse = {
 // }
 const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], iv30: [], close: [], straddle: [], iv_percentile: [] };
 const defaultOptionsStats = { dt: [], cd: [], pd: [], cp: [], pp: [], co: [], po: [], close: [], options_count: [] };
-export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike') => {
+export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike', dte: number, expiryMode: 'fixed' | 'rolling') => {
     const [volatility, setVolatility] = useState<VolatilityResponse & { straddle: number[] }>(defaultVoltility);
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -146,16 +184,18 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
                 symbol,
                 lookbackDays,
                 delta: mode == 'delta' ? delta : null,
-                expiration,
+                expiration: expiryMode == 'fixed' ? expiration : undefined,
+                dte: expiryMode == 'rolling' ? dte : undefined,
                 mode,
                 requestId,
+                expiryMode,
                 strike: mode == 'strike' ? strike : null,
                 requestType: 'volatility-query'
             });
         };
         fetchVolatility();
         return () => { socket.off(`query-response-${requestId}`); clearTimeout(noResponseSignal); };
-    }, [symbol, lookbackDays, delta, expiration, mode, strike]);
+    }, [symbol, lookbackDays, delta, expiration, mode, strike, dte, expiryMode]);
     return { volatility, isLoading, hasError, error };
 }
 
@@ -208,4 +248,46 @@ export const useOptionsStats = (symbol: string, lookbackDays: number) => {
         return () => { socket.off(`query-response-${requestId}`); clearTimeout(noResponseSignal); };
     }, [symbol, lookbackDays]);
     return { stats, isLoading, hasError, error };
+}
+
+export const runDynamicQuery = (symbol: string, sql: string) => {
+    return new Promise<any[]>((resolve, reject) => {
+        const requestId = crypto.randomUUID();
+        const timeoutSeconds = 10;
+        const noResponseSignal = setTimeout(() => {
+            socket.emit('log-message', {
+                message: `Failed to receive the response within ${timeoutSeconds} seconds. Request Id: ${requestId},  ${symbol}`
+            });
+            reject(`Failed to receive the response for fetching options stats within ${timeoutSeconds} seconds. Please try again.`)
+        }, timeoutSeconds * 1000);
+
+        socket.once(`query-response-${requestId}`, (data: {
+            hasError: boolean, value: {
+                rows: [][],
+                columns: {
+                    columnNames: string[]
+                }
+            }
+        }) => {
+            clearTimeout(noResponseSignal);
+            if (data.hasError) { //checking dt, if it's null, likely there's no data returned from server.
+                reject(`Error executing query for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
+            } else {
+                const final = data.value.rows.map((k, ix) => {
+                    const rowObj: Record<string, any> = {};
+                    data.value.columns.columnNames.forEach((col, colIx) => {
+                        rowObj[col] = k[colIx];
+                    });
+                    return rowObj;
+                })
+                resolve(final);
+            }
+        });
+        socket.emit('submit-query', {
+            symbol,
+            sql,
+            requestId,
+            requestType: 'dynamic-sql-query',
+        });
+    });
 }

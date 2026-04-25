@@ -16,6 +16,23 @@ const deltaOptions = [10,
     70,
     90];
 
+const dteOptions = [0,
+    1,
+    7,
+    14,
+    21,
+    30,
+    45,
+    50,
+    60,
+    90,
+    120,
+    180,
+    360,
+    400,
+    480,
+    1000];
+
 export const Wrapper = (props: { symbols: string[] }) => {
     const { symbols } = props;
     const [symbol, setSymbol] = useState(symbols[0]);
@@ -25,14 +42,17 @@ export const Wrapper = (props: { symbols: string[] }) => {
 const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void }) => {
     const { symbols, symbol, onSymbolChange } = props;
     const [mode, setMode] = useState('delta');
+    const [expiryMode, setExpiryMode] = useState<'fixed' | 'rolling'>('fixed');
     const [lookbackPeriod, setLookbackPeriod] = useState(180);
+    const [dte, setDte] = useState(30);
     const { expirations, expiration, setExpiration, strike, setStrike } = useExpirations(symbol);
     const [delta, setDelta] = useState(25);
     const [showTVChart, setShowTVChart] = useState(false);
+    const [disabledDataPoints, setDisabledDataPoints] = useState<string[]>([]);
 
 
     const availableStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
-    const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike');
+    const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike', dte, expiryMode);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -47,11 +67,35 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                     <SymbolsSelector symbols={symbols} symbol={symbol} handleSymbolChange={onSymbolChange} />
                 </FormControl>
                 <FormControl sx={{ flexShrink: 0 }} size="small">
-                    <InputLabel>EXPIRY</InputLabel>
-                    <Select id="expiry" value={expiration} label="EXPIRY" onChange={(e) => setExpiration(e.target.value as string)}>
-                        {expirations.map((d) => (<MenuItem key={d.expiration} value={d.expiration}>{d.expiration}</MenuItem>))}
+                    <Tooltip title={
+                        <>
+                            <div><b>FIXED</b>: View options based on fixed expiration date.</div>
+                            <div><b>DTE</b>: View options based on rolling days to expiration.</div>
+                        </>
+                    }>
+                        <InputLabel>Expiry</InputLabel>
+                    </Tooltip>
+                    <Select id="expiry-mode" value={expiryMode} label="Expiry" onChange={(e) => setExpiryMode(e.target.value)}>
+                        <MenuItem key="fixed" value="fixed">FIXED</MenuItem>
+                        <MenuItem key="rolling" value="rolling">DTE</MenuItem>
                     </Select>
                 </FormControl>
+                {
+                    expiryMode == 'fixed' && <FormControl sx={{ flexShrink: 0 }} size="small">
+                        <InputLabel>EXPIRY</InputLabel>
+                        <Select id="expiry" value={expiration} label="EXPIRY" onChange={(e) => setExpiration(e.target.value as string)}>
+                            {expirations.map((d) => (<MenuItem key={d.expiration} value={d.expiration}>{d.expiration}</MenuItem>))}
+                        </Select>
+                    </FormControl>
+                }
+                {
+                    expiryMode == 'rolling' && <FormControl size="small" sx={{ flexShrink: 0 }}>
+                        <InputLabel>DTE</InputLabel>
+                        <Select id="dte" value={dte} label="DTE" onChange={(e) => setDte(e.target.value as number)}>
+                            {dteOptions.map((dte) => <MenuItem key={dte} value={dte}>{dte}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                }
                 <FormControl sx={{ flexShrink: 0 }} size="small">
                     <Tooltip title={
                         <>
@@ -112,9 +156,10 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
                 {
                     isLoading ? <Skeleton variant="rectangular" height={360} /> :
                         <Box sx={{ width: '100%' }}>
-                            {showTVChart ? <TVChart volatility={volatility} /> : <BasicChart volatility={volatility} />}
+                            {showTVChart ? <TVChart volatility={volatility} /> : <BasicChart volatility={volatility} disabledDataPoints={disabledDataPoints} setDisabledDataPoints={setDisabledDataPoints} />}
                             <Typography variant="caption" display="block" align="center" sx={{ mt: 1 }}>
-                                Implied Volatility and option contract pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} options expiring on {expiration}
+                                Implied Volatility and option contract pricing for {symbol} {mode == 'delta' ? `${delta}Δ` : mode == 'atm' ? 'at-the-money' : `$${strike} strike`} 
+                                options {expiryMode == 'fixed' ? `expiring on ${expiration}` : `with rolling ${dte} DTE`}
                             </Typography>
                         </Box>
                 }

@@ -2,6 +2,7 @@
 import ky from "ky";
 import { useEffect, useState } from "react";
 import { BrokerAccount, Position, PositionPayload } from "./types";
+import { useStockPrice } from "./socket";
 
 
 export const usePortfolio = () => {
@@ -52,5 +53,7 @@ export const usePortfolio = () => {
         Promise.all(promises).then(() => setIsLoading(false));
     }, []);
 
-    return { accounts, positions, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition };
+    const priceMap = useStockPrice(positions.map(p => p.symbol));
+    
+    return { accounts, positions, priceMap, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition };
 };

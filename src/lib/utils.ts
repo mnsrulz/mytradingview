@@ -16,3 +16,14 @@ export const calculateChartHeight = (expirations: string[], strikes: (number | s
     const bufferHeight = 10 + 40 + (4 * 20);
     return bufferHeight + (strikes.length * 15);
 }
+
+export const percentile = (arr: number[], p: number) => {
+    const sorted = [...arr].sort((a, b) => a - b);
+    const index = (p / 100) * (sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+
+    if (lower === upper) return sorted[lower];
+
+    return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
+}

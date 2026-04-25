@@ -1,7 +1,7 @@
-import { getColor, getColorV2 } from "@/lib/color";
+import { getColor } from "@/lib/color";
 import theme from "@/theme";
 import { Box, TableCell } from "@mui/material";
-type IConditionalFormattingBoxProps = { value: number, formattedValue: string }
+type IConditionalFormattingBoxProps = { value: number, formattedValue: string, color?: string };
 export const ConditionalFormattingBox = (props: IConditionalFormattingBoxProps) => {
     const { value, formattedValue } = props;
     if (value && !Number.isNaN(value)) {
@@ -25,15 +25,15 @@ export const ConditionalFormattingBox = (props: IConditionalFormattingBoxProps) 
     }
 }
 
-export const ConditionalFormattingCell = (props: IConditionalFormattingBoxProps) => {
-    const { value, formattedValue } = props;
+export const ConditionalFormattingCell = (props: IConditionalFormattingBoxProps & { width?: number }) => {
+    const { value, formattedValue, color, width } = props;
     const isNan = Number.isNaN(value);
-    let color = getColorV2(value || 0, -0.05, 0.05);
     return <TableCell
         sx={{
             backgroundColor: color,
             textAlign: 'right',
-            px: 1
+            border: "1px solid",
+            borderColor: "divider",
         }}
     >
         {isNan ? '' : formattedValue}
