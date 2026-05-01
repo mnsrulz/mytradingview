@@ -122,7 +122,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
 
             {/* Tabs */}
             <Stack direction="row" alignItems="center">
-                <Tabs                    
+                <Tabs
                     value={activeTabId}
                     onChange={(_, val) => setActiveTabId(val)}
                     variant="scrollable"
@@ -232,7 +232,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                 <Separator />
 
                 <Panel>
-                    <Paper>
+                    <Paper sx={{pt: 1}}>                        
                         {activeTab.error ? (
                             <Typography color="error" p={2}>
                                 {activeTab.error}
@@ -249,7 +249,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                 rows={rows}
                                 autoHeight
                                 density="compact"
-                                rowHeight={48}
+                                rowHeight={40}
                                 disableColumnMenu
                                 disableColumnSorting
                                 disableColumnSelector
@@ -258,6 +258,17 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                     pagination: { paginationModel: { pageSize: 10 } }
                                 }}
                                 pageSizeOptions={[5, 10, 25]}
+                                sx={{
+                                    // height: '15vh',
+                                    fontFamily: "Roboto Mono, monospace",
+                                    fontSize: 12,
+                                    //display: 'grid',
+                                    //'& .MuiDataGrid-columnSeparator': { display: 'none' },
+                                    '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+                                        outline: 'none'
+                                    }
+                                }}
+
                             />
                         ) : (
                             <Typography p={2} color="text.secondary">
