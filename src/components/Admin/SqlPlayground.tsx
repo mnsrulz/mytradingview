@@ -247,7 +247,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                     letterSpacing: 0.5
                                 }}
                             >
-                                ({cmdKey}{activeTab.isLoading ? 'C' : enterKey})
+                                ({cmdKey}{activeTab.isLoading ? '.' : enterKey})
                             </Typography>
                         </Box>
                     </Button>
@@ -274,7 +274,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                 );
 
                                 editor.addCommand(
-                                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC,
+                                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.Period,
                                     () => cancelQuery()
                                 );
 
