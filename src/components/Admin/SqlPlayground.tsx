@@ -12,10 +12,13 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useEffect, useRef, useState } from 'react';
 import { SymbolsSelector } from '../IVHistorical/SymbolsSelector';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import { Panel, Group, Separator } from "react-resizable-panels";
 import { nanoid } from 'nanoid';
+import delay from 'delay';
+import { useNotifications } from '@toolpad/core';
 
 const knownColumns = ["quote_date", "expiration_date", "expiration_dow", "quote_dow", "dte", "option_ticker", "option_type", "strike_price", "open_interest", "option_volume", "delta", "gamma", "vega", "theta", "rho", "theoretical_price", "implied_volatility", "option_open_price", "option_high_price", "bid_price", "ask_price", "mid_price", "liquidity_tier", "volume_oi_ratio", "underlying_symbol", "underlying_close_price", "moneyness", "moneyness_percent", "expiry_bucket"];
 
@@ -30,6 +33,7 @@ type PlaygroundTab = {
     result: any[];
     isLoading?: boolean;
     error?: string;
+    ac: AbortController;
 };
 const defaultQuery = `SELECT * FROM dataset`;
 export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
@@ -40,6 +44,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             query: defaultQuery,
             symbol: symbols[0],
             result: [],
+            ac: new AbortController()
         }
     ]);
     const [showAsJson, setShowAsJson] = useState(false);
@@ -47,6 +52,8 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
     // had to use ref since monaco's onMount only gets the initial query value, and doesn't update with state changes. This caused the executeQuery function to always use the initial query value, even after edits. 
     const tabsRef = useRef(tabs);
     const activeTabIdRef = useRef(activeTabId);
+
+    const notification = useNotifications();
 
     useEffect(() => {
         tabsRef.current = tabs;
@@ -62,13 +69,19 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
         setTabs(prev => prev.map(t => t.id === tab.id ? tab : t));
     }
 
+    const cancelQuery = async () => {
+        const currentTab = tabsRef.current.find(t => t.id === activeTabIdRef.current)!;
+        currentTab.ac.abort();
+    }
+
     const executeQuery = async () => {
         const currentTab = tabsRef.current.find(t => t.id === activeTabIdRef.current)!;
         const { id, query, symbol } = currentTab;
-        updateTab({ ...currentTab, isLoading: true, error: '' });
+        const ac = new AbortController();
+        updateTab({ ...currentTab, isLoading: true, error: '', ac });
         let result: any[] = [], error = '';
         try {
-            result = await runDynamicQuery(symbol, query);
+            result = await runDynamicQuery(symbol, query, ac.signal);
         } catch (err) {
             error = err instanceof Error ? err.message : String(err);
         }
@@ -86,6 +99,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                 query: defaultQuery,
                 symbol: symbols[0],
                 result: [],
+                ac: new AbortController()
             }
         ]);
         setActiveTabId(id);
@@ -117,41 +131,73 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             ...row,
         })) || [];
 
-    return (
-        <Stack spacing={2}>
+    const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+    const cmdKey = isMac ? '⌘' : 'Ctrl';
+    const enterKey = isMac ? '↵' : 'Enter';
 
+    return (
+        <Stack spacing={1}>
             {/* Tabs */}
             <Stack direction="row" alignItems="center">
                 <Tabs
                     value={activeTabId}
                     onChange={(_, val) => setActiveTabId(val)}
-                    variant="scrollable"
+                    variant="standard"
+                    scrollButtons="auto"
+                    sx={{
+                        minHeight: '32px',
+                        height: '32px',
+                        padding: 0,
+                        '& .MuiTabs-indicator': {
+                            height: '2px', // Slim indicator
+                            bottom: 0,
+                        }
+                    }}
+
                 >
                     {tabs.map(tab => (
                         <Tab
                             key={tab.id}
                             value={tab.id}
+                            sx={{
+                                minHeight: '32px',
+                                minWidth: 'auto',
+                                textTransform: 'none',
+                                // fontSize: '0.75rem',
+                                fontFamily: 'Roboto Mono, monospace', // Monospace for that "code" feel
+                                padding: '0 2px',
+                                // borderRight: '1px solid #ddd',
+                                // '&.Mui-selected': {
+                                //     backgroundColor: '#fff',
+                                //     fontWeight: 600,
+                                // }
+                                // minHeight: '32px', minWidth: 'auto', p: 0
+                            }}
                             label={
-                                <Stack direction="row" alignItems="center">
-                                    {tab.title}
+                                <Box sx={{ display: 'flex', alignItems: 'center', px: 1 }}>
+                                    <Typography sx={{
+                                        fontSize: '0.75rem',
+                                        mr: 1
+                                    }}>{tab.title}</Typography>
                                     <IconButton
                                         size="small"
+                                        sx={{ p: 0.2, '&:hover': { color: 'error.main' } }}
                                         component="span"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             closeTab(tab.id);
                                         }}
                                     >
-                                        <CloseIcon fontSize="small" />
+                                        <CloseIcon sx={{ fontSize: '0.8rem' }} />
                                     </IconButton>
-                                </Stack>
+                                </Box>
                             }
                         />
                     ))}
                 </Tabs>
 
                 <IconButton onClick={addTab}>
-                    <AddIcon />
+                    <AddIcon sx={{ fontSize: '0.8rem' }} />
                 </IconButton>
             </Stack>
 
@@ -179,14 +225,31 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                         </FormControl>
                     </Stack>
 
-
                     <Button
                         variant="contained"
-                        startIcon={<PlayArrowIcon />}
-                        onClick={executeQuery}
-                        disabled={activeTab.isLoading}
+                        startIcon={activeTab.isLoading ? <StopIcon /> : <PlayArrowIcon />}
+                        onClick={activeTab.isLoading ? cancelQuery : executeQuery}
+                        color={activeTab.isLoading ? "error" : "primary"}
+                        sx={{
+                            textTransform: 'none',
+                            minWidth: '160px', // Ensures the button doesn't jump size when text changes
+                            fontWeight: 600
+                        }}
                     >
-                        Execute Query
+                        <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {activeTab.isLoading ? "Cancel" : "Execute"}
+                            <Typography
+                                component="kbd"
+                                sx={{
+                                    opacity: 0.5,       // Standard: Muted color
+                                    fontSize: '0.7rem', // Standard: Slightly smaller than label
+                                    fontWeight: 400,
+                                    letterSpacing: 0.5
+                                }}
+                            >
+                                ({cmdKey}{activeTab.isLoading ? 'C' : enterKey})
+                            </Typography>
+                        </Box>
                     </Button>
                 </Stack>
             </Paper>
@@ -208,6 +271,11 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                 editor.addCommand(
                                     monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
                                     () => executeQuery()
+                                );
+
+                                editor.addCommand(
+                                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC,
+                                    () => cancelQuery()
                                 );
 
                                 monaco.languages.registerCompletionItemProvider('sql', {
@@ -232,7 +300,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                 <Separator />
 
                 <Panel>
-                    <Paper sx={{pt: 1}}>                        
+                    <Paper sx={{ pt: 1 }}>
                         {activeTab.error ? (
                             <Typography color="error" p={2}>
                                 {activeTab.error}

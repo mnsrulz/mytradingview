@@ -250,8 +250,23 @@ export const useOptionsStats = (symbol: string, lookbackDays: number) => {
     return { stats, isLoading, hasError, error };
 }
 
-export const runDynamicQuery = (symbol: string, sql: string) => {
+export const runDynamicQuery = (symbol: string, sql: string, signal?: AbortSignal) => {
+    console.log(`$${symbol} | Running dynamic query for 
+        -----------BEGIN------
+        ${sql}
+        -----------END--------
+        `);
     return new Promise<any[]>((resolve, reject) => {
+        if (signal?.aborted) {
+            return reject(new Error('Query aborted'));
+        }
+
+        const abortHandler = () => {
+            reject(new Error('Query aborted'));
+            signal?.removeEventListener('abort', abortHandler);
+        }
+
+        signal?.addEventListener('abort', abortHandler);
         const requestId = crypto.randomUUID();
         const timeoutSeconds = 10;
         const noResponseSignal = setTimeout(() => {
