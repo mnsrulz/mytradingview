@@ -50,7 +50,7 @@ export const ExpectedMoveChart = ({ symbol, mode, useMagnetCrossHair, expectedMo
             useDarkTheme: isDarkMode,
             expectedMoveDisplayOption: expectedMoveDisplayOption
         });
-    }, [isDarkMode, expectedMoveDisplayOption]);
+    }, [isDarkMode, expectedMoveDisplayOption, weeklyBoxPlugin]);
 
     const {
         mainColor,

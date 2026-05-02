@@ -211,11 +211,11 @@ export const useExpectedMove = (symbol: string, lookbackDays: number, expiryMode
     const { data, isLoading, hasError, error } = useSocketQuery('expected-move-query', defaultExpectedMove, {
         symbol, lookbackDays, expiryMode
     })
-    const mappedData = data.dt.map((d, ix) => ({
+    const mappedData = useMemo(() => data.dt.map((d, ix) => ({
         dt: d,
         last_close: data.last_close[ix],
         straddle_price: data.straddle_price[ix]
-    }));
+    })), [data]);
     return { data: mappedData, isLoading, hasError, error };
 }
 
@@ -223,14 +223,14 @@ export const useOhlc = (symbol: string, lookbackDays: number) => {
     const { data, isLoading, hasError, error } = useSocketQuery('ohlc-query', defaultOhlcData, {
         symbol, lookbackDays
     })
-    const mappedData = data.dt.map((d, ix) => ({
+    const mappedData = useMemo(() => data.dt.map((d, ix) => ({
         dt: d,
         open: data.open[ix],
         high: data.high[ix],
         low: data.low[ix],
         close: data.close[ix],
         iv30: data.iv30[ix]
-    }));
+    })), [data]);
     return { data: mappedData, isLoading, hasError, error };
 }
 
