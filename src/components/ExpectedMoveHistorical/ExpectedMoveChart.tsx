@@ -26,15 +26,15 @@ export const ExpectedMoveChart = ({ symbol, mode, useMagnetCrossHair, expectedMo
         return expectedMove.map((d, ix) => {
             //const endTime = data.length == (ix + 1) ? dayjs(d.start).add(1, mode === 'weekly' ? 'week' : 'month').format('YYYY-MM-DD') : dayjs(data[ix + 1].start).subtract(1, 'day').format('YYYY-MM-DD');
             //const endTime = dayjs(data[ix + 1]?.start).add(-1, 'day').format('YYYY-MM-DD') || dayjs(d.start).add(1, mode === 'weekly' ? 'week' : 'month').format('YYYY-MM-DD')
-            
+
             const endTime = expectedMove.length == (ix + 1) ? dayjs(d.dt).add(1, mode === 'weekly' ? 'week' : 'month').format('YYYY-MM-DD') : dailyData.filter(k => k.dt < expectedMove[ix + 1].dt).at(-1)?.dt || '';
             return {
                 startTime: d.dt,
                 endTime,
                 lastClose: d.last_close,
                 straddlePrice: d.straddle_price,
-                low: Math.min(...dailyData.filter(k => k.dt >= d.dt && k.dt < endTime).map(k => k.low)),
-                high: Math.max(...dailyData.filter(k => k.dt >= d.dt && k.dt < endTime).map(k => k.high)),
+                low: Math.min(...dailyData.filter(k => k.dt >= d.dt && k.dt <= endTime).map(k => k.low)),
+                high: Math.max(...dailyData.filter(k => k.dt >= d.dt && k.dt <= endTime).map(k => k.high)),
             }
         });
     }, [expectedMove, dailyData, mode]);
