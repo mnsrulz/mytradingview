@@ -1,4 +1,3 @@
-import { Position, PriceMap } from '@/lib/types'
 import { PositionPricing } from '@/lib/usePortfolio';
 import { PieChart } from '@mui/x-charts/PieChart'
 export function PositionsPieChart({

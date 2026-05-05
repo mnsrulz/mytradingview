@@ -68,7 +68,8 @@ export const usePortfolio = () => {
         Promise.all(promises).then(() => setIsLoading(false));
     }, []);
 
-    const priceMap = useStockPrice(positions.map(p => p.symbol));
+    const uniqueSymbols = useMemo(() => [... new Set(positions.map(p => p.symbol))], [positions]);
+    const priceMap = useStockPrice(uniqueSymbols);
 
     // Merge pricing into positions
     const positionsWithLivePrice = useMemo(() => {
