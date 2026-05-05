@@ -7,15 +7,16 @@ import { PositionsDataGrid } from './PositionsTable'
 import { PositionsPieChart } from './PositionsPieChart'
 import { PositionFormDialog } from './PositionFormDialog'
 import { usePortfolio } from '@/lib/usePortfolio'
+import { HoldingsSummary } from './HoldingsSummary'
 
 export const Portfolio = () => {
-    const { accounts, positions, priceMap, isLoading, reloadAccounts, reloadPositions, deletePosition, addPosition, updatePosition, addAccount } = usePortfolio();
+    const { accounts, positions, isLoading, reloadAccounts, reloadPositions, deletePosition, addPosition, updatePosition, addAccount } = usePortfolio();
 
     const [selectedAccountId, setSelectedAccountId] = useState<string>('')
     const [viewMode, setViewMode] = useState<'table' | 'pie'>('table')
 
     const [editingPosition, setEditingPosition] = useState<Position | null>(null)
-    const [positionFormOpen, setPositionFormOpen] = useState(false)
+    const [positionFormOpen, setPositionFormOpen] = useState(false);
 
     return (
         <>
@@ -32,11 +33,11 @@ export const Portfolio = () => {
                 onAddAccount={addAccount}
                 onRefresh={reloadAccounts}
             />
+            <HoldingsSummary positions={positions} selectedAccountId={selectedAccountId} />
 
             {viewMode === 'pie' ? (
                 <PositionsPieChart
                     positions={positions}
-                    priceMap={priceMap}
                     selectedAccountId={selectedAccountId}
                 />
             ) : (
@@ -44,7 +45,6 @@ export const Portfolio = () => {
                     loading={isLoading}
                     positions={positions}
                     selectedAccountId={selectedAccountId}
-                    priceMap={priceMap}
                     onEdit={pos => {
                         setEditingPosition(pos)
                         setPositionFormOpen(true)

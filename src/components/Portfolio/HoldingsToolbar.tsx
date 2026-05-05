@@ -11,7 +11,6 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import { useState } from 'react';
 import { AccountFormDialog } from './AccountFormDialog';
-
 export function HoldingsToolbar({
   accounts,
   selectedAccountId,

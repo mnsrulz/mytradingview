@@ -1,4 +1,4 @@
-import { Position, PriceMap } from '@/lib/types';
+import { Position } from '@/lib/types';
 import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
 import { Box, ListItemText } from '@mui/material';
 import { useDialogs, useNotifications } from '@toolpad/core';
@@ -8,11 +8,10 @@ import { StockTickerViewInternal } from '../StockTicker';
 import { numberFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
 import { green, red } from '@mui/material/colors';
 import { TradingViewWidgetDialog } from '@/components/TradingViewWidgetDialog';
-
+import { PositionPricing } from '@/lib/usePortfolio';
 
 export function PositionsDataGrid({
   loading,
-  priceMap,
   positions,
   selectedAccountId,
   onEdit,
@@ -20,8 +19,7 @@ export function PositionsDataGrid({
   onDeleted,
 }: {
   loading: boolean;
-  priceMap: PriceMap;
-  positions: Position[];
+  positions: PositionPricing[];
   selectedAccountId: string;
   onEdit: (p: Position) => void;
   onDelete: (positionId: string) => Promise<any>;
@@ -42,26 +40,22 @@ export function PositionsDataGrid({
 
   const filtered = selectedAccountId ? positions.filter((p) => p.brokerAccountId === selectedAccountId) : positions;
 
-  const columns: GridColDef<Position>[] = [
+  const columns: GridColDef<PositionPricing>[] = [
     { field: 'symbol', headerName: 'Symbol', renderCell: (p) => <span onClick={() => dialogs.open(TradingViewWidgetDialog, { symbol: p.row.symbol })}>{p.value}</span>, width: 150 },
     { field: 'quantity', headerName: 'Qty', type: 'number', },
     { field: 'costBasis', headerName: 'Cost Basis', type: 'number' },
     {
       resizable: false,
-      field: 'price', headerName: 'Price', headerAlign: 'right', align: 'right', sortable: false, width: 120, renderCell: (p) => {
-        if(!priceMap) return '-';
-        const v = priceMap[p.row.symbol] || {};
-        return <StockTickerViewInternal  {...v} />
+      field: 'price', headerName: 'Price', headerAlign: 'right', align: 'right', sortable: true, width: 120, renderCell: (p) => {
+        return <StockTickerViewInternal  {...p.row} />
       }
     },
     {
-      field: 'totalValue', headerName: 'Total Value', headerAlign: 'right', align: 'right', sortable: false, width: 140, renderCell: (p) => {
-        if(!priceMap) return '-';
+      field: 'totalValue', headerName: 'Total Value', headerAlign: 'right', align: 'right', sortable: true, width: 140, renderCell: (p) => {
         return <TotalValue
-          symbol={p.row.symbol}
           positionSize={p.row.quantity}
           costBasis={p.row.costBasis}
-          stockPrice={priceMap[p.row.symbol]?.price} />
+          stockPrice={p.row.price} />
       }
     },
     { field: 'notes', headerName: 'Notes', flex: 1 },
@@ -104,7 +98,6 @@ export function PositionsDataGrid({
             outline: 'none'
           }
         }}
-
       />
     </Box>
   );
@@ -112,7 +105,7 @@ export function PositionsDataGrid({
 
 //TODO: REFACTOR NEEDED. 
 const [primaryTextSize, secondaryTextSize] = ['1em', '0.85em'];
-const TotalValue = (props: { symbol: string, positionSize: number, costBasis: number | null, stockPrice: number | undefined }) => {
+const TotalValue = (props: { positionSize: number, costBasis: number | null, stockPrice: number | undefined }) => {
   //const [stockPrice, setStockPrice] = useState(0);
   //  const stockPrice = useStockPrice({ symbol: props.symbol, name: props.symbol });
 
