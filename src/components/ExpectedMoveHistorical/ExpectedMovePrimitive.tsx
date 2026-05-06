@@ -5,7 +5,9 @@ import {
     IChartApi,
     ISeriesApi,
     Time,
-    SeriesAttachedParameter
+    SeriesAttachedParameter,
+    Logical,
+    TimePointIndex
 } from 'lightweight-charts';
 import { CanvasRenderingTarget2D } from 'fancy-canvas';
 import { alpha } from '@mui/material/styles';
@@ -17,6 +19,7 @@ type ExpectedMoveData = {
     lastClose: number;
     high: number;
     low: number;
+    spanDays: number;
 };
 
 export type ExpecteMoveDisplayOptions = 'value' | 'percent';
@@ -136,15 +139,20 @@ class ExpectedMoveRenderer implements IPrimitivePaneRenderer {
 
             try {
                 for (const box of this._data) {
-                    const x1 = timeScale.timeToCoordinate(box.startTime);
-                    let x2 = timeScale.timeToCoordinate(box.endTime);
+                    const startIndex = timeScale.timeToIndex(box.startTime);
+                    let endIndex = timeScale.timeToIndex(box.endTime);
+                    let noEnd = false;
 
-                    const noEnd = x2 == null;
-
-                    if (x2 == null) {
-                        const visibleEnd = timeScale.getVisibleRange()?.to;
-                        x2 = visibleEnd ? timeScale.timeToCoordinate(visibleEnd) : null;
+                    if(startIndex == null) return;
+                    
+                    if (endIndex == null) {
+                        endIndex = (startIndex as number + box.spanDays) as TimePointIndex;
+                        noEnd = true;
                     }
+
+                    const x1 = timeScale.logicalToCoordinate(startIndex as unknown as Logical);
+                    const x2 = timeScale.logicalToCoordinate(endIndex as unknown as Logical);
+                    
 
                     if (x1 == null || x2 == null) continue;
 

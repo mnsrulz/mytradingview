@@ -205,7 +205,7 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
     return { volatility, isLoading, hasError, error };
 }
 
-const defaultExpectedMove = { dt: [] as string[], last_close: [] as number[], straddle_price: [] as number[] };
+const defaultExpectedMove = { dt: [] as string[], last_close: [] as number[], straddle_price: [] as number[], expiry: [] as string[] };
 const defaultOhlcData = { dt: [] as string[], open: [] as number[], high: [] as number[], low: [] as number[], close: [] as number[], iv30: [] as number[] };
 export const useExpectedMove = (symbol: string, lookbackDays: number, expiryMode: 'weekly' | 'monthly') => {
     const { data, isLoading, hasError, error } = useSocketQuery('expected-move-query', defaultExpectedMove, {
@@ -214,7 +214,8 @@ export const useExpectedMove = (symbol: string, lookbackDays: number, expiryMode
     const mappedData = useMemo(() => data.dt.map((d, ix) => ({
         dt: d,
         last_close: data.last_close[ix],
-        straddle_price: data.straddle_price[ix]
+        straddle_price: data.straddle_price[ix],
+        expiry: data.expiry[ix]
     })), [data]);
     return { data: mappedData, isLoading, hasError, error };
 }
