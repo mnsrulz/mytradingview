@@ -143,8 +143,7 @@ class ExpectedMoveRenderer implements IPrimitivePaneRenderer {
                     let endIndex = timeScale.timeToIndex(box.endTime);
                     let noEnd = false;
 
-                    if(startIndex == null) return;
-                    
+                    if (startIndex == null) continue;
                     if (endIndex == null) {
                         endIndex = (startIndex as number + box.spanDays) as TimePointIndex;
                         noEnd = true;
