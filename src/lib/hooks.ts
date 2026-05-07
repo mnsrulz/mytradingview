@@ -8,29 +8,19 @@ import { nanoid } from 'nanoid';
 import { StrikeValueType } from '@/components/OptionsExposure/StrikesSelectorDropdown';
 import { ExpiryValue } from '@/components/OptionsExposure/ExpirySelectorDropdown';
 
-export const useMyStockList = (initialState: SearchTickerItem[] | undefined) => {
-    const [mytickers, setMyTickers] = useState<SearchTickerItem[]>(initialState || []);
-    const [loading, setIsLoading] = useState(initialState === undefined);
+export const useKnownWatchlist = () => {
+    const [items, setItems] = useState<SearchTickerItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     useEffect(() => {
-        if (!initialState) {
-            ky(`/api/watchlist`).json<{ items: SearchTickerItem[] }>().then(r => {
-                setMyTickers(r.items);
-                setIsLoading(false);
-            });
-        }
+        setIsLoading(true);
+        ky(`/api/watchlist`).json<{ items: SearchTickerItem[] }>().then(r => {
+            setItems(r.items);
+            setIsLoading(false);
+        });
     }, []);
 
-    const addToWatchlist = useCallback((item: SearchTickerItem) => {
-        ky.post(`/api/watchlist`, { json: item }).json().then(r => setMyTickers((ii) => [...ii.filter(x => x.symbol != item.symbol), item]));
-    }, []);
-
-    const removeFromWatchlist = useCallback((item: SearchTickerItem) => {
-        ky.delete(`/api/watchlist`, { json: item }).json().then(r => setMyTickers((ii) => ii.filter(i => i.symbol != item.symbol)));
-    }, []);
-
-    return { mytickers, addToWatchlist, removeFromWatchlist, loading };
+    return { items, isLoading };
 }
-
 
 export type OptionsHedgingDataset = { strike: number, [x: string]: number; }
 
@@ -441,9 +431,9 @@ export const useOptionExposure = (symbol: string, expiryValue: ExpiryValue, stri
         expiration: string;
     }[]);
 
-// useMemo(() => {
-//         return rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
-//     }, [rawExposureResponse]);
+    // useMemo(() => {
+    //         return rawExposureResponse?.data.map(({ dte, expiration }) => ({ dte, expiration })) || [];
+    //     }, [rawExposureResponse]);
 
     // const [emaData, setEmaData] = useState<{ ema9d: number, ema21d: number }>();
 

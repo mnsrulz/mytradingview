@@ -23,6 +23,10 @@ export const searchTicker = async (searchTerm: string, signal?: AbortSignal) => 
     return await client('api/symbols', { searchParams: { q: searchTerm }, signal: signal }).json<SearchTickerItem[]>();
 }
 
+export const getAllSymbols = async (signal?: AbortSignal) => {
+    return await client('api/symbols/all', { signal: signal }).json<SearchTickerItem[]>();
+}
+
 export const getCachedDataForSymbol = async (symbol: string) => {
     return await client(`api/options/${symbol}/exposure/historical-dates`).json<{ dt: string }[]>();
 }
