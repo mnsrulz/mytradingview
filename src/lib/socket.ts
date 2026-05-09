@@ -319,7 +319,7 @@ const useSocketQuery = <T>(requestType: SocketRequestType, defaultData: T, param
             socket.off(`query-response-${requestId}`);
             clearTimeout(timer);
         };
-    }, [JSON.stringify(params)]); // Be careful with object dependencies
+    }, [JSON.stringify(params), requestType]); // Be careful with object dependencies
 
     return { data, ...state };
 };

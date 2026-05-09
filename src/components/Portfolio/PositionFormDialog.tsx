@@ -65,7 +65,7 @@ export const PositionFormDialog = ({
         notes: '',
       })
     }
-  }, [position, open])
+  }, [position, open, defaultAccountId])
 
   const submit = async () => {
     if (!form.brokerAccountId) {
