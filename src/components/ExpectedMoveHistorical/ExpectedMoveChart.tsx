@@ -38,13 +38,13 @@ export const ExpectedMoveChart = ({ symbol, mode, useMagnetCrossHair, expectedMo
                 spanDays: dayjs(d.expiry).diff(d.dt, 'day')
             }
         });
-    }, [expectedMove, dailyData, mode]);
+    }, [expectedMove, dailyData]);
 
     // 2. Memoize the Primitive instance itself
     const weeklyBoxPlugin = useMemo(() => {
         if (boxes.length === 0) return null;
         return new ExpectedMovePrimitive(boxes, isDarkMode);
-    }, [boxes]);
+    }, [boxes, isDarkMode]);
 
     useEffect(() => {
         weeklyBoxPlugin?.updateOptions({

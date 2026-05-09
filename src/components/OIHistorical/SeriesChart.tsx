@@ -30,7 +30,7 @@ export const SeriesChart = (props: { symbol: string, expirationDates: string[] }
                 autoHideDuration: 3000,
             });
         });
-    }, [symbol, expirationDates])
+    }, [symbol, expirationDates, notifications])
 
     if (isLoading) return <LinearProgress />
 

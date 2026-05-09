@@ -630,7 +630,7 @@ export const useOptionExposure = (symbol: string, expiryValue: ExpiryValue, stri
                 setIsLoading(false);
             }
         })();
-    }, [symbol, dt, dataMode, refreshToken, chartType, expiryValue, strikeCount]);
+    }, [symbol, dt, dataMode, refreshToken, chartType, expiryValue, strikeCount, cacheStore]);
 
     return {
         exposureData, isLoading, hasError, expirationData

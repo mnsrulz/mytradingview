@@ -494,7 +494,7 @@ function QueryPickerDialog({ payload, onClose, open }: DialogProps<SavedQuery[],
                     </List>
                 ) : (
                     <Box sx={{ p: 4, textAlign: 'center', opacity: 0.6 }}>
-                        <Typography variant="body2">No queries found matching "{searchTerm}"</Typography>
+                        <Typography variant="body2">No queries found matching {searchTerm}</Typography>
                     </Box>
                 )}
             </DialogContent>
