@@ -91,3 +91,11 @@ model Portfolio {
   @@unique([symbol, brokerAccountId])  // Prevent duplicate positions in same account
   @@map(name: "portfolio")
 }
+
+model SavedQuery {
+  id        String   @id @default(cuid()) // This is the ID
+  name      String   @unique
+  query     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

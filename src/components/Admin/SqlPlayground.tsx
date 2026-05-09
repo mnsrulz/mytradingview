@@ -4,10 +4,26 @@ import Editor from '@monaco-editor/react';
 import {
     Box, Button, CircularProgress, FormControl, Paper, Stack,
     Typography, useColorScheme, Tabs, Tab, IconButton,
-    Divider,
     Checkbox,
-    FormControlLabel
+    FormControlLabel,
+    Tooltip,
+    List,
+    ListItemButton,
+    ListItemText,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    InputAdornment,
+    TextField
 } from '@mui/material';
+
+import SaveIcon from '@mui/icons-material/Save';
+import FileOpenIcon from '@mui/icons-material/FileOpen';
+import SearchIcon from '@mui/icons-material/Search';
+import HistoryIcon from '@mui/icons-material/History';
+
+import { DialogProps, useDialogs } from '@toolpad/core/useDialogs';
+
 import { DataGrid } from '@mui/x-data-grid';
 import { useEffect, useRef, useState } from 'react';
 import { SymbolsSelector } from '../IVHistorical/SymbolsSelector';
@@ -17,8 +33,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import { Panel, Group, Separator } from "react-resizable-panels";
 import { nanoid } from 'nanoid';
-import delay from 'delay';
 import { useNotifications } from '@toolpad/core';
+import { useSavedQueries } from '@/lib/useSavedQueries';
+import { SavedQuery } from '@prisma/client';
 
 const knownColumns = ["quote_date", "expiration_date", "expiration_dow", "quote_dow", "dte", "option_ticker", "option_type", "strike_price", "open_interest", "option_volume", "delta", "gamma", "vega", "theta", "rho", "theoretical_price", "implied_volatility", "option_open_price", "option_high_price", "bid_price", "ask_price", "mid_price", "liquidity_tier", "volume_oi_ratio", "underlying_symbol", "underlying_close_price", "moneyness", "moneyness_percent", "expiry_bucket"];
 
@@ -33,6 +50,7 @@ type PlaygroundTab = {
     result: any[];
     isLoading?: boolean;
     error?: string;
+    queryId?: string;
     ac: AbortController;
 };
 const defaultQuery = `SELECT * FROM dataset`;
@@ -44,7 +62,8 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             query: defaultQuery,
             symbol: symbols[0],
             result: [],
-            ac: new AbortController()
+            ac: new AbortController(),
+            queryId: ''
         }
     ]);
     const [showAsJson, setShowAsJson] = useState(false);
@@ -52,6 +71,8 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
     // had to use ref since monaco's onMount only gets the initial query value, and doesn't update with state changes. This caused the executeQuery function to always use the initial query value, even after edits. 
     const tabsRef = useRef(tabs);
     const activeTabIdRef = useRef(activeTabId);
+
+    const { queries, saveQuery, deleteQuery } = useSavedQueries();
 
     const notification = useNotifications();
 
@@ -134,6 +155,47 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
     const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
     const cmdKey = isMac ? '⌘' : 'Ctrl';
     const enterKey = isMac ? '↵' : 'Enter';
+    const dialogs = useDialogs();
+
+    const handleLoad = async () => {
+        const dialogResult = await dialogs.open(QueryPickerDialog, queries);
+        if (dialogResult) {
+            activeTab.queryId = dialogResult.id;
+            activeTab.query = dialogResult.query;
+            activeTab.title = dialogResult.name;
+            updateTab(activeTab)
+        }
+    }
+
+    const handleSave = async () => {
+        try {
+            let queryName: string | undefined | null = '';
+            if (activeTab.queryId) {
+                queryName = queries.find(k => k.id == activeTab.queryId)?.name;
+            } else {
+                queryName = await dialogs.prompt('Name?', {
+                    cancelText: 'Cancel',
+                });
+            }
+            if (!queryName) return;
+
+            await saveQuery({
+                name: queryName,
+                query: activeTab.query,
+                id: activeTab.queryId
+            });
+
+            notification.show(`Query saved!`, {
+                autoHideDuration: 3000
+            });
+        } catch (error) {
+            notification.show(`an error occurred while saving...`, {
+                severity: 'error',
+                autoHideDuration: 3000
+            });
+        }
+    }
+
 
     return (
         <Stack spacing={1}>
@@ -206,6 +268,18 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                 <Stack direction="row" justifyContent="space-between" p={1}>
                     <Stack direction="row" spacing={2}>
 
+                        <Tooltip title="Load Query">
+                            <IconButton onClick={handleLoad} color="primary" size="small">
+                                <FileOpenIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Save Query">
+                            <IconButton onClick={handleSave} color="primary" size="small">
+                                <SaveIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+
                         <FormControl size="small" sx={{ minWidth: 140 }}>
                             <SymbolsSelector
                                 disabled={activeTab.isLoading}
@@ -217,13 +291,14 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                             />
                         </FormControl>
 
-
                         <FormControl size="small">
                             <FormControlLabel control={<Checkbox checked={showAsJson}
                                 onChange={(ev) => setShowAsJson(ev.target.checked)} />}
                                 label="Show as JSON" />
                         </FormControl>
                     </Stack>
+
+
 
                     <Button
                         variant="contained"
@@ -349,3 +424,80 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
         </Stack>
     );
 };
+
+function QueryPickerDialog({ payload, onClose, open }: DialogProps<SavedQuery[], SavedQuery | null>) {
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredQueries = payload.filter((q) =>
+        q.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <Dialog
+            open={open}
+            fullWidth
+            maxWidth="sm"
+            onClose={() => onClose(null)}
+            // Professional touch: Smooth transition and accessibility
+            aria-labelledby="query-picker-title"
+        >
+            <DialogTitle id="query-picker-title">
+                <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                    Saved Queries
+                </Typography>
+                <TextField
+                    fullWidth
+                    size="small"
+                    variant="outlined"
+                    placeholder="Search queries..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{ mt: 2 }}
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon fontSize="small" />
+                                </InputAdornment>
+                            )
+                        }
+                    }}
+                />
+            </DialogTitle>
+
+            <DialogContent dividers sx={{ p: 0, minHeight: '300px' }}>
+                {filteredQueries.length > 0 ? (
+                    <List disablePadding>
+                        {filteredQueries.map((query) => (
+                            <ListItemButton
+                                key={query.id}
+                                onClick={() => onClose(query)}
+                                divider
+                                sx={{ py: 1.5 }}
+                            >
+                                <ListItemText
+                                    primary={query.name}
+                                    secondary={
+                                        <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                                            <HistoryIcon sx={{ fontSize: 14 }} />
+                                            Last modified: {new Date(query.updatedAt).toLocaleDateString()}
+                                        </Box>
+                                    }
+                                    slotProps={{
+                                        primary: {
+                                            fontWeight: 500, color: 'primary.main'
+                                        }
+                                    }}
+                                />
+                            </ListItemButton>
+                        ))}
+                    </List>
+                ) : (
+                    <Box sx={{ p: 4, textAlign: 'center', opacity: 0.6 }}>
+                        <Typography variant="body2">No queries found matching "{searchTerm}"</Typography>
+                    </Box>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+}

@@ -8,6 +8,7 @@ const securePageRoutesRegex = /^\/(trades|portfolio|admin(\/.*)?)$/;
 const isSecureApi = (path: string) => {
        return path.startsWith('/api/trades') ||
               path.startsWith('/api/portfolio') ||
+              path.startsWith('/api/queries') ||
               /^\/api\/symbols\/[^/]+\/options\/analyze\/tradier$/.test(path);
 }
 

@@ -9,7 +9,7 @@
     "pdeploy": "prisma migrate deploy",
     "dev": "next dev --turbo",
     "devtz": "TZ=utc next dev",
-    "build": "next build",
+    "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint"
   },
