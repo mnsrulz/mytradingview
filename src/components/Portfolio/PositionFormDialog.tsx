@@ -19,8 +19,8 @@ interface Props {
   open: boolean
   onClose: () => void
   onSaved: () => void
-  onAdd: (position:PositionPayload)=> Promise<any>
-  onUpdate: (positionId: string, payload: PositionPayload)=> Promise<any>
+  onAdd: (position: PositionPayload) => Promise<any>
+  onUpdate: (positionId: string, payload: PositionPayload) => Promise<any>
   accounts: BrokerAccount[]
   defaultAccountId?: string
   position: Position | null
@@ -65,7 +65,7 @@ export const PositionFormDialog = ({
         notes: '',
       })
     }
-  }, [position, open])
+  }, [position, open, defaultAccountId])
 
   const submit = async () => {
     if (!form.brokerAccountId) {
@@ -90,7 +90,8 @@ export const PositionFormDialog = ({
       onSaved()
       onClose()
     } catch (error) {
-      notifications.show('Error saving position', { severity: 'error', autoHideDuration: 3000 });
+      let errorMessage = error instanceof Error ? error.message : 'Error saving position';
+      notifications.show(errorMessage, { severity: 'error', autoHideDuration: 3000 });
     }
   }
 

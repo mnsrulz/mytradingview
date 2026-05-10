@@ -16,6 +16,7 @@ import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import StorageIcon from '@mui/icons-material/Storage';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -68,6 +69,12 @@ export const NAVIGATION: Navigation = [
         title: 'IV',
         icon: <ElectricBoltIcon />,
         pattern: 'options/iv'
+    },
+    {
+        segment: 'options/expected-move',
+        title: 'Expected Move',
+        icon: <CompareArrowsIcon />,
+        pattern: 'options/expected-move{/:symbol}*'
     },
     {
         kind: 'divider',

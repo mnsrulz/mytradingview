@@ -122,6 +122,12 @@ export type VolatilityResponse = {
     close: number[];
 };
 
+export type ExpectedMoveResponse = {
+    dt: string[];
+    last_close: number[];
+    straddle_price: number[];
+};
+
 export type OptionsStatsResponse = {
     dt: string[];
     cd: number[];
@@ -199,6 +205,36 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
     return { volatility, isLoading, hasError, error };
 }
 
+const defaultExpectedMove = { dt: [] as string[], last_close: [] as number[], straddle_price: [] as number[], expiry: [] as string[] };
+const defaultOhlcData = { dt: [] as string[], open: [] as number[], high: [] as number[], low: [] as number[], close: [] as number[], iv30: [] as number[] };
+export const useExpectedMove = (symbol: string, lookbackDays: number, expiryMode: 'weekly' | 'monthly') => {
+    const { data, isLoading, hasError, error } = useSocketQuery('expected-move-query', defaultExpectedMove, {
+        symbol, lookbackDays, expiryMode
+    })
+    const mappedData = useMemo(() => data.dt.map((d, ix) => ({
+        dt: d,
+        last_close: data.last_close[ix],
+        straddle_price: data.straddle_price[ix],
+        expiry: data.expiry[ix]
+    })), [data]);
+    return { data: mappedData, isLoading, hasError, error };
+}
+
+export const useOhlc = (symbol: string, lookbackDays: number) => {
+    const { data, isLoading, hasError, error } = useSocketQuery('ohlc-query', defaultOhlcData, {
+        symbol, lookbackDays
+    })
+    const mappedData = useMemo(() => data.dt.map((d, ix) => ({
+        dt: d,
+        open: data.open[ix],
+        high: data.high[ix],
+        low: data.low[ix],
+        close: data.close[ix],
+        iv30: data.iv30[ix]
+    })), [data]);
+    return { data: mappedData, isLoading, hasError, error };
+}
+
 export const useOptionsStats = (symbol: string, lookbackDays: number) => {
     const [stats, setStats] = useState<OptionsStatsResponse>(defaultOptionsStats);
     const [isLoading, setIsLoading] = useState(true);
@@ -250,8 +286,61 @@ export const useOptionsStats = (symbol: string, lookbackDays: number) => {
     return { stats, isLoading, hasError, error };
 }
 
-export const runDynamicQuery = (symbol: string, sql: string) => {
+type SocketRequestType = 'expected-move-query' | 'ohlc-query';
+// A reusable internal hook to handle the socket request/response lifecycle
+const useSocketQuery = <T>(requestType: SocketRequestType, defaultData: T, params: object) => {
+    const [data, setData] = useState<T>(defaultData);
+    const [state, setState] = useState({ isLoading: true, hasError: false, error: '' });
+
+    useEffect(() => {
+        const requestId = crypto.randomUUID();
+        const timeoutSeconds = 10;
+
+        setState({ isLoading: true, hasError: false, error: '' });
+
+        const timer = setTimeout(() => {
+            setState({ isLoading: false, hasError: true, error: 'Request timed out.' });
+            socket.off(`query-response-${requestId}`);
+        }, timeoutSeconds * 1000);
+
+        socket.once(`query-response-${requestId}`, (res) => {
+            clearTimeout(timer);
+            if (res.hasError) {
+                setState({ isLoading: false, hasError: true, error: 'Query failed.' });
+            } else {
+                setData(res.value);
+                setState({ isLoading: false, hasError: false, error: '' });
+            }
+        });
+
+        socket.emit('submit-query', { ...params, requestId, requestType: requestType.toString() });
+
+        return () => {
+            socket.off(`query-response-${requestId}`);
+            clearTimeout(timer);
+        };
+    }, [JSON.stringify(params), requestType]); // Be careful with object dependencies
+
+    return { data, ...state };
+};
+
+export const runDynamicQuery = (symbol: string, sql: string, signal?: AbortSignal) => {
+    console.log(`$${symbol} | Running dynamic query for 
+        -----------BEGIN------
+        ${sql}
+        -----------END--------
+        `);
     return new Promise<any[]>((resolve, reject) => {
+        if (signal?.aborted) {
+            return reject(new Error('Query aborted'));
+        }
+
+        const abortHandler = () => {
+            reject(new Error('Query aborted'));
+            signal?.removeEventListener('abort', abortHandler);
+        }
+
+        signal?.addEventListener('abort', abortHandler);
         const requestId = crypto.randomUUID();
         const timeoutSeconds = 10;
         const noResponseSignal = setTimeout(() => {

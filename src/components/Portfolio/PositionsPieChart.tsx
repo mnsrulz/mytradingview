@@ -1,21 +1,18 @@
-import { Position, PriceMap } from '@/lib/types'
+import { PositionPricing } from '@/lib/usePortfolio';
 import { PieChart } from '@mui/x-charts/PieChart'
 export function PositionsPieChart({
   positions,
-  selectedAccountId,
-  priceMap,
+  selectedAccountId
 }: {
-  positions: Position[]
+  positions: PositionPricing[]
   selectedAccountId: string
-  priceMap: PriceMap;
 }) {
   
   const groupedPositions = positions
     .filter(p => !selectedAccountId || p.brokerAccountId === selectedAccountId)
     .reduce((acc, p) => {
     if (!acc[p.symbol]) acc[p.symbol] = 0
-    const price = priceMap?.[p.symbol]?.price ?? 0
-    acc[p.symbol] += p.quantity * price
+    acc[p.symbol] += p.quantity * p.price
     return acc
   }, {} as Record<string, number>);
 
@@ -25,7 +22,7 @@ export function PositionsPieChart({
     value,
   }))
     
-  if (!data.length || !priceMap) return null
+  if (!data.length) return null
 
   return (
     <PieChart
