@@ -20,9 +20,61 @@ const apiClient = ky.create({
 });
 
 export type PositionPricing = Position & { price: number, change: number, changePercent: number, totalValue: number };
+
+export type AggregatedPosition = {
+    symbol: string;
+    totalQuantity: number;
+    totalCostBasis: number;
+    accounts: Array<{ id: string; brokerAccountId: string; quantity: number; costBasis: number | null; broker: string; accountName: string, notes: string | null, rawPosition: Position }>;
+    price: number;
+    change: number;
+    changePercent: number;
+    totalValue: number;
+    weightedAverageCostBasis: number;
+    todaysValueChange: number;
+    totalValueChange: number;
+};
+
+const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: string): Omit<AggregatedPosition, 'price' | 'change' | 'changePercent' | 'totalValue'>[] => {
+    const filteredPositions = filterAccountId ? positions.filter(k => k.brokerAccountId === filterAccountId) : positions;
+    const grouped = filteredPositions.reduce((acc, pos) => {
+        if (!acc[pos.symbol]) {
+            acc[pos.symbol] = [];
+        }
+        acc[pos.symbol].push(pos);
+        return acc;
+    }, {} as Record<string, Position[]>);
+
+    return Object.entries(grouped).map(([symbol, positionsForSymbol]) => {
+        const totalQuantity = positionsForSymbol.reduce((sum, p) => sum + p.quantity, 0);
+        const totalCostBasis = positionsForSymbol.reduce((sum, p) => sum + ((p.costBasis || 0) * p.quantity), 0);
+        const weightedAverageCostBasis = totalQuantity > 0 ? totalCostBasis / totalQuantity : 0;
+
+        return {
+            symbol,
+            totalQuantity,
+            totalCostBasis,
+            accounts: positionsForSymbol.map(p => ({
+                id: p.id,
+                brokerAccountId: p.brokerAccountId,
+                quantity: p.quantity,
+                costBasis: p.costBasis,
+                broker: p.brokerAccount.broker,
+                accountName: p.brokerAccount.accountName,
+                notes: p.notes,
+                rawPosition: p
+            })),
+            weightedAverageCostBasis,
+            todaysValueChange: 0,
+            totalValueChange: 0
+        };
+    });
+};
+
 export const usePortfolio = () => {
     const [accounts, setAccounts] = useState<BrokerAccount[]>([])
     const [positions, setPositions] = useState<Position[]>([])
+    const [selectedAccountId, setSelectedAccountId] = useState<string>('');
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -62,6 +114,8 @@ export const usePortfolio = () => {
         });
     }
 
+    const changeAccountFilter = (accountId: string) => setSelectedAccountId(accountId);
+
     useEffect(() => {
         setIsLoading(true);
         const promises = [fetchAccounts(), fetchPositions()];
@@ -72,16 +126,31 @@ export const usePortfolio = () => {
     const priceMap = useStockPrice(uniqueSymbols);
 
     // Merge pricing into positions
-    const positionsWithLivePrice = useMemo(() => {
-        return positions.map((pos) => ({
-            ...pos,
-            // Embed the live data directly
-            price: priceMap[pos.symbol]?.price || 0,
-            change: priceMap[pos.symbol]?.change || 0,
-            changePercent: priceMap[pos.symbol]?.changePercent || 0,
-            totalValue: priceMap[pos.symbol]?.price * pos.quantity
-        }));
-    }, [positions, priceMap]);
+    // const positionsWithLivePrice = useMemo(() => {
+    //     return positions.map((pos) => ({
+    //         ...pos,
+    //         price: priceMap[pos.symbol]?.price || 0,
+    //         change: priceMap[pos.symbol]?.change || 0,
+    //         changePercent: priceMap[pos.symbol]?.changePercent || 0,
+    //         totalValue: priceMap[pos.symbol]?.price * pos.quantity
+    //     }));
+    // }, [positions, priceMap]);
 
-    return { accounts, positions: positionsWithLivePrice, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition };
+    const aggregatedBase = useMemo(() => {
+        return aggregatePositionsBySymbol(positions, selectedAccountId);
+    }, [positions, selectedAccountId]);
+
+    const aggregatedPositions = useMemo(() => {
+        return aggregatedBase.map((agg) => ({
+            ...agg,
+            price: priceMap[agg.symbol]?.price || 0,
+            change: priceMap[agg.symbol]?.change || 0,
+            changePercent: priceMap[agg.symbol]?.changePercent || 0,
+            totalValue: (priceMap[agg.symbol]?.price || 0) * agg.totalQuantity,
+            todaysValueChange: (priceMap[agg.symbol]?.change || 0) * agg.totalQuantity,
+            totalValueChange: ((priceMap[agg.symbol]?.price || 0) * agg.totalQuantity) - agg.totalCostBasis
+        }));
+    }, [aggregatedBase, priceMap]);
+
+    return { accounts, aggregatedPositions, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition, selectedAccountId, changeAccountFilter };
 };

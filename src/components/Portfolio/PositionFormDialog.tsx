@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import {
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,34 +14,22 @@ import {
 import { BrokerAccount, Position, PositionPayload } from '@/lib/types'
 import { useNotifications } from '@toolpad/core'
 
-interface Props {
-  open: boolean
-  onClose: () => void
-  onSaved: () => void
-  onAdd: (position: PositionPayload) => Promise<any>
+import { DialogProps } from '@toolpad/core';
+import { AggregatedPosition } from '@/lib/usePortfolio';
+
+export const PositionFormDialog = ({ payload, onClose, open }: DialogProps<{
+  position?: Position, 
+  accounts: BrokerAccount[],
+  onAdd: (payload: PositionPayload) => Promise<any>,
   onUpdate: (positionId: string, payload: PositionPayload) => Promise<any>
-  accounts: BrokerAccount[]
-  defaultAccountId?: string
-  position: Position | null
-}
-
-export const PositionFormDialog = ({
-  open,
-  onClose,
-  onSaved,
-  accounts,
-  position,
-  defaultAccountId,
-  onAdd,
-  onUpdate,
-}: Props) => {
+}, any | null>) => {
+  const { accounts, position, onAdd, onUpdate } = payload;
   const notifications = useNotifications();
-  const isEdit = Boolean(position)
-
+  const isEdit = Boolean(position);
   const [form, setForm] = useState({
     symbol: '',
     quantity: '',
-    brokerAccountId: defaultAccountId || '',
+    brokerAccountId: position?.brokerAccountId || '',
     costBasis: '',
     notes: '',
   })
@@ -54,18 +41,18 @@ export const PositionFormDialog = ({
         quantity: position.quantity.toString(),
         brokerAccountId: position.brokerAccountId,
         costBasis: position.costBasis?.toString() ?? '',
-        notes: position.notes ?? '',
+        notes: position.notes ?? ''
       })
     } else {
       setForm({
         symbol: '',
         quantity: '',
-        brokerAccountId: defaultAccountId || '',
+        brokerAccountId: accounts[0].id || '',
         costBasis: '',
         notes: '',
       })
     }
-  }, [position, open, defaultAccountId])
+  }, [position, accounts])
 
   const submit = async () => {
     if (!form.brokerAccountId) {
@@ -87,8 +74,8 @@ export const PositionFormDialog = ({
         await onAdd(payload)
       }
       notifications.show(`Position ${isEdit ? 'updated' : 'added'} successfully`, { severity: 'success', autoHideDuration: 3000 });
-      onSaved()
-      onClose()
+      // onSaved()
+      onClose(payload)
     } catch (error) {
       let errorMessage = error instanceof Error ? error.message : 'Error saving position';
       notifications.show(errorMessage, { severity: 'error', autoHideDuration: 3000 });
@@ -96,7 +83,7 @@ export const PositionFormDialog = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={() => onClose(null)} fullWidth maxWidth="sm">
       <DialogTitle>
         {isEdit ? 'Edit Position' : 'Add Position'}
       </DialogTitle>

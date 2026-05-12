@@ -8,62 +8,53 @@ import { PositionsPieChart } from './PositionsPieChart'
 import { PositionFormDialog } from './PositionFormDialog'
 import { usePortfolio } from '@/lib/usePortfolio'
 import { HoldingsSummary } from './HoldingsSummary'
+import { useDialogs } from '@toolpad/core'
 
 export const Portfolio = () => {
-    const { accounts, positions, isLoading, reloadAccounts, reloadPositions, deletePosition, addPosition, updatePosition, addAccount } = usePortfolio();
-
-    const [selectedAccountId, setSelectedAccountId] = useState<string>('')
+    const { accounts, aggregatedPositions, isLoading, reloadAccounts, reloadPositions, deletePosition, addPosition, updatePosition, addAccount, selectedAccountId, changeAccountFilter } = usePortfolio();
     const [viewMode, setViewMode] = useState<'table' | 'pie'>('table')
 
-    const [editingPosition, setEditingPosition] = useState<Position | null>(null)
-    const [positionFormOpen, setPositionFormOpen] = useState(false);
+    const dialog = useDialogs();
+
+    const handleEdit = async (position?: Position) => {
+        const result = await dialog.open(PositionFormDialog, {
+            accounts: accounts,
+            position: position,
+            onAdd: addPosition,
+            onUpdate: updatePosition
+        });
+        if (result) {
+            await reloadPositions();
+        }
+    }
 
     return (
         <>
             <HoldingsToolbar
                 accounts={accounts}
                 selectedAccountId={selectedAccountId}
-                onAccountChange={setSelectedAccountId}
+                onAccountChange={changeAccountFilter}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
-                onAddPosition={() => {
-                    setEditingPosition(null)
-                    setPositionFormOpen(true)
-                }}
+                onAddPosition={() => handleEdit()}
                 onAddAccount={addAccount}
                 onRefresh={reloadAccounts}
             />
-            <HoldingsSummary positions={positions} selectedAccountId={selectedAccountId} />
+            <HoldingsSummary positions={aggregatedPositions} mode={selectedAccountId ? 'account' : 'portfolio'} />
 
             {viewMode === 'pie' ? (
                 <PositionsPieChart
-                    positions={positions}
-                    selectedAccountId={selectedAccountId}
+                    positions={aggregatedPositions}
                 />
             ) : (
                 <PositionsDataGrid
                     loading={isLoading}
-                    positions={positions}
-                    selectedAccountId={selectedAccountId}
-                    onEdit={pos => {
-                        setEditingPosition(pos)
-                        setPositionFormOpen(true)
-                    }}
+                    aggregatedPositions={aggregatedPositions}
+                    onEdit={handleEdit}
                     onDelete={deletePosition}
                     onDeleted={reloadPositions}
                 />
             )}
-
-            <PositionFormDialog
-                open={positionFormOpen}
-                onClose={() => setPositionFormOpen(false)}
-                position={editingPosition}
-                accounts={accounts}
-                onSaved={reloadPositions}
-                onAdd={addPosition}
-                onUpdate={updatePosition}
-                defaultAccountId={selectedAccountId}
-            />
         </>
     )
 }
