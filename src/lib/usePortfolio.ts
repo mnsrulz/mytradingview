@@ -19,6 +19,32 @@ const apiClient = ky.create({
     }
 });
 
+const addAccount = async (broker: string, accountName: string, accountNumber?: string) => {
+    return apiClient.post('/api/portfolio/accounts', {
+        json: {
+            broker,
+            accountName,
+            accountNumber: accountNumber || undefined,
+        }
+    });
+}
+
+const updatePosition = async (positionId: string, payload: PositionPayload) => {
+    return apiClient.patch(`/api/portfolio/positions/${positionId}`, {
+        json: payload
+    });
+}
+
+const deletePosition = async (positionId: string) => {
+    return apiClient.delete(`/api/portfolio/positions/${positionId}`);
+}
+
+const addPosition = async (payload: PositionPayload) => {
+    return apiClient.post('/api/portfolio/positions', {
+        json: payload
+    });
+}
+
 export type PositionPricing = Position & { price: number, change: number, changePercent: number, totalValue: number };
 
 export type AggregatedPosition = {
@@ -88,32 +114,6 @@ export const usePortfolio = () => {
         setPositions(res.items);
     }
 
-    const addAccount = async (broker: string, accountName: string, accountNumber?: string) => {
-        return apiClient.post('/api/portfolio/accounts', {
-            json: {
-                broker,
-                accountName,
-                accountNumber: accountNumber || undefined,
-            }
-        });
-    }
-
-    const updatePosition = async (positionId: string, payload: PositionPayload) => {
-        return apiClient.patch(`/api/portfolio/positions/${positionId}`, {
-            json: payload
-        });
-    }
-
-    const deletePosition = async (positionId: string) => {
-        return apiClient.delete(`/api/portfolio/positions/${positionId}`);
-    }
-
-    const addPosition = async (payload: PositionPayload) => {
-        return apiClient.post('/api/portfolio/positions', {
-            json: payload
-        });
-    }
-
     const changeAccountFilter = (accountId: string) => setSelectedAccountId(accountId);
 
     useEffect(() => {
@@ -125,31 +125,29 @@ export const usePortfolio = () => {
     const uniqueSymbols = useMemo(() => [... new Set(positions.map(p => p.symbol))], [positions]);
     const priceMap = useStockPrice(uniqueSymbols);
 
-    // Merge pricing into positions
-    // const positionsWithLivePrice = useMemo(() => {
-    //     return positions.map((pos) => ({
-    //         ...pos,
-    //         price: priceMap[pos.symbol]?.price || 0,
-    //         change: priceMap[pos.symbol]?.change || 0,
-    //         changePercent: priceMap[pos.symbol]?.changePercent || 0,
-    //         totalValue: priceMap[pos.symbol]?.price * pos.quantity
-    //     }));
-    // }, [positions, priceMap]);
-
     const aggregatedBase = useMemo(() => {
         return aggregatePositionsBySymbol(positions, selectedAccountId);
     }, [positions, selectedAccountId]);
 
     const aggregatedPositions = useMemo(() => {
-        return aggregatedBase.map((agg) => ({
+        const p = aggregatedBase.map((agg) => ({
             ...agg,
             price: priceMap[agg.symbol]?.price || 0,
             change: priceMap[agg.symbol]?.change || 0,
             changePercent: priceMap[agg.symbol]?.changePercent || 0,
             totalValue: (priceMap[agg.symbol]?.price || 0) * agg.totalQuantity,
             todaysValueChange: (priceMap[agg.symbol]?.change || 0) * agg.totalQuantity,
-            totalValueChange: ((priceMap[agg.symbol]?.price || 0) * agg.totalQuantity) - agg.totalCostBasis
+            totalValueChange: ((priceMap[agg.symbol]?.price || 0) * agg.totalQuantity) - agg.totalCostBasis,
+            portfolioWeight: 0
         }));
+
+        const totalPortfolioValue = p.reduce((acc, c) => acc + c.totalValue, 0);
+
+        p.forEach(element => {
+            element.portfolioWeight = (element.totalValue / totalPortfolioValue);
+        });
+
+        return p;
     }, [aggregatedBase, priceMap]);
 
     return { accounts, aggregatedPositions, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition, selectedAccountId, changeAccountFilter };
