@@ -250,9 +250,9 @@ export type ExposureDataResponse = {
 
 
 export type WatchlistItem = {
-    id: string; // unique id for the watchlist
-    name: string; // display name
-    tickers: SearchTickerItem[];
+  id: string; // unique id for the watchlist
+  name: string; // display name
+  tickers: SearchTickerItem[];
 };
 
 export type Watchlists = WatchlistItem[];
@@ -280,15 +280,11 @@ export type LivePageTrackingView = {
   clients: { lastActive: Date; origin: string; ip: string }[];
 }
 
-export type PositionPayload = {
-  symbol: string
-  quantity: number
-  brokerAccountId: string
-  costBasis?: number
-  notes?: string
-}
+export type PositionPayload = Omit<Position, 'id' | 'brokerAccount'> & { id?: string };
 
-export type PriceMap = Record<string, {price: number, 
-    change: number, 
-    changePercent: number, 
-    quoteSummary: StockPriceData['quoteSummary']}>;
+export type PriceMap = Record<string, {
+  price: number,
+  change: number,
+  changePercent: number,
+  quoteSummary: StockPriceData['quoteSummary']
+}>;

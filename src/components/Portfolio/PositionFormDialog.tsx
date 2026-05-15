@@ -15,17 +15,16 @@ import { BrokerAccount, Position, PositionPayload } from '@/lib/types'
 import { useNotifications } from '@toolpad/core'
 
 import { DialogProps } from '@toolpad/core';
-import { AggregatedPosition } from '@/lib/usePortfolio';
 
 export const PositionFormDialog = ({ payload, onClose, open }: DialogProps<{
-  position?: Position, 
+  position?: PositionPayload,
   accounts: BrokerAccount[],
   onAdd: (payload: PositionPayload) => Promise<any>,
   onUpdate: (positionId: string, payload: PositionPayload) => Promise<any>
 }, any | null>) => {
   const { accounts, position, onAdd, onUpdate } = payload;
   const notifications = useNotifications();
-  const isEdit = Boolean(position);
+  const isEdit = position?.id ? true : false;
   const [form, setForm] = useState({
     symbol: '',
     quantity: '',
@@ -64,12 +63,11 @@ export const PositionFormDialog = ({ payload, onClose, open }: DialogProps<{
         symbol: form.symbol.toUpperCase(),
         quantity: Number(form.quantity),
         brokerAccountId: form.brokerAccountId,
-        costBasis: form.costBasis ? Number(form.costBasis) : undefined,
-        notes: form.notes || undefined,
+        costBasis: form.costBasis ? Number(form.costBasis) : null,
+        notes: form.notes,
       }
-
-      if (isEdit) {
-        await onUpdate(position!.id, payload)
+      if (position?.id) {
+        await onUpdate(position.id, payload)
       } else {
         await onAdd(payload)
       }

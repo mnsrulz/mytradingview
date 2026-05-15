@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Position } from '@/lib/types'
+import { Position, PositionPayload } from '@/lib/types'
 import { HoldingsToolbar } from './HoldingsToolbar'
 import { PositionsDataGrid } from './PositionsTable'
 import { PositionsPieChart } from './PositionsPieChart'
@@ -16,7 +16,7 @@ export const Portfolio = () => {
 
     const dialog = useDialogs();
 
-    const handleEdit = async (position?: Position) => {
+    const handleEdit = async (position?: PositionPayload) => {
         const result = await dialog.open(PositionFormDialog, {
             accounts: accounts,
             position: position,

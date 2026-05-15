@@ -1,10 +1,10 @@
-import { Position } from '@/lib/types';
+import { PositionPayload } from '@/lib/types';
 import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
 import { Box, ListItemText } from '@mui/material';
 import { useDialogs, useNotifications } from '@toolpad/core';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { fixedCurrencyFormatter, humanAbsCurrencyFormatter, numberFormatter, percentageFormatter, percentageNoDecimalFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
+import { fixedCurrencyFormatter, humanAbsCurrencyFormatter, numberFormatter, percentageFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
 import { green, red } from '@mui/material/colors';
 import { TradingViewWidgetDialog } from '@/components/TradingViewWidgetDialog';
 import { AggregatedPosition } from '@/lib/usePortfolio';
@@ -19,7 +19,7 @@ export function PositionsDataGrid({
 }: {
   loading: boolean;
   aggregatedPositions: AggregatedPosition[];
-  onEdit: (position: Position) => void;
+  onEdit: (position: PositionPayload) => void;
   onDelete: (positionId: string) => Promise<any>;
   onDeleted: () => void;
 }) {
@@ -28,7 +28,7 @@ export function PositionsDataGrid({
 
   const handleDelete = async (position: AggregatedPosition) => {
     const selectedPosition = position.accounts.length == 1 ? position.accounts[0].rawPosition : await dialogs.open(PositionPickerDialog, position);
-    if (selectedPosition) {
+    if (selectedPosition && selectedPosition?.id) {
       const confirm = await dialogs.confirm('Delete Position?', { okText: 'Yes', cancelText: 'No' });
       if (confirm) {
         await onDelete(selectedPosition.id).then(onDeleted);
