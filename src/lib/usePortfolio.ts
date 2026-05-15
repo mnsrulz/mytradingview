@@ -61,7 +61,7 @@ export type AggregatedPosition = {
     totalValueChange: number;
 };
 
-const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: string): Omit<AggregatedPosition, 'price' | 'change' | 'changePercent' | 'totalValue'>[] => {
+const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: string, accounts: BrokerAccount[]): Omit<AggregatedPosition, 'price' | 'change' | 'changePercent' | 'totalValue'>[] => {
     const filteredPositions = filterAccountId ? positions.filter(k => k.brokerAccountId === filterAccountId) : positions;
     const grouped = filteredPositions.reduce((acc, pos) => {
         if (!acc[pos.symbol]) {
@@ -70,6 +70,8 @@ const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: stri
         acc[pos.symbol].push(pos);
         return acc;
     }, {} as Record<string, Position[]>);
+
+    const accountsMap = Object.fromEntries(accounts.map(k => [k.id, k.accountName]));
 
     return Object.entries(grouped).map(([symbol, positionsForSymbol]) => {
         const totalQuantity = positionsForSymbol.reduce((sum, p) => sum + p.quantity, 0);
@@ -87,7 +89,7 @@ const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: stri
                 costBasis: p.costBasis,
                 notes: p.notes,
                 rawPosition: p,
-                accountName: ''
+                accountName: accountsMap[p.brokerAccountId] ?? 'UNKNOWN'
             })),
             weightedAverageCostBasis,
             todaysValueChange: 0,
@@ -125,8 +127,8 @@ export const usePortfolio = () => {
     const priceMap = useStockPrice(uniqueSymbols);
 
     const aggregatedBase = useMemo(() => {
-        return aggregatePositionsBySymbol(positions, selectedAccountId);
-    }, [positions, selectedAccountId]);
+        return aggregatePositionsBySymbol(positions, selectedAccountId, accounts);
+    }, [positions, selectedAccountId, accounts]);
 
     const aggregatedPositions = useMemo(() => {
         const p = aggregatedBase.map((agg) => ({
