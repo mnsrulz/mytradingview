@@ -51,7 +51,7 @@ export type AggregatedPosition = {
     symbol: string;
     totalQuantity: number;
     totalCostBasis: number;
-    accounts: Array<{ id: string; brokerAccountId: string; quantity: number; costBasis: number | null; broker: string; accountName: string, notes: string | null, rawPosition: Position }>;
+    accounts: Array<{ id: string; brokerAccountId: string; quantity: number; costBasis: number | null; notes: string | null, rawPosition: Position, accountName: string }>;
     price: number;
     change: number;
     changePercent: number;
@@ -61,7 +61,7 @@ export type AggregatedPosition = {
     totalValueChange: number;
 };
 
-const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: string): Omit<AggregatedPosition, 'price' | 'change' | 'changePercent' | 'totalValue'>[] => {
+const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: string, accounts: BrokerAccount[]): Omit<AggregatedPosition, 'price' | 'change' | 'changePercent' | 'totalValue'>[] => {
     const filteredPositions = filterAccountId ? positions.filter(k => k.brokerAccountId === filterAccountId) : positions;
     const grouped = filteredPositions.reduce((acc, pos) => {
         if (!acc[pos.symbol]) {
@@ -70,6 +70,8 @@ const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: stri
         acc[pos.symbol].push(pos);
         return acc;
     }, {} as Record<string, Position[]>);
+
+    const accountsMap = Object.fromEntries(accounts.map(k => [k.id, k.accountName]));
 
     return Object.entries(grouped).map(([symbol, positionsForSymbol]) => {
         const totalQuantity = positionsForSymbol.reduce((sum, p) => sum + p.quantity, 0);
@@ -85,15 +87,14 @@ const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: stri
                 brokerAccountId: p.brokerAccountId,
                 quantity: p.quantity,
                 costBasis: p.costBasis,
-                broker: p.brokerAccount.broker,
-                accountName: p.brokerAccount.accountName,
                 notes: p.notes,
-                rawPosition: p
+                rawPosition: p,
+                accountName: accountsMap[p.brokerAccountId] ?? 'UNKNOWN'
             })),
             weightedAverageCostBasis,
             todaysValueChange: 0,
             totalValueChange: 0
-        };
+        } as AggregatedPosition;
     });
 };
 
@@ -126,8 +127,8 @@ export const usePortfolio = () => {
     const priceMap = useStockPrice(uniqueSymbols);
 
     const aggregatedBase = useMemo(() => {
-        return aggregatePositionsBySymbol(positions, selectedAccountId);
-    }, [positions, selectedAccountId]);
+        return aggregatePositionsBySymbol(positions, selectedAccountId, accounts);
+    }, [positions, selectedAccountId, accounts]);
 
     const aggregatedPositions = useMemo(() => {
         const p = aggregatedBase.map((agg) => ({

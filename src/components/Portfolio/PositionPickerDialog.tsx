@@ -1,9 +1,9 @@
 import { Dialog, DialogContent, DialogTitle, List, ListItemButton, ListItemText, Typography } from '@mui/material';
 import { DialogProps } from '@toolpad/core';
 import { AggregatedPosition } from '@/lib/usePortfolio';
-import { Position } from '@/lib/types';
+import { PositionPayload } from '@/lib/types';
 
-export const PositionPickerDialog = ({ payload, onClose, open }: DialogProps<AggregatedPosition, Position | null>) => {
+export const PositionPickerDialog = ({ payload, onClose, open }: DialogProps<AggregatedPosition, PositionPayload | null>) => {
     return (
         <Dialog
             open={open}
@@ -29,13 +29,7 @@ export const PositionPickerDialog = ({ payload, onClose, open }: DialogProps<Agg
                                 costBasis: account.costBasis,
                                 quantity: account.quantity,
                                 id: account.id,
-                                notes: account.notes,
-                                brokerAccount: {
-                                    accountName: account.accountName,
-                                    id: account.brokerAccountId,
-                                    broker: account.broker,
-                                    accountNumber: null
-                                }
+                                notes: account.notes
                             })}
                             divider
                             sx={{ py: 1.5 }}
