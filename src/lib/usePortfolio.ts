@@ -19,10 +19,88 @@ const apiClient = ky.create({
     }
 });
 
+const addAccount = async (broker: string, accountName: string, accountNumber?: string) => {
+    return apiClient.post('/api/portfolio/accounts', {
+        json: {
+            broker,
+            accountName,
+            accountNumber: accountNumber || undefined,
+        }
+    });
+}
+
+const updatePosition = async (positionId: string, payload: PositionPayload) => {
+    return apiClient.patch(`/api/portfolio/positions/${positionId}`, {
+        json: payload
+    });
+}
+
+const deletePosition = async (positionId: string) => {
+    return apiClient.delete(`/api/portfolio/positions/${positionId}`);
+}
+
+const addPosition = async (payload: PositionPayload) => {
+    return apiClient.post('/api/portfolio/positions', {
+        json: payload
+    });
+}
+
 export type PositionPricing = Position & { price: number, change: number, changePercent: number, totalValue: number };
+
+export type AggregatedPosition = {
+    symbol: string;
+    totalQuantity: number;
+    totalCostBasis: number;
+    accounts: Array<{ id: string; brokerAccountId: string; quantity: number; costBasis: number | null; broker: string; accountName: string, notes: string | null, rawPosition: Position }>;
+    price: number;
+    change: number;
+    changePercent: number;
+    totalValue: number;
+    weightedAverageCostBasis: number;
+    todaysValueChange: number;
+    totalValueChange: number;
+};
+
+const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: string): Omit<AggregatedPosition, 'price' | 'change' | 'changePercent' | 'totalValue'>[] => {
+    const filteredPositions = filterAccountId ? positions.filter(k => k.brokerAccountId === filterAccountId) : positions;
+    const grouped = filteredPositions.reduce((acc, pos) => {
+        if (!acc[pos.symbol]) {
+            acc[pos.symbol] = [];
+        }
+        acc[pos.symbol].push(pos);
+        return acc;
+    }, {} as Record<string, Position[]>);
+
+    return Object.entries(grouped).map(([symbol, positionsForSymbol]) => {
+        const totalQuantity = positionsForSymbol.reduce((sum, p) => sum + p.quantity, 0);
+        const totalCostBasis = positionsForSymbol.reduce((sum, p) => sum + ((p.costBasis || 0) * p.quantity), 0);
+        const weightedAverageCostBasis = totalQuantity > 0 ? totalCostBasis / totalQuantity : 0;
+
+        return {
+            symbol,
+            totalQuantity,
+            totalCostBasis,
+            accounts: positionsForSymbol.map(p => ({
+                id: p.id,
+                brokerAccountId: p.brokerAccountId,
+                quantity: p.quantity,
+                costBasis: p.costBasis,
+                broker: p.brokerAccount.broker,
+                accountName: p.brokerAccount.accountName,
+                notes: p.notes,
+                rawPosition: p
+            })),
+            weightedAverageCostBasis,
+            todaysValueChange: 0,
+            totalValueChange: 0
+        };
+    });
+};
+
 export const usePortfolio = () => {
     const [accounts, setAccounts] = useState<BrokerAccount[]>([])
     const [positions, setPositions] = useState<Position[]>([])
+    const [selectedAccountId, setSelectedAccountId] = useState<string>('');
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -36,31 +114,7 @@ export const usePortfolio = () => {
         setPositions(res.items);
     }
 
-    const addAccount = async (broker: string, accountName: string, accountNumber?: string) => {
-        return apiClient.post('/api/portfolio/accounts', {
-            json: {
-                broker,
-                accountName,
-                accountNumber: accountNumber || undefined,
-            }
-        });
-    }
-
-    const updatePosition = async (positionId: string, payload: PositionPayload) => {
-        return apiClient.patch(`/api/portfolio/positions/${positionId}`, {
-            json: payload
-        });
-    }
-
-    const deletePosition = async (positionId: string) => {
-        return apiClient.delete(`/api/portfolio/positions/${positionId}`);
-    }
-
-    const addPosition = async (payload: PositionPayload) => {
-        return apiClient.post('/api/portfolio/positions', {
-            json: payload
-        });
-    }
+    const changeAccountFilter = (accountId: string) => setSelectedAccountId(accountId);
 
     useEffect(() => {
         setIsLoading(true);
@@ -71,17 +125,30 @@ export const usePortfolio = () => {
     const uniqueSymbols = useMemo(() => [... new Set(positions.map(p => p.symbol))], [positions]);
     const priceMap = useStockPrice(uniqueSymbols);
 
-    // Merge pricing into positions
-    const positionsWithLivePrice = useMemo(() => {
-        return positions.map((pos) => ({
-            ...pos,
-            // Embed the live data directly
-            price: priceMap[pos.symbol]?.price || 0,
-            change: priceMap[pos.symbol]?.change || 0,
-            changePercent: priceMap[pos.symbol]?.changePercent || 0,
-            totalValue: priceMap[pos.symbol]?.price * pos.quantity
-        }));
-    }, [positions, priceMap]);
+    const aggregatedBase = useMemo(() => {
+        return aggregatePositionsBySymbol(positions, selectedAccountId);
+    }, [positions, selectedAccountId]);
 
-    return { accounts, positions: positionsWithLivePrice, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition };
+    const aggregatedPositions = useMemo(() => {
+        const p = aggregatedBase.map((agg) => ({
+            ...agg,
+            price: priceMap[agg.symbol]?.price || 0,
+            change: priceMap[agg.symbol]?.change || 0,
+            changePercent: priceMap[agg.symbol]?.changePercent || 0,
+            totalValue: (priceMap[agg.symbol]?.price || 0) * agg.totalQuantity,
+            todaysValueChange: (priceMap[agg.symbol]?.change || 0) * agg.totalQuantity,
+            totalValueChange: ((priceMap[agg.symbol]?.price || 0) * agg.totalQuantity) - agg.totalCostBasis,
+            portfolioWeight: 0
+        }));
+
+        const totalPortfolioValue = p.reduce((acc, c) => acc + c.totalValue, 0);
+
+        p.forEach(element => {
+            element.portfolioWeight = (element.totalValue / totalPortfolioValue);
+        });
+
+        return p;
+    }, [aggregatedBase, priceMap]);
+
+    return { accounts, aggregatedPositions, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition, selectedAccountId, changeAccountFilter };
 };

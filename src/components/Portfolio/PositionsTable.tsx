@@ -4,78 +4,74 @@ import { Box, ListItemText } from '@mui/material';
 import { useDialogs, useNotifications } from '@toolpad/core';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { StockTickerViewInternal } from '../StockTicker';
-import { numberFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
+import { fixedCurrencyFormatter, humanAbsCurrencyFormatter, numberFormatter, percentageFormatter, percentageNoDecimalFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
 import { green, red } from '@mui/material/colors';
 import { TradingViewWidgetDialog } from '@/components/TradingViewWidgetDialog';
-import { PositionPricing } from '@/lib/usePortfolio';
+import { AggregatedPosition } from '@/lib/usePortfolio';
+import { PositionPickerDialog } from './PositionPickerDialog';
 
 export function PositionsDataGrid({
   loading,
-  positions,
-  selectedAccountId,
+  aggregatedPositions,
   onEdit,
   onDelete,
   onDeleted,
 }: {
   loading: boolean;
-  positions: PositionPricing[];
-  selectedAccountId: string;
-  onEdit: (p: Position) => void;
+  aggregatedPositions: AggregatedPosition[];
+  onEdit: (position: Position) => void;
   onDelete: (positionId: string) => Promise<any>;
   onDeleted: () => void;
 }) {
   const dialogs = useDialogs();
   const notifications = useNotifications();
 
-  const handleDelete = async (positionId: string) => {
-    const confirm = await dialogs.confirm('Delete Position?', { okText: 'Yes', cancelText: 'No' });
-    if (confirm) {
-      await onDelete(positionId).then(onDeleted);
-      notifications.show('Position deleted', { severity: 'success' });
+  const handleDelete = async (position: AggregatedPosition) => {
+    const selectedPosition = position.accounts.length == 1 ? position.accounts[0].rawPosition : await dialogs.open(PositionPickerDialog, position);
+    if (selectedPosition) {
+      const confirm = await dialogs.confirm('Delete Position?', { okText: 'Yes', cancelText: 'No' });
+      if (confirm) {
+        await onDelete(selectedPosition.id).then(onDeleted);
+        notifications.show('Position deleted', { severity: 'success' });
+      }
+    }
+  };
+
+  const handleEdit = async (position: AggregatedPosition) => {
+    const selectedPosition = position.accounts.length == 1 ? position.accounts[0].rawPosition : await dialogs.open(PositionPickerDialog, position);
+    if (selectedPosition) {
+      onEdit(selectedPosition)
     }
   };
 
   if (loading) return <p>Loading...</p>;
 
-  const filtered = selectedAccountId ? positions.filter((p) => p.brokerAccountId === selectedAccountId) : positions;
-
-  const columns: GridColDef<PositionPricing>[] = [
-    { field: 'symbol', headerName: 'Symbol', renderCell: (p) => <span onClick={() => dialogs.open(TradingViewWidgetDialog, { symbol: p.row.symbol })}>{p.value}</span>, width: 150 },
-    { field: 'quantity', headerName: 'Qty', type: 'number', },
-    { field: 'costBasis', headerName: 'Cost Basis', type: 'number' },
-    {
-      resizable: false,
-      field: 'price', headerName: 'Price', headerAlign: 'right', align: 'right', sortable: true, width: 120, renderCell: (p) => {
-        return <StockTickerViewInternal  {...p.row} />
-      }
-    },
-    {
-      field: 'totalValue', headerName: 'Total Value', headerAlign: 'right', align: 'right', sortable: true, width: 140, renderCell: (p) => {
-        return <TotalValue
-          positionSize={p.row.quantity}
-          costBasis={p.row.costBasis}
-          stockPrice={p.row.price} />
-      }
-    },
-    { field: 'notes', headerName: 'Notes', flex: 1 },
+  const columns: GridColDef<AggregatedPosition>[] = [
+    { field: 'symbol', headerName: 'Symbol', minWidth: 70, flex:1, renderCell: (p) => <span onClick={() => dialogs.open(TradingViewWidgetDialog, { symbol: p.row.symbol })}>{p.value}</span> },
+    { field: 'totalQuantity', headerName: 'Qty', type: 'number', flex:0.8, minWidth: 50 },
+    { field: 'weightedAverageCostBasis', headerName: 'Cost Basis', minWidth: 70, flex:1, type: 'number', valueFormatter: humanAbsCurrencyFormatter },
+    { field: 'price', headerName: 'Price', type: 'number', minWidth: 50, flex:1, valueFormatter: humanAbsCurrencyFormatter },
+    { field: 'portfolioWeight', headerName: 'Allocation', type: 'number', flex:1, minWidth: 70, valueFormatter: percentageFormatter },
+    { field: 'totalValue', headerName: 'Total Value', type: 'number', flex: 1.1, minWidth: 120, valueFormatter: (v, r) => fixedCurrencyFormatter(r.totalValue) },
+    { field: 'totalValueChange', headerName: 'Total Change', type: 'number', flex: 1.1, minWidth: 120, valueFormatter: (v, r) => fixedCurrencyFormatter(r.totalValueChange) },
+    { field: 'todaysValueChange', headerName: 'Todays Change', type: 'number', flex: 1.1, minWidth: 120, valueFormatter: (v, r) => fixedCurrencyFormatter(r.todaysValueChange) },
     {
       field: 'actions',
       type: 'actions',
-      width: 1,
+      width: 50,
       getActions: ({ row }) => [
         <GridActionsCellItem
           key="edit"
           icon={<EditIcon />}
           label="Edit"
-          onClick={() => onEdit(row)}
+          onClick={() => handleEdit(row)}
           showInMenu
         />,
         <GridActionsCellItem
           key="delete"
           icon={<DeleteIcon />}
           label="Delete"
-          onClick={() => handleDelete(row.id)}
+          onClick={() => handleDelete(row)}
           showInMenu
         />
       ]
@@ -85,15 +81,36 @@ export function PositionsDataGrid({
   return (
     <Box sx={{ width: '100%', mt: 1 }} >
       <DataGrid
-        rows={filtered}
+        rows={aggregatedPositions}
         columns={columns}
         hideFooter
+        autoHeight
+        density="compact"
+        rowHeight={40}
         disableColumnMenu
         disableColumnSelector
-        disableColumnResize
+        // disableColumnResize
+        getRowId={r => r.symbol}
+        showToolbar
+        slotProps={{
+          toolbar: {
+            showQuickFilter: true,
+          },
+        }}
+        // sx={{
+        //   display: 'grid',
+        //   '& .MuiDataGrid-columnSeparator': { display: 'none' },
+        //   '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+        //     outline: 'none'
+        //   }
+        // }}
+
         sx={{
-          display: 'grid',
-          '& .MuiDataGrid-columnSeparator': { display: 'none' },
+          // height: '15vh',
+          fontFamily: "Roboto Mono, monospace",
+          fontSize: 12,
+          //display: 'grid',
+          //'& .MuiDataGrid-columnSeparator': { display: 'none' },
           '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
             outline: 'none'
           }
@@ -131,5 +148,5 @@ const TotalValue = (props: { positionSize: number, costBasis: number | null, sto
     primary={numberFormatter(totalValue)}
     secondary={`${positiveNegativeNumberFormatter(change)} (${positiveNegativeNumberFormatter(changePercent)}%)`}
   />
-
 }
+

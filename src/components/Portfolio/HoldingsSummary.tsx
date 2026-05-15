@@ -4,12 +4,12 @@ import React, { useMemo } from "react";
 import { Card, Box, Typography, Stack, Divider } from "@mui/material";
 import { green, red } from "@mui/material/colors";
 import { percentageFormatter } from "@/lib/formatters";
-import { PositionPricing } from "@/lib/usePortfolio";
+import { AggregatedPosition, PositionPricing } from "@/lib/usePortfolio";
 import NumberFlow from "@number-flow/react";
 
 interface HoldingsSummaryProps {
-  positions: PositionPricing[];
-  selectedAccountId: string;
+  positions: AggregatedPosition[];
+  mode: 'account' | 'portfolio';
 }
 
 /**
@@ -51,14 +51,12 @@ const StatBlock = ({
 
 export function HoldingsSummary({
   positions,
-  selectedAccountId,
+  mode
 }: HoldingsSummaryProps) {
 
   const summary = useMemo(() => {
     // 1. Filter positions by account if selected
-    const filtered = selectedAccountId
-      ? positions.filter((p) => p.brokerAccountId === selectedAccountId)
-      : positions;
+    const filtered = positions.flatMap(k => k.accounts.map(a => ({ costBasis: a.costBasis, quantity: a.quantity, change: k.change, price: k.price, totalValue: k.price * a.quantity })));
 
     // 2. Calculate Market Value and Cost Basis
     const totalValue = filtered.reduce((acc, p) => acc + p.totalValue, 0);
@@ -81,7 +79,7 @@ export function HoldingsSummary({
       totalChangePercent,
       count: filtered.length
     };
-  }, [positions, selectedAccountId]);
+  }, [positions]);
 
   return (
     <Card
@@ -101,7 +99,7 @@ export function HoldingsSummary({
           fontWeight={600}
           sx={{ letterSpacing: 1.2 }}
         >
-          {selectedAccountId ? 'Account Value' : 'Total Portfolio Value'}
+          {mode == 'account' ? 'Account Value' : 'Total Portfolio Value'}
         </Typography>
         <Typography
           variant="h3"

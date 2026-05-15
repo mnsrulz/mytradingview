@@ -1,34 +1,41 @@
-import { PositionPricing } from '@/lib/usePortfolio';
-import { PieChart } from '@mui/x-charts/PieChart'
-export function PositionsPieChart({
-  positions,
-  selectedAccountId
-}: {
-  positions: PositionPricing[]
-  selectedAccountId: string
-}) {
-  
-  const groupedPositions = positions
-    .filter(p => !selectedAccountId || p.brokerAccountId === selectedAccountId)
-    .reduce((acc, p) => {
-    if (!acc[p.symbol]) acc[p.symbol] = 0
-    acc[p.symbol] += p.quantity * p.price
-    return acc
-  }, {} as Record<string, number>);
+import { AggregatedPosition } from '@/lib/usePortfolio';
+import { PieChart } from '@mui/x-charts/PieChart';
+import { useMemo } from 'react';
 
-  const data = Object.entries(groupedPositions).map(([symbol, value]) => ({
-    id: symbol,
-    label: symbol,
-    value,
-  }))
-    
-  if (!data.length) return null
+export const PositionsPieChart = ({
+  positions,
+}: {
+  positions: AggregatedPosition[];
+}) => {
+  const { data, total } = useMemo(() => {
+    const total = positions.reduce((sum, p) => sum + p.totalValue, 0);
+
+    return {
+      total,
+      data: positions.map((p) => ({
+        id: p.symbol,
+        label: p.symbol,
+        value: p.totalValue,
+      })),
+    };
+  }, [positions]);
+
+  if (!data.length || total === 0) return null;
 
   return (
     <PieChart
-      series={[{ data }]}
+      series={[
+        {
+          data,
+          arcLabel: (item) =>
+            `${item.label} ${((item.value / total) * 100).toFixed(1)}%`,
+          arcLabelMinAngle: 20,
+          innerRadius: 60,
+          outerRadius: 140,
+        },
+      ]}
       width={600}
       height={400}
     />
-  )
-}
+  );
+};
