@@ -4,11 +4,7 @@ import { NextResponse } from "next/server";
 // GET all portfolio positions
 export async function GET() {
     const positions = await prisma.portfolio.findMany({
-        include: {
-            brokerAccount: true
-        },
         orderBy: [
-            { brokerAccount: { broker: 'asc' } },
             { symbol: 'asc' }
         ]
     });

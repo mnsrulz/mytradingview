@@ -51,7 +51,7 @@ export type AggregatedPosition = {
     symbol: string;
     totalQuantity: number;
     totalCostBasis: number;
-    accounts: Array<{ id: string; brokerAccountId: string; quantity: number; costBasis: number | null; broker: string; accountName: string, notes: string | null, rawPosition: Position }>;
+    accounts: Array<{ id: string; brokerAccountId: string; quantity: number; costBasis: number | null;  notes: string | null, rawPosition: Position }>;
     price: number;
     change: number;
     changePercent: number;
@@ -85,8 +85,6 @@ const aggregatePositionsBySymbol = (positions: Position[], filterAccountId: stri
                 brokerAccountId: p.brokerAccountId,
                 quantity: p.quantity,
                 costBasis: p.costBasis,
-                broker: p.brokerAccount.broker,
-                accountName: p.brokerAccount.accountName,
                 notes: p.notes,
                 rawPosition: p
             })),
