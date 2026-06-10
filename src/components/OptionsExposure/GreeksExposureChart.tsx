@@ -200,8 +200,10 @@ export const GexHeatmapChart = (props: { exposureData: ExposureDataType, skipAni
         if (value == 0) return '';
         switch (true) {
             case absValue >= p99:
-                return getColor(700 * negativeMultiplier);
+                return getColor(800 * negativeMultiplier);
             case absValue >= p95:
+                return getColor(700 * negativeMultiplier);
+            case absValue >= p90:
                 return getColor(600 * negativeMultiplier);
             case absValue >= p80:
                 return getColor(500 * negativeMultiplier);
