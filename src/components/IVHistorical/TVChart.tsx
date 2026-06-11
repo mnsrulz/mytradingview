@@ -25,7 +25,7 @@ const Watermark = ({ text, color }: { text: string, color: string }) => {
     );
 };
 
-export const TVChart = ({ volatility }: { volatility: VolatilityResponse }) => {
+export const TVChart = ({ volatility }: { volatility: VolatilityResponse & { straddle: number[] } }) => {
     const theme = useTheme();
 
     const { mode: colorMode } = useColorScheme();
@@ -40,6 +40,7 @@ export const TVChart = ({ volatility }: { volatility: VolatilityResponse }) => {
         putIVColor,
         iv30Color,
         watermarkColor,
+        straddlePriceColor
     } = isDarkMode
             ? {
                 // DARK MODE
@@ -48,6 +49,8 @@ export const TVChart = ({ volatility }: { volatility: VolatilityResponse }) => {
 
                 callPriceColor: green[300],
                 putPriceColor: red[300],
+                
+                straddlePriceColor: orange[300],
 
                 callIVColor: green[300],
                 putIVColor: red[300],
@@ -62,6 +65,8 @@ export const TVChart = ({ volatility }: { volatility: VolatilityResponse }) => {
 
                 callPriceColor: green[700],
                 putPriceColor: red[700],
+
+                straddlePriceColor: orange[800],
 
                 callIVColor: green[700],
                 putIVColor: red[700],
@@ -117,6 +122,13 @@ export const TVChart = ({ volatility }: { volatility: VolatilityResponse }) => {
             <Watermark color={watermarkColor} text="Stock Pricing" />
         </Pane>
         <Pane stretchFactor={2}>
+            <LineSeries data={volatility.dt.map((k, ix) => ({ time: k, value: volatility.straddle[ix] }))}
+                options={{
+                    priceLineVisible: true,
+                    color: straddlePriceColor,
+                    lineWidth: 2,
+                    priceScaleId: "right",
+                }} />
             <LineSeries data={volatility.dt.map((k, ix) => ({ time: k, value: volatility.cp[ix] }))}
                 options={{
                     priceLineVisible: false,
