@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Box } from '@mui/material';
 
 const importCache = new Map();
 function safeImport(url: string) {
@@ -18,7 +19,8 @@ export const PerspectiveWrapper = ({
 }: {
     data: any[];
 }) => {
-    const viewerRef = useRef(null);
+    const containerRef = useRef(null);
+    const perspectiveViewerRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         // Inject theme CSS
@@ -28,8 +30,16 @@ export const PerspectiveWrapper = ({
         link.href = 'https://cdn.jsdelivr.net/npm/@perspective-dev/viewer/dist/css/themes.css';
         document.head.appendChild(link);
 
-        let worker = null;
-        let table = null;
+        if(!perspectiveViewerRef.current) {
+            const viewerElement = document.createElement("perspective-viewer");
+            viewerElement.style.height = '100%';
+            perspectiveViewerRef.current = viewerElement;
+            const c = (containerRef.current as unknown as HTMLDivElement);
+            c?.appendChild(viewerElement);
+        }
+        
+        let worker: any = null;
+        let table: any = null;
 
         const loadPerspective = async () => {
             try {
@@ -53,13 +63,15 @@ export const PerspectiveWrapper = ({
                 // 2. Pass the static JSON array straight into the engine (No fetch or arrayBuffer needed)
                 table = await worker.table(data, { name: "options_data" });
 
-                const viewerElement = viewerRef.current;
+                
+                const viewerElement = perspectiveViewerRef.current as unknown as {load: (worker: any) => Promise<void>, restore: (config: any) => Promise<void>};
+                //const viewerElement = viewerRef.current as unknown as {load: (worker: any) => Promise<void>, restore: (config: any) => Promise<void>};
                 if (viewerElement) {
                     await viewerElement.load(worker);
                     await viewerElement.restore({
                         table: "options_data",
                         settings: true,
-                        plugin_config: {  },
+                        plugin_config: {},
                     });
                 }
             } catch (error) {
@@ -76,11 +88,5 @@ export const PerspectiveWrapper = ({
         };
     }, []);
 
-    return (
-        <perspective-viewer ref={viewerRef} style={
-            {
-                height: '100%'
-            }
-        } />
-    );
+    return <Box ref={containerRef} style={{height: '100%'}} />;
 };
