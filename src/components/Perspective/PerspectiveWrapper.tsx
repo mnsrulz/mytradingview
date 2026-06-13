@@ -27,7 +27,7 @@ export const PerspectiveWrapper = ({
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.crossOrigin = 'anonymous';
-        link.href = 'https://cdn.jsdelivr.net/npm/@perspective-dev/viewer/dist/css/themes.css';
+        link.href = 'https://cdn.jsdelivr.net/npm/@perspective-dev/viewer@4.5.1/dist/css/themes.css';
         document.head.appendChild(link);
 
         if(!perspectiveViewerRef.current) {
