@@ -1,6 +1,7 @@
 'use client';
 import { runDynamicQuery } from '@/lib/socket';
 import Editor from '@monaco-editor/react';
+import { PerspectiveWrapper } from '@/components/Perspective/PerspectiveWrapper';
 import {
     Box, Button, CircularProgress, FormControl, Paper, Stack,
     Typography, useColorScheme, Tabs, Tab, IconButton,
@@ -66,7 +67,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             queryId: ''
         }
     ]);
-    const [showAsJson, setShowAsJson] = useState(false);
+    const [resultView, setResultView] = useState<'grid' | 'perspective'>('perspective');
     const [activeTabId, setActiveTabId] = useState("1");
     // had to use ref since monaco's onMount only gets the initial query value, and doesn't update with state changes. This caused the executeQuery function to always use the initial query value, even after edits. 
     const tabsRef = useRef(tabs);
@@ -291,11 +292,33 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                             />
                         </FormControl>
 
-                        <FormControl size="small">
-                            <FormControlLabel control={<Checkbox checked={showAsJson}
-                                onChange={(ev) => setShowAsJson(ev.target.checked)} />}
-                                label="Show as JSON" />
-                        </FormControl>
+                        <Stack direction="row" spacing={1}>
+                            <Button
+                                size="small"
+                                variant={
+                                    resultView === 'grid'
+                                        ? 'contained'
+                                        : 'outlined'
+                                }
+                                onClick={() => setResultView('grid')}
+                            >
+                                Grid
+                            </Button>
+
+                            <Button
+                                size="small"
+                                variant={
+                                    resultView === 'perspective'
+                                        ? 'contained'
+                                        : 'outlined'
+                                }
+                                onClick={() =>
+                                    setResultView('perspective')
+                                }
+                            >
+                                Perspective
+                            </Button>
+                        </Stack>
                     </Stack>
 
 
@@ -384,9 +407,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                             <Box display="flex" justifyContent="center" p={3}>
                                 <CircularProgress size={24} />
                             </Box>
-                        ) : rows.length ? (showAsJson ? <pre>
-                            {JSON.stringify(activeTab.result, null, 2)}
-                        </pre> :
+                        ) : rows.length ? (resultView === 'grid' ?
                             <DataGrid
                                 columns={columns}
                                 rows={rows}
@@ -412,7 +433,16 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                                     }
                                 }}
 
-                            />
+                            /> : <Box
+                                sx={{
+                                    height: '65vh',
+                                    width: '100%'
+                                }}
+                            >
+                                <PerspectiveWrapper
+                                    data={activeTab.result}
+                                />
+                            </Box>
                         ) : (
                             <Typography p={2} color="text.secondary">
                                 No results to display
