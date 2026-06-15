@@ -1,4 +1,4 @@
-import { SavedQuery } from "@prisma/client";
+import { SavedQuery } from "@/lib/db.types";
 import ky from "ky";
 import { useState, useEffect, useCallback } from "react";
 

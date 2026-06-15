@@ -36,7 +36,7 @@ import { Panel, Group, Separator } from "react-resizable-panels";
 import { nanoid } from 'nanoid';
 import { useNotifications } from '@toolpad/core';
 import { useSavedQueries } from '@/lib/useSavedQueries';
-import { SavedQuery } from '@prisma/client';
+import { SavedQuery } from '@/lib/db.types';
 
 const knownColumns = ["quote_date", "expiration_date", "expiration_dow", "quote_dow", "dte", "option_ticker", "option_type", "strike_price", "open_interest", "option_volume", "delta", "gamma", "vega", "theta", "rho", "theoretical_price", "implied_volatility", "option_open_price", "option_high_price", "bid_price", "ask_price", "mid_price", "liquidity_tier", "volume_oi_ratio", "underlying_symbol", "underlying_close_price", "moneyness", "moneyness_percent", "expiry_bucket"];
 

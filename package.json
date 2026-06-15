@@ -2,6 +2,7 @@
   "name": "mytradingview",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "prebuild": "prisma generate",
     "pgen": "prisma generate",

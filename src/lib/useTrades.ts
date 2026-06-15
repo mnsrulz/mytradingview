@@ -1,5 +1,5 @@
 'use client';
-import { Trade } from "@prisma/client";
+import { Trade } from "@/lib/db.types";
 import dayjs from "dayjs";
 import ky from "ky";
 import { useCallback, useEffect, useState } from "react";

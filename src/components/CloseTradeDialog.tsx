@@ -19,7 +19,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import ky from 'ky';
 import { useEffect, useState } from 'react';
-import { Trade } from '@prisma/client';
+import { Trade } from '@/lib/db.types';
 import { mapTradeToView } from '@/lib/useTrades';
 import { currencyFormatter, fixedCurrencyFormatter, percentageFormatter } from '@/lib/formatters';
 import { TickerName } from './TickerName';
