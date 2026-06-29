@@ -36,8 +36,8 @@ const MobileScreenGreeksChartLabelMapping = {
     'VOLUME': 'Volume'
 }
 
-export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, expiryValue: ExpiryValue, exposureType: DexGexType, isLoading: boolean }) => {
-    const { symbol, exposureType, expiryValue, exposureData, skipAnimation, isLoading } = props;
+export const GreeksExposureChart = (props: { exposureData: ExposureDataType, skipAnimation?: boolean, symbol: string, expiryValue: ExpiryValue, exposureType: DexGexType, isLoading: boolean, hideHeatmap?: boolean }) => {
+    const { symbol, exposureType, expiryValue, exposureData, skipAnimation, isLoading, hideHeatmap } = props;
     const { strikes, expirations, items, maxPosition, spotPrice, callWall, putWall, gammaWall, volTrigger, timestamp } = exposureData;
     // debugger;
     // const emaData = { "ema21d": 73.311932116876, "ema9d": 71.9165385595376 }
@@ -57,7 +57,7 @@ export const GreeksExposureChart = (props: { exposureData: ExposureDataType, ski
         <Stack direction="row" alignItems="center" justifyContent="center" position={"relative"} mb={1}>
             {/* Left */}
             <Box sx={{ minWidth: 80 }}>
-                {exposureType == DexGexType.GEX && (
+                {exposureType == DexGexType.GEX && !hideHeatmap && (
                     <FormControl size="small">
                         <FormControlLabel control={<Checkbox checked={showAsHeatmap} 
                             onChange={(ev) => {
