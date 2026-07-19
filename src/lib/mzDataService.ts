@@ -12,7 +12,12 @@ const client = ky.create({
     headers: {
         'Accept': 'application/json'
     },
-    cache: 'no-cache'
+    cache: 'no-cache',
+    retry: {
+        limit: 2,
+        methods: ['get', 'post', 'put', 'head', 'delete', 'options'],
+        retryOnTimeout: true
+    }
 });
 
 export const getHistoricalSnapshotsBySymbol = (symbol: string) => {
