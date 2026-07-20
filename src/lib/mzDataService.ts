@@ -110,7 +110,7 @@ export const getHistoricalExpirationsBySymbol = async (symbol: string) => {
 }
 
 export const getAllHistoricalExpirationsBySymbol = async (symbol: string) => {
-    return await client(`api/options/${symbol}/expirations`).json<OIExpirationsDataResponse[]>();
+    return await client(`expirations/${symbol}.json`).json<OIExpirationsDataResponse[]>();
 }
 
 export const searchOIAnomaly = async (data: any, abortSignal: AbortSignal | null) => {
