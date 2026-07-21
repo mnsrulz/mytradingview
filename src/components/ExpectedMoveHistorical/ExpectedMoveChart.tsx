@@ -1,11 +1,11 @@
 'use client';
-import { runDynamicQuery, useExpectedMove, useOhlc } from "@/lib/socket";
+import { useExpectedMove, useOhlc } from "@/lib/socket";
 import { LinearProgress, Paper, Typography, useTheme } from "@mui/material";
 import { useColorScheme } from "@mui/material";
 import Box from "@mui/material/Box";
 import { green, grey } from "@mui/material/colors";
 import { Chart, LineSeries, Pane, TimeScale, TimeScaleFitContentTrigger, WatermarkText, SeriesPrimitive, CandlestickSeries, } from "lightweight-charts-react-components";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ExpecteMoveDisplayOptions, ExpectedMovePrimitive } from "./ExpectedMovePrimitive";
 import dayjs from "dayjs";
 import { CrosshairMode } from "lightweight-charts";

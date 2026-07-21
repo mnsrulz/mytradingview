@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useStockPrice } from '../lib/socket';
-import { SearchTickerItem, StockPriceData } from '@/lib/types';
+import { SearchTickerItem } from '@/lib/types';
 import { numberFormatter, positiveNegativeNumberFormatter } from '@/lib/formatters';
 import { ListItemText } from '@mui/material';
 import { green, red } from "@mui/material/colors";
@@ -13,14 +12,6 @@ const [primaryTextSize, secondaryTextSize] = ['1em', '0.85em'];
 
 interface ITickerProps {
     item: SearchTickerItem
-}
-
-export const StockTickerView = (props: ITickerProps) => {
-    const oddata = useStockPrice(props.item.symbol);
-    if (oddata && oddata[props.item.symbol]?.quoteSummary) {
-        return <StockTickerViewInternal {...oddata[props.item.symbol]} />;
-    }
-    return <div></div>;
 }
 
 export const StockTickerViewInternal = (props: { price: number, change: number, changePercent: number }) => {

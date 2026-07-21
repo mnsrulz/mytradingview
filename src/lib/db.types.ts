@@ -1,0 +1,1 @@
+export type { Trade, SavedQuery } from "@/../prisma/generated/client/client"

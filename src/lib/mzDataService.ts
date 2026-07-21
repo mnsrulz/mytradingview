@@ -1,7 +1,7 @@
 import ky from "ky";
 import { ExposureDataRequest, OptionGreeksSummaryByDateResponse, OptionGreeksSummaryBySymbolResponse, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, ExposureSnapshotBySymbolResponse, OIAnomalyReportDataResponse, OIReportDataResponse, OIExpirationsDataResponse, OptionGreeksExposureWallsByDateResponse, } from "./types";
 
-const MZDATA_URL = process.env.MZDATA_URL || 'https://mztrading-data.deno.dev';
+const MZDATA_URL = process.env.MZDATA_URL || 'https://mztradingdata.netlify.app';
 
 export type CachedReleasesType = {
     name: string
@@ -12,7 +12,12 @@ const client = ky.create({
     headers: {
         'Accept': 'application/json'
     },
-    cache: 'no-cache'
+    cache: 'no-cache',
+    retry: {
+        limit: 2,
+        methods: ['get', 'post', 'put', 'head', 'delete', 'options'],
+        retryOnTimeout: true
+    }
 });
 
 export const getHistoricalSnapshotsBySymbol = (symbol: string) => {
@@ -105,7 +110,7 @@ export const getHistoricalExpirationsBySymbol = async (symbol: string) => {
 }
 
 export const getAllHistoricalExpirationsBySymbol = async (symbol: string) => {
-    return await client(`api/options/${symbol}/expirations`).json<OIExpirationsDataResponse[]>();
+    return await client(`expirations/${symbol}.json`).json<OIExpirationsDataResponse[]>();
 }
 
 export const searchOIAnomaly = async (data: any, abortSignal: AbortSignal | null) => {

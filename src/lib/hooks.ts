@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ky from 'ky';
 import { DataModeType, DexGexType, NumberRange, OptionsPricingDataResponse, SearchTickerItem, ExposureSnapshotByDateResponse, ExposureDataResponse, Watchlists } from './types';
 import { getCalculatedStrikes } from './dgHedgingHelper';
@@ -101,23 +101,9 @@ const initialWatchlists: Watchlists = [
 ];
 
 export const useMultiWatchlists = () => {
-    const [watchlists, setWatchlists] = useLocalStorage<Watchlists>("multiwatchlists", initialWatchlists);
-    const [migratedMultiWatchlist, setMigratedMultiWatchlist] = useLocalStorage<boolean>("enableMultiWatchlistV1", false);
-    const { wl, clear } = useMyLocalWatchList();
+    const [mwl, setWatchlists] = useLocalStorage<Watchlists>("multiwatchlists", initialWatchlists);
 
-    useEffect(() => {
-        if (migratedMultiWatchlist) return;
-        if (wl && wl.length > 0) {
-            const defaultWatchlist = watchlists.find(wl => wl.name === 'Default');
-            if (defaultWatchlist) {
-                defaultWatchlist.tickers.splice(0, defaultWatchlist.tickers.length); //clear existing items
-                defaultWatchlist.tickers.push(...wl);
-                setWatchlists([defaultWatchlist, ...watchlists.filter(wl => wl.name !== 'Default')]);
-                //clear(); // clear local watchlist if multi-watchlists are being used. Let's enable clear after this feature is stable.            
-                setMigratedMultiWatchlist(true);
-            }
-        }
-    }, [migratedMultiWatchlist, watchlists, wl]);
+    const watchlists = useMemo(() => mwl, [JSON.stringify(mwl)]);
 
     const addWatchlist = (name: string) => {
         const id = nanoid();

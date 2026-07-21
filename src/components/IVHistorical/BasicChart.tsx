@@ -58,7 +58,7 @@ export const BasicChart = ({ volatility, disabledDataPoints, setDisabledDataPoin
         series={series}
         xAxis={[{ scaleType: 'point', data: volatility.dt, valueFormatter: xAxisFormatter }]}
         yAxis={[
-            { id: 'leftAxisId', label: 'IV / Percentile (%)', valueFormatter: percentageNoDecimalFormatter },
+            { id: 'leftAxisId', label: 'IV / Percentile (%)', valueFormatter: (v: number) => percentageNoDecimalFormatter(v/100) },
             { id: 'rightAxisId', position: 'right', label: 'Stock / Contract Price ($)', min: getMinYAxisValue() }
         ]}
         slots={{

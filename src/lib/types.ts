@@ -1,4 +1,4 @@
-import { Trade } from "@prisma/client"
+import { Trade } from './db.types';
 
 export interface ITradeView extends Trade {
   averageProfitPerDay: number

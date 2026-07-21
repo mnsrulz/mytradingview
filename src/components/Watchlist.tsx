@@ -2,23 +2,23 @@
 import * as React from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
-import { Box, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack } from '@mui/material';
+import { Box, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, ListItemText, MenuItem, Select, Skeleton, Stack } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
-import { StockTickerSymbolView, StockTickerView } from './StockTicker';
+import { StockTickerSymbolView, StockTickerViewInternal } from './StockTicker';
 import AddTradeIcon from '@mui/icons-material/Add';
 import { AddTradeDialog } from './AddTradeDialog';
 import { GridLinkAction } from './GridLinkAction';
 import { SearchTickerItem, WatchlistItem } from '@/lib/types';
 import { TickerSearch } from './TickerSearch';
 import { TradingViewWidgetDialog } from './TradingViewWidgetDialog';
-import { subscribeStockPriceBatchRequest } from '@/lib/socket';
 import collect from 'collect.js';
 import { useMultiWatchlists } from "@/lib/hooks";
 import { DialogProps, useDialogs } from '@toolpad/core';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Delete';
 import { NumberFlowGroup } from '@number-flow/react';
+import { useStockPrice } from '@/lib/mzQuotesService';
 
 export const Watchlist = () => {
   const dialogs = useDialogs();
@@ -30,19 +30,15 @@ export const Watchlist = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const sortedSymbols = useMemo(() => collect(watchlists.find(w => w.id === watchlistId)?.tickers || []).sortBy(sortMode).all(), [watchlists, watchlistId, sortMode]);
 
+
   useEffect(() => {
     if (!watchlistId && watchlists.length > 0) {
       setWatchlistId(watchlists[0].id);
     }
   }, [watchlists, watchlistId])
+  const sortedSymbolCsv = useMemo(() => sortedSymbols.map(k => k.symbol), [sortedSymbols]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      subscribeStockPriceBatchRequest(sortedSymbols);
-    }, 1000); //every one second just ping the server to resubscribe
-
-    return () => clearInterval(interval);
-  }, [sortedSymbols]);
+  const { quotes } = useStockPrice(sortedSymbolCsv);
 
   const handleAddToWatchlistClick = async () => {
     const result = await dialogs.open(AddToWatchlistDialog);
@@ -67,7 +63,37 @@ export const Watchlist = () => {
     {
       resizable: false,
       field: 'price', headerName: '', headerAlign: 'right', align: 'right', flex: 0.5, renderCell: (p) => {
-        return <StockTickerView item={p.row} />
+        const liveQuote = quotes[p.row.symbol.toUpperCase()];
+        if (liveQuote) {
+          return (
+            <StockTickerViewInternal
+              price={liveQuote.price}
+              change={liveQuote.change}
+              changePercent={liveQuote.changePercent}
+            />
+          );
+        } else {
+          return <ListItemText
+            sx={{
+              textAlign: 'right',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end' // Explicitly forces block elements to align right
+            }}
+            slotProps={{
+              primary: {
+                display: 'flex',
+                justifyContent: 'flex-end'
+              },
+              secondary: {
+                display: 'flex',
+                justifyContent: 'flex-end'
+              }
+            }}
+            primary={<Skeleton variant="text" width={48} height={16} animation="wave" />}
+            secondary={<Skeleton variant="text" width={48} height={16} animation="wave" />}>
+          </ListItemText>
+        }
       }
     },
     {

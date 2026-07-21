@@ -50,6 +50,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
                 <MemoizedGreeksExposureChart
                     expiryValue={expiryValue}
                     skipAnimation={printMode}
+                    hideHeatmap={printMode}
                     exposureData={exposureData}
                     symbol={symbol}
                     exposureType={exposureTab}

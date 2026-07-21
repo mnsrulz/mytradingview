@@ -2,7 +2,7 @@
 import ky from "ky";
 import { useEffect, useMemo, useState } from "react";
 import { BrokerAccount, Position, PositionPayload } from "./types";
-import { useStockPrice } from "./socket";
+import { useStockPrice } from "./mzQuotesService";
 
 const apiClient = ky.create({
     hooks: {
@@ -124,7 +124,7 @@ export const usePortfolio = () => {
     }, []);
 
     const uniqueSymbols = useMemo(() => [... new Set(positions.map(p => p.symbol))], [positions]);
-    const priceMap = useStockPrice(uniqueSymbols);
+    const { quotes } = useStockPrice(uniqueSymbols);
 
     const aggregatedBase = useMemo(() => {
         return aggregatePositionsBySymbol(positions, selectedAccountId, accounts);
@@ -133,12 +133,12 @@ export const usePortfolio = () => {
     const aggregatedPositions = useMemo(() => {
         const p = aggregatedBase.map((agg) => ({
             ...agg,
-            price: priceMap[agg.symbol]?.price || 0,
-            change: priceMap[agg.symbol]?.change || 0,
-            changePercent: priceMap[agg.symbol]?.changePercent || 0,
-            totalValue: (priceMap[agg.symbol]?.price || 0) * agg.totalQuantity,
-            todaysValueChange: (priceMap[agg.symbol]?.change || 0) * agg.totalQuantity,
-            totalValueChange: ((priceMap[agg.symbol]?.price || 0) * agg.totalQuantity) - agg.totalCostBasis,
+            price: quotes[agg.symbol]?.price || 0,
+            change: quotes[agg.symbol]?.change || 0,
+            changePercent: quotes[agg.symbol]?.changePercent || 0,
+            totalValue: (quotes[agg.symbol]?.price || 0) * agg.totalQuantity,
+            todaysValueChange: (quotes[agg.symbol]?.change || 0) * agg.totalQuantity,
+            totalValueChange: ((quotes[agg.symbol]?.price || 0) * agg.totalQuantity) - agg.totalCostBasis,
             portfolioWeight: 0
         }));
 
@@ -149,7 +149,7 @@ export const usePortfolio = () => {
         });
 
         return p;
-    }, [aggregatedBase, priceMap]);
+    }, [aggregatedBase, quotes]);
 
     return { accounts, aggregatedPositions, isLoading, reloadAccounts: fetchAccounts, reloadPositions: fetchPositions, addAccount, addPosition, updatePosition, deletePosition, selectedAccountId, changeAccountFilter };
 };
