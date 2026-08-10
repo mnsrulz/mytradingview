@@ -47,7 +47,7 @@
     "localforage": "^1.10.0",
     "lodash.chunk": "^4.2.0",
     "lodash.debounce": "^4.0.8",
-    "nanoid": "^5.1.6",
+    "nanoid": "^5.1.16",
     "next": "^15.5.14",
     "next-auth": "^5.0.0-beta.29",
     "numeral": "^2.0.6",
