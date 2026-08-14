@@ -12,6 +12,7 @@ export interface PerspectiveSettings {
     sort?: unknown[];
     aggregates?: Record<string, unknown>;
     plugin_config?: Record<string, unknown>;
+    settings?: boolean;
 }
 
 interface PerspectiveWrapperProps {
@@ -126,14 +127,14 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange,
                 const restoreConfig: Record<string, unknown> = {
                     ...initialSettings,
                     table: "options_data",
-                    settings: true,
+                    settings: initialSettings?.settings ?? true,
                     theme: isDarkMode ? "Pro Dark" : "Pro Light",
                 };
                 await viewerRef.current!.restore(restoreConfig);
 
                 viewerRef.current!.addEventListener('perspective-config-update', () => {
                     viewerRef.current!.save().then((config) => {
-                        const { table: _table, settings: _settings, ...userSettings } = config as Record<string, unknown>;
+                        const { table: _table, ...userSettings } = config as Record<string, unknown>;
                         onSettingsChangeRef.current?.(userSettings as PerspectiveSettings);
                     }).catch(() => {});
                 });
@@ -159,7 +160,6 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange,
         viewerRef.current.restore({
             ...initialSettings,
             table: "options_data",
-            settings: true,
         } as any).catch(() => {});
     }, [initialSettings]);
 
