@@ -39,7 +39,7 @@ export async function PUT(request: Request, p: { params: Promise<{ queryId: stri
         data: {
             name: name,
             query: query,
-            perspectiveSettings: perspectiveSettings ?? undefined,
+            perspectiveSettings: (perspectiveSettings as any) ?? undefined,
             updatedAt: new Date()
         }
     });

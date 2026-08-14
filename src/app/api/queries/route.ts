@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         data: {
             name,
             query,
-            perspectiveSettings: perspectiveSettings ?? undefined,
+            perspectiveSettings: (perspectiveSettings as any) ?? undefined,
             createdAt: new Date(),
             updatedAt: new Date()
         },

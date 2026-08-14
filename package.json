@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "prisma generate",
+    "prebuild": "mkdir -p ~/.config/prisma-nodejs && prisma generate",
     "pgen": "prisma generate",
     "pmigrate": "prisma migrate dev",
     "pdeploy": "prisma migrate deploy",
