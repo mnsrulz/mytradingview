@@ -40,7 +40,7 @@ const SCRIPTS_READY = Promise.all([
     }
 });
 
-export const PerspectiveWrapper = ({ data }: { data: any[] }) => {
+export const PerspectiveWrapper = ({ data, isDarkMode = false }: { data: any[]; isDarkMode?: boolean }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const viewerRef = useRef<HTMLPerspectiveViewerElement | null>(null);
     const [ready, setReady] = useState(false);
@@ -108,11 +108,19 @@ export const PerspectiveWrapper = ({ data }: { data: any[] }) => {
                     table: "options_data",
                     settings: true,
                     plugin_config: {},
+                    theme: isDarkMode ? "Pro Dark" : "Pro Light",
                 });
             }
         };
         loadOrUpdate();
     }, [workerReady, data]);
 
-    return <Box ref={containerRef} sx={{ height: '100%' }} />;
+    useEffect(() => {
+        if (!viewerRef.current || !tableRef.current?.table) return;
+        viewerRef.current.restore({
+            theme: isDarkMode ? "Pro Dark" : "Pro Light",
+        }).catch(() => {});
+    }, [isDarkMode]);
+
+    return <Box ref={containerRef} sx={{ height: '100%' }} />
 };

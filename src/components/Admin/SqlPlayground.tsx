@@ -441,6 +441,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                             >
                                 <PerspectiveWrapper
                                     data={activeTab.result}
+                                    isDarkMode={isDarkMode}
                                 />
                             </Box>
                         ) : (
