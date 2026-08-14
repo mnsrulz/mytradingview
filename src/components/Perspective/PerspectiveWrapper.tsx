@@ -104,7 +104,7 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange,
             cancelled = true;
             if (tableRef.current) {
                 viewerRef.current?.delete();
-                tableRef.current.table?.delete();
+                tableRef.current.table?.delete({ lazy: true });
                 tableRef.current = null;
                 viewerRef.current = null;
                 setWorkerReady(false);
