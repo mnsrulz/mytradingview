@@ -11,16 +11,18 @@ export async function GET() {
 
 interface CreateQueryRequest {
     name: string,
-    query: string
+    query: string,
+    perspectiveSettings?: Record<string, unknown> | null
 }
 
 export async function POST(request: Request) {
     const inputJson: CreateQueryRequest = await request.json();
-    const { name, query } = inputJson;
+    const { name, query, perspectiveSettings } = inputJson;
     const resp = await prisma.savedQuery.create({
         data: {
             name,
             query,
+            perspectiveSettings: perspectiveSettings ?? undefined,
             createdAt: new Date(),
             updatedAt: new Date()
         },
@@ -29,6 +31,7 @@ export async function POST(request: Request) {
             createdAt: true,
             name: true,
             query: true,
+            perspectiveSettings: true,
             updatedAt: true
         }
     })

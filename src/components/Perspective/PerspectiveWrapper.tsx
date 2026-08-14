@@ -3,6 +3,24 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import type { HTMLPerspectiveViewerElement } from '@perspective-dev/viewer';
 
+export interface PerspectiveSettings {
+    plugin?: string;
+    columns?: string[];
+    group_by?: string[];
+    split_by?: string[];
+    filter?: unknown[];
+    sort?: unknown[];
+    aggregates?: Record<string, unknown>;
+    plugin_config?: Record<string, unknown>;
+}
+
+interface PerspectiveWrapperProps {
+    data: any[];
+    isDarkMode?: boolean;
+    onSettingsChange?: (settings: PerspectiveSettings) => void;
+    initialSettings?: PerspectiveSettings | null;
+}
+
 const importCache = new Map<string, Promise<any>>();
 function safeImport(url: string) {
     if (!importCache.has(url)) {
@@ -40,10 +58,12 @@ const SCRIPTS_READY = Promise.all([
     }
 });
 
-export const PerspectiveWrapper = ({ data, isDarkMode = false }: { data: any[]; isDarkMode?: boolean }) => {
+export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange, initialSettings }: PerspectiveWrapperProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const viewerRef = useRef<HTMLPerspectiveViewerElement | null>(null);
     const [ready, setReady] = useState(false);
+    const onSettingsChangeRef = useRef(onSettingsChange);
+    onSettingsChangeRef.current = onSettingsChange;
 
     useEffect(() => {
         SCRIPTS_READY.then(() => setReady(true));
@@ -104,11 +124,19 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false }: { data: any[]; 
                 const table = await worker.table(data, { name: "options_data" });
                 tableRef.current.table = table;
                 await viewerRef.current!.load(worker);
-                await viewerRef.current!.restore({
+                const restoreConfig: Record<string, unknown> = {
+                    ...initialSettings,
                     table: "options_data",
                     settings: true,
-                    plugin_config: {},
                     theme: isDarkMode ? "Pro Dark" : "Pro Light",
+                };
+                await viewerRef.current!.restore(restoreConfig);
+
+                viewerRef.current!.addEventListener('perspective-config-update', () => {
+                    viewerRef.current!.save().then((config) => {
+                        const { table: _table, settings: _settings, ...userSettings } = config as Record<string, unknown>;
+                        onSettingsChangeRef.current?.(userSettings as PerspectiveSettings);
+                    }).catch(() => {});
                 });
             }
         };
@@ -121,6 +149,20 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false }: { data: any[]; 
             theme: isDarkMode ? "Pro Dark" : "Pro Light",
         }).catch(() => {});
     }, [isDarkMode]);
+
+    const prevSettingsRef = useRef<PerspectiveSettings | null | undefined>(undefined);
+    useEffect(() => {
+        if (!viewerRef.current || !tableRef.current?.table) return;
+        if (prevSettingsRef.current === initialSettings) return;
+        prevSettingsRef.current = initialSettings;
+        if (!initialSettings) return;
+
+        viewerRef.current.restore({
+            ...initialSettings,
+            table: "options_data",
+            settings: true,
+        }).catch(() => {});
+    }, [initialSettings]);
 
     return <Box ref={containerRef} sx={{ height: '100%' }} />
 };

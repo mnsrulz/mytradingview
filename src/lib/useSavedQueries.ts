@@ -21,20 +21,26 @@ export const useSavedQueries = () => {
 
     const saveQuery = useCallback(async (query: Omit<SavedQuery, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
         const id = query.id;
+        const payload = {
+            name: query.name,
+            query: query.query,
+            perspectiveSettings: query.perspectiveSettings ?? null
+        };
         if (id) {
             return ky.put(`/api/queries/${id}`, {
-                json: query
+                json: payload
             }).then(_ => {
                 setQueries((k) => k.map(o => {
                     if (o.id == id) {
                         o.query = query.query,
-                            o.name = query.name
+                            o.name = query.name,
+                            o.perspectiveSettings = query.perspectiveSettings
                     }
                     return o
                 }));
             });
         } else {
-            return ky.post('/api/queries', { json: query }).json<SavedQuery>().then(v => {
+            return ky.post('/api/queries', { json: payload }).json<SavedQuery>().then(v => {
                 setQueries(k => [...k, v]);
                 return v;
             });
