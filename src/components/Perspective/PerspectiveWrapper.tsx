@@ -160,7 +160,7 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange,
             ...initialSettings,
             table: "options_data",
             settings: true,
-        }).catch(() => {});
+        } as any).catch(() => {});
     }, [initialSettings]);
 
     return <Box ref={containerRef} sx={{ height: '100%' }} />
