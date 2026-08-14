@@ -190,7 +190,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             await saveQuery({
                 name: queryName,
                 query: activeTab.query,
-                perspectiveSettings: activeTab.perspectiveSettings ?? null,
+                perspectiveSettings: (activeTab.perspectiveSettings as any) ?? null,
                 id: activeTab.queryId
             });
 
