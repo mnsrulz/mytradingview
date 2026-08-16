@@ -39,7 +39,7 @@ import { useSavedQueries } from '@/lib/useSavedQueries';
 import { SavedQuery } from '@/lib/db.types';
 import { PerspectiveSettings } from '@/components/Perspective/PerspectiveWrapper';
 
-const knownColumns = ["quote_date", "expiration_date", "expiration_dow", "quote_dow", "dte", "option_ticker", "option_type", "strike_price", "open_interest", "option_volume", "delta", "gamma", "vega", "theta", "rho", "theoretical_price", "implied_volatility", "option_open_price", "option_high_price", "bid_price", "ask_price", "mid_price", "liquidity_tier", "volume_oi_ratio", "underlying_symbol", "underlying_close_price", "moneyness", "moneyness_percent", "expiry_bucket"];
+const knownColumns = ["quote_date", "expiration_date", "expiration_dow", "quote_dow", "is_weekly_expiration", "is_monthly_expiration", "dte", "option_ticker", "option_type", "strike_price", "open_interest", "option_volume", "delta", "gamma", "vega", "theta", "rho", "theoretical_price", "implied_volatility", "option_open_price", "option_high_price", "bid_price", "ask_price", "mid_price", "liquidity_tier", "volume_oi_ratio", "underlying_symbol", "underlying_open_price", "underlying_high_price", "underlying_low_price", "underlying_close_price", "underlying_iv30", "underlying_volume", "underlying_iv30_percentile", "moneyness", "moneyness_percent", "expiry_bucket"];
 
 //add a button to execute the query and show the results in a table below the editor
 //with loading state and error handling
@@ -90,6 +90,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
     const isDarkMode = mode === 'dark';
 
     const handlePerspectiveSettingsChange = (settings: PerspectiveSettings) => {
+        console.log('handlePerspectiveSettingsChange', settings);
         setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, perspectiveSettings: settings } : t));
     };
 

@@ -119,7 +119,7 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange,
 
         const loadOrUpdate = async () => {
             if (tableRef.current.table) {
-                tableRef.current.table.update(data);
+                tableRef.current.table.replace(data);
             } else {
                 const table = await worker.table(data, { name: "options_data" });
                 tableRef.current.table = table;
@@ -132,7 +132,8 @@ export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange,
                 };
                 await viewerRef.current!.restore(restoreConfig);
 
-                viewerRef.current!.addEventListener('perspective-config-update', () => {
+                viewerRef.current?.addEventListener('perspective-config-update', () => {
+                    console.log('perspective-config-update');
                     viewerRef.current!.save().then((config) => {
                         const { table: _table, ...userSettings } = config as Record<string, unknown>;
                         onSettingsChangeRef.current?.(userSettings as PerspectiveSettings);
