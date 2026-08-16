@@ -207,7 +207,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
 
 
     return (
-        <Stack spacing={1}>
+        <Stack spacing={1} sx={{ height: '100%' }}>
             {/* Tabs */}
             <Stack direction="row" alignItems="center">
                 <Tabs
@@ -361,7 +361,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             </Paper>
 
             {/* Editor + Results */}
-            <Group orientation="vertical" style={{ height: '75vh' }}>
+            <Group orientation="vertical" style={{ flex: 1, minHeight: 0 }}>
                 <Panel style={{ padding: 1 }}>
                     <Paper sx={{ height: '100%', display: 'flex' }}>
                         <Editor
@@ -406,7 +406,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                 <Separator />
 
                 <Panel>
-                    <Paper sx={{ pt: 1 }}>
+                    <Paper sx={{ pt: 1, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                         {activeTab.error ? (
                             <Typography color="error" p={2}>
                                 {activeTab.error}
@@ -414,46 +414,45 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                         ) : activeTab.isLoading ? (
                             <Box display="flex" justifyContent="center" p={3}>
                                 <CircularProgress size={24} />
-                            </Box>
+                </Box>
                         ) : rows.length ? (resultView === 'grid' ?
-                            <DataGrid
-                                columns={columns}
-                                rows={rows}
-                                autoHeight
-                                density="compact"
-                                rowHeight={40}
-                                disableColumnMenu
-                                disableColumnSorting
-                                disableColumnSelector
-                                pagination
-                                initialState={{
-                                    pagination: { paginationModel: { pageSize: 10 } }
-                                }}
-                                pageSizeOptions={[5, 10, 25]}
-                                sx={{
-                                    // height: '15vh',
-                                    fontFamily: "Roboto Mono, monospace",
-                                    fontSize: 12,
-                                    //display: 'grid',
-                                    //'& .MuiDataGrid-columnSeparator': { display: 'none' },
-                                    '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
-                                        outline: 'none'
-                                    }
-                                }}
+                <DataGrid
+                    columns={columns}
+                    rows={rows}
+                    density="compact"
+                    rowHeight={40}
+                    disableColumnMenu
+                    disableColumnSorting
+                    disableColumnSelector
+                    pagination
+                    initialState={{
+                        pagination: { paginationModel: { pageSize: 10 } }
+                    }}
+                    pageSizeOptions={[5, 10, 25]}
+                    sx={{
+                        flex: 1,
+                        minHeight: 0,
+                        fontFamily: "Roboto Mono, monospace",
+                        fontSize: 12,
+                        '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+                            outline: 'none'
+                        }
+                    }}
 
                             /> : <Box
-                                sx={{
-                                    height: '65vh',
+                sx={{
+                                    flex: 1,
+                                    minHeight: 0,
                                     width: '100%'
-                                }}
-                            >
-                                <PerspectiveWrapper
+                }}
+            >
+                <PerspectiveWrapper
                                     data={activeTab.result}
-                                    isDarkMode={isDarkMode}
+                    isDarkMode={isDarkMode}
                                     onSettingsChange={handlePerspectiveSettingsChange}
                                     initialSettings={activeTab.perspectiveSettings}
-                                />
-                            </Box>
+                />
+            </Box>
                         ) : (
                             <Typography p={2} color="text.secondary">
                                 No results to display

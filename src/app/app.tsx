@@ -10,7 +10,7 @@ export function Dashboard({ children }: Readonly<{ children: React.ReactNode }>)
   return <DashboardLayout slots={{ sidebarFooter: Footer }}>
     <NoPrefetch />
     <NuqsAdapter>
-      <Container maxWidth={false} disableGutters sx={{ p: 1 }}>
+      <Container maxWidth={false} disableGutters sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
         <DialogsProvider>
           {children}
         </DialogsProvider>
