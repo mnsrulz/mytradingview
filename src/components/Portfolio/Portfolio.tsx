@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Box } from '@mui/material'
 import { Position, PositionPayload } from '@/lib/types'
 import { HoldingsToolbar } from './HoldingsToolbar'
 import { PositionsDataGrid } from './PositionsTable'
@@ -29,7 +30,7 @@ export const Portfolio = () => {
     }
 
     return (
-        <>
+        <Box sx={{ display: 'flex', flexDirection: 'column', p: 1 }}>
             <HoldingsToolbar
                 accounts={accounts}
                 selectedAccountId={selectedAccountId}
@@ -55,6 +56,6 @@ export const Portfolio = () => {
                     onDeleted={reloadPositions}
                 />
             )}
-        </>
+        </Box>
     )
 }
