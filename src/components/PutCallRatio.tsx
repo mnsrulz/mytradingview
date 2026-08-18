@@ -80,7 +80,7 @@ export const PutCallRatio = (props: ITickerProps) => {
                         </Typography>
                     </Stack>
                 </Stack>
-                <StrikePriceSlider currentPrice={currentPrice}
+                <StrikePriceSlider
                     allStrikePricesValues={allStrikePricesValues}
                     onChange={setStrikePriceRange}
                     strikePriceRange={strikePriceRange}

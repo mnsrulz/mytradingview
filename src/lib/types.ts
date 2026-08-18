@@ -72,6 +72,45 @@ export type IOptionsGrid = {
 
 export type NumberRange = { start: number, end: number }
 
+export type OptionsQuote = {
+  a: number,
+  b: number,
+  l: number,
+  oi: number,
+  v: number
+}
+
+export type OptionsPricingGridRow = { id: string } & Record<string, number | string | null>
+
+export type PriceModeType = 'LAST_PRICE' | 'BID_PRICE' | 'ASK_PRICE' | 'AVG_PRICE'
+export type ValueModeType = 'PRICE' | 'ANNUAL_RETURN' | 'TOTAL_RETURN' | 'PCR' | 'VOLUME'
+
+export enum PriceModeTypeEnum {
+  'LAST_PRICE' = 'LAST_PRICE',
+  'BID_PRICE' = 'BID_PRICE',
+  'ASK_PRICE' = 'ASK_PRICE',
+  'AVG_PRICE' = 'AVG_PRICE'
+}
+
+export enum ValueModeTypeEnum {
+  'PRICE' = 'PRICE',
+  'ANNUAL_RETURN' = 'ANNUAL_RETURN',
+  'TOTAL_RETURN' = 'TOTAL_RETURN',
+  'PCR' = 'PCR',
+  'VOLUME' = 'VOLUME'
+}
+
+export enum PutCallType {
+  'PUT' = 'PUT',
+  'CALL' = 'CALL'
+}
+
+export type IStrikePriceSliderPorps = {
+  allStrikePricesValues: number[],
+  onChange: (v: NumberRange) => void,
+  strikePriceRange: NumberRange
+}
+
 
 
 export type SearchTickerResult = { items: SearchTickerItem[] };
@@ -167,20 +206,8 @@ export type OptionGreeksExposureWallsByDateResponse = { dt: string, symbol: stri
 export type OIAnomalyReportDataResponse = { dt: string, option: string, option_symbol: string, expiration: string, option_type: 'C' | 'P', strike: string, prev_open_interest: number, open_interest: number, oi_change: number, anomaly_score: number, delta: number, gamma: number, dte: number, volume: number }
 
 export type OptionsInnerData = {
-  c: Record<string, {
-    a: number,
-    b: number,
-    l: number,
-    oi: number,
-    v: number
-  }>,
-  p: Record<string, {
-    a: number,
-    b: number,
-    l: number,
-    oi: number,
-    v: number
-  }>
+  c: Record<string, OptionsQuote>,
+  p: Record<string, OptionsQuote>
 }
 
 export type OptionsPricingDataResponse = {
