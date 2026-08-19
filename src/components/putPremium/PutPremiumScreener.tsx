@@ -1,11 +1,12 @@
 'use client';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Alert, Box, Button, FormControl, InputLabel, LinearProgress, MenuItem, Paper, Select, Slider, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, FormControl, InputAdornment, InputLabel, LinearProgress, MenuItem, Paper, Select, Slider, Stack, TextField, Typography } from '@mui/material';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { useItemTooltip } from '@mui/x-charts';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { ChartsTooltipContainer } from '@mui/x-charts/ChartsTooltip';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { useNotifications } from '@toolpad/core';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
 import { usePutPremiumData } from '@/lib/hooks';
@@ -89,6 +90,13 @@ export const PutPremiumScreener = () => {
 
     const notifications = useNotifications();
     const prevLoading = useRef(true);
+    const symbolInputRef = useRef<HTMLInputElement>(null);
+
+    useHotkeys('slash', (e) => {
+        console.log('[put-premium] "/" shortcut pressed');
+        e.preventDefault();
+        symbolInputRef.current?.focus();
+    });
 
     useEffect(() => {
         if (prevLoading.current && !isLoading && dataWarnings.length > 0) {
@@ -166,9 +174,33 @@ export const PutPremiumScreener = () => {
                         size="small"
                         label="Symbols"
                         placeholder="e.g. AAPL, NVDA, TSLA"
+                        inputRef={symbolInputRef}
                         value={symbolInput}
                         onChange={(e) => handleSymbolInputChange(e.target.value)}
                         helperText={`${symbols.length}/${MAX_SYMBOLS} symbols — comma-separated`}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Box
+                                        component="span"
+                                        sx={{
+                                            fontFamily: 'ui-monospace, monospace',
+                                            fontSize: 12,
+                                            lineHeight: 1.4,
+                                            color: 'text.disabled',
+                                            border: 1,
+                                            borderColor: 'divider',
+                                            borderRadius: 1,
+                                            px: 0.6,
+                                            py: 0.1,
+                                            userSelect: 'none',
+                                        }}
+                                    >
+                                        /
+                                    </Box>
+                                </InputAdornment>
+                            ),
+                        }}
                         sx={{
                             flex: '1 1 280px',
                             minWidth: 280,
@@ -203,49 +235,56 @@ export const PutPremiumScreener = () => {
                     </Button>
                 </Box>
 
-                <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                        <Typography variant="caption" color="text.secondary">Move range below spot</Typography>
-                        <Typography variant="body2">-{moveRangeStart}% to -{moveRangeEnd}%</Typography>
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+                    <Stack
+                        direction="row"
+                        spacing={1.5}
+                        alignItems="flex-end"
+                        sx={{ flexWrap: 'wrap' }}
+                    >
+                        <FormControl variant="outlined" size="small" sx={{ minWidth: 170 }}>
+                            <InputLabel>Expiry</InputLabel>
+                            <Select value={expiry} label="Expiry" onChange={(e) => setExpiry(e.target.value)}>
+                                <MenuItem value="">Auto (next monthly)</MenuItem>
+                                {expiries.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
+                            </Select>
+                        </FormControl>
+                        <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
+                            <InputLabel>Price Mode</InputLabel>
+                            <Select value={priceMode} label="Price Mode" onChange={(e) => setPriceMode(e.target.value as PriceModeTypeEnum)}>
+                                <MenuItem value="LAST_PRICE">Last</MenuItem>
+                                <MenuItem value="BID_PRICE">Bid</MenuItem>
+                                <MenuItem value="ASK_PRICE">Ask</MenuItem>
+                                <MenuItem value="AVG_PRICE">Mid</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
+                            <InputLabel>Premium %</InputLabel>
+                            <Select value={premiumDisplayMode} label="Premium %" onChange={(e) => setPremiumDisplayMode(e.target.value as PremiumDisplayModeType)}>
+                                <MenuItem value="TOTAL">Total</MenuItem>
+                                <MenuItem value="ANNUALIZED">Annualized</MenuItem>
+                            </Select>
+                        </FormControl>
                     </Stack>
-                    <Slider
-                        value={[moveRangeStart, moveRangeEnd]}
-                        onChange={(_, v) => {
-                            const [s, e] = v as number[];
-                            setMoveMin(s);
-                            setMoveMax(e);
-                        }}
-                        min={MOVE_MIN_LIMIT}
-                        max={MOVE_MAX_LIMIT}
-                        valueLabelDisplay="auto"
-                        valueLabelFormat={(v) => `-${v}%`}
-                    />
-                </Box>
-
-                <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
-                    <FormControl variant="standard" size="small" sx={{ minWidth: 180 }}>
-                        <InputLabel>Expiry</InputLabel>
-                        <Select value={expiry} label="Expiry" onChange={(e) => setExpiry(e.target.value)}>
-                            <MenuItem value="">Auto (next monthly)</MenuItem>
-                            {expiries.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <FormControl variant="standard" size="small" sx={{ minWidth: 140 }}>
-                        <InputLabel>Price Mode</InputLabel>
-                        <Select value={priceMode} label="Price Mode" onChange={(e) => setPriceMode(e.target.value as PriceModeTypeEnum)}>
-                            <MenuItem value="LAST_PRICE">Last</MenuItem>
-                            <MenuItem value="BID_PRICE">Bid</MenuItem>
-                            <MenuItem value="ASK_PRICE">Ask</MenuItem>
-                            <MenuItem value="AVG_PRICE">Mid</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <FormControl variant="standard" size="small" sx={{ minWidth: 140 }}>
-                        <InputLabel>Premium %</InputLabel>
-                        <Select value={premiumDisplayMode} label="Premium %" onChange={(e) => setPremiumDisplayMode(e.target.value as PremiumDisplayModeType)}>
-                            <MenuItem value="TOTAL">Total</MenuItem>
-                            <MenuItem value="ANNUALIZED">Annualized</MenuItem>
-                        </Select>
-                    </FormControl>
+                    <Box sx={{ flexGrow: 1, minWidth: 280 }}>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>Move range</Typography>
+                            <Slider
+                                value={[moveRangeStart, moveRangeEnd]}
+                                onChange={(_, v) => {
+                                    const [s, e] = v as number[];
+                                    setMoveMin(s);
+                                    setMoveMax(e);
+                                }}
+                                min={MOVE_MIN_LIMIT}
+                                max={MOVE_MAX_LIMIT}
+                                valueLabelDisplay="auto"
+                                valueLabelFormat={(v) => `-${v}%`}
+                                sx={{ flexGrow: 1 }}
+                            />
+                            <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>-{moveRangeStart}% to -{moveRangeEnd}%</Typography>
+                        </Stack>
+                    </Box>
                 </Stack>
 
                 {isLoading && (
