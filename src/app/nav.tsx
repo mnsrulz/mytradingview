@@ -155,5 +155,10 @@ export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
         segment: 'admin/sql-playground',
         title: 'SQL Playground',
         icon: <StorageIcon />,
+    },
+    {
+        segment: 'admin/put-premium',
+        title: 'Put Premium',
+        icon: <AttachMoneyIcon />,
     }
 ]);

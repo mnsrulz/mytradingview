@@ -650,6 +650,51 @@ export const useOptionTrackerV2 = (symbol: string, refreshToken: string) => {
     return { data, isLoading, strikePriceRange, setStrikePriceRange, targetPrice, setTargetPrice, costBasis, setCostBasis };
 }
 
+export const usePutPremiumData = (symbols: string[], refreshToken: string) => {
+    const [data, setData] = useState<Map<string, OptionsPricingDataResponse>>(new Map());
+    const [isLoading, setIsLoading] = useState(true);
+    const [warnings, setWarnings] = useState<string[]>([]);
+    const [progress, setProgress] = useState({ completed: 0, total: 0 });
+
+    useEffect(() => {
+        if (symbols.length === 0) {
+            setData(new Map());
+            setWarnings([]);
+            setIsLoading(false);
+            setProgress({ completed: 0, total: 0 });
+            return;
+        }
+        setIsLoading(true);
+        setWarnings([]);
+        setProgress({ completed: 0, total: symbols.length });
+        let completed = 0;
+        Promise.all(symbols.map(async (symbol) => {
+            try {
+                const r = await getOptionsPricing(symbol);
+                return { symbol, result: r };
+            } catch (error) {
+                return { symbol, result: undefined };
+            } finally {
+                completed += 1;
+                setProgress({ completed, total: symbols.length });
+            }
+        })).then(results => {
+            const nextData = new Map<string, OptionsPricingDataResponse>();
+            const nextWarnings: string[] = [];
+            results.forEach(({ symbol, result }) => {
+                if (result) {
+                    nextData.set(symbol, result);
+                } else {
+                    nextWarnings.push(`${symbol}: failed to load pricing data`);
+                }
+            });
+            setData(nextData);
+            setWarnings(nextWarnings);
+        }).finally(() => setIsLoading(false));
+    }, [symbols, refreshToken]);
+    return { data, isLoading, warnings, progress };
+}
+
 
 export const useExporsureDates = () => {
     const [cachedDates, setCachedDates] = useState<string[]>([]);

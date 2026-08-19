@@ -100,6 +100,11 @@ export enum ValueModeTypeEnum {
   'VOLUME' = 'VOLUME'
 }
 
+export enum PremiumDisplayModeType {
+  'TOTAL' = 'TOTAL',
+  'ANNUALIZED' = 'ANNUALIZED'
+}
+
 export enum PutCallType {
   'PUT' = 'PUT',
   'CALL' = 'CALL'
