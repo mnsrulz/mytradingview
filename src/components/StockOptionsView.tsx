@@ -3,7 +3,8 @@ import { Box, Divider, IconButton, LinearProgress, Paper, Tab, Tabs } from '@mui
 import TuneIcon from '@mui/icons-material/Tune';
 import { useState } from 'react';
 import { useOptionTrackerV2 } from '../lib/hooks';
-import { OptionsPricingGrid } from './optionsPricing/OptionsPricingGrid';
+import { OptionsPricingGrid, OptionContractSelection } from './optionsPricing/OptionsPricingGrid';
+import { OptionPriceHistoryPanel } from './optionsPricing/OptionPriceHistoryPanel';
 import { OptionsPricingControls } from './optionsPricing/OptionsPricingControls';
 import { OptionsPricingHeader } from './optionsPricing/OptionsPricingHeader';
 import { PutCallRatio } from './PutCallRatio';
@@ -23,6 +24,7 @@ export const StockOptionsView = (props: ITickerProps) => {
     const [valueMode, setValueMode] = useQueryState<ValueModeTypeEnum>('valuemode', parseAsStringEnum<ValueModeTypeEnum>(Object.values(ValueModeTypeEnum)).withDefault(ValueModeTypeEnum.ANNUAL_RETURN));
     const [pcrSelectedData, setPcrSelectedData] = useState<OptionsInnerData | undefined>();
     const [pcrOpen, setPcrOpen] = useState(false);
+    const [selectedContract, setSelectedContract] = useState<OptionContractSelection | undefined>();
     const [controlsAnchorEl, setControlsAnchorEl] = useState<HTMLElement | null>(null);
 
     function handlePcrSelection(v: string) {
@@ -83,13 +85,23 @@ export const StockOptionsView = (props: ITickerProps) => {
                 <Tab label="CALL" value='CALL' />
             </Tabs>
         </Box>
-        <OptionsPricingGrid rows={rows} workingStrikes={workingStrikes} valueMode={valueMode} onExpiryClick={handlePcrSelection} />
+        <OptionsPricingGrid rows={rows} workingStrikes={workingStrikes} valueMode={valueMode} onExpiryClick={handlePcrSelection} onContractClick={setSelectedContract} />
         {
             pcrSelectedData && <PutCallRatio
                 open={pcrOpen}
                 data={pcrSelectedData}
                 currentPrice={data.spotPrice}
                 onClose={() => setPcrOpen(false)} />
+        }
+        {
+            selectedContract && <OptionPriceHistoryPanel
+                params={{
+                    symbol: props.symbol,
+                    expiration: selectedContract.expiration,
+                    strike: selectedContract.strike,
+                    putCallType: putCallTabValue,
+                }}
+                onClose={() => setSelectedContract(undefined)} />
         }
     </Paper>
 }
