@@ -26,11 +26,13 @@ export type CustomStrategy = {
     symbol: string;
 }
 
+import { SavedStrategy } from '@/lib/useSavedStrategies'
+
 type HedgeStrategyBuilderProps = {
     symbol: string;
     optionsChain: OptionsPricingDataResponse;
     onSave: (strategy: CustomStrategy) => void;
-    initialStrategy?: CustomStrategy;
+    initialStrategy?: SavedStrategy | CustomStrategy;
 }
 
 const STRATEGY_TYPES: { value: StrategyType; label: string }[] = [
@@ -43,7 +45,7 @@ const STRATEGY_TYPES: { value: StrategyType; label: string }[] = [
     { value: 'FOUR_LEG', label: 'Four Leg' },
 ]
 
-const inferStrategyType = (legs: StrategyLeg[]): StrategyType => {
+const inferStrategyType = (legs: { type: string; mode: string }[]): StrategyType => {
     if (legs.length === 1) return 'SINGLE_LEG'
     const types = legs.map(l => l.type)
     const hasCall = types.includes('CALL')
@@ -110,7 +112,7 @@ const buildDefaultLegs = (strategyType: StrategyType, optionsChain: OptionsPrici
     }
 }
 
-const buildStrategyName = (strategyType: StrategyType, legs: StrategyLeg[]): string => {
+const buildStrategyName = (strategyType: StrategyType, legs: { strike: number; expiration: string }[]): string => {
     const label = STRATEGY_TYPES.find(s => s.value === strategyType)?.label || strategyType
     const strikes = legs.map(l => l.strike).sort((a, b) => a - b)
     const expiry = legs[0] ? dayjs(legs[0].expiration).format('MM/DD') : ''
@@ -128,7 +130,14 @@ export const HedgeStrategyBuilder = ({
     )
     const [legs, setLegs] = useState<StrategyLeg[]>(() => {
         if (initialStrategy?.legs) {
-            return initialStrategy.legs.map(l => ({ ...l }))
+            return initialStrategy.legs.map(l => ({
+                id: nanoid(),
+                type: l.type,
+                mode: l.mode,
+                strike: l.strike,
+                expiration: l.expiration,
+                quantity: l.quantity ?? 1,
+            }))
         }
         return buildDefaultLegs('PUT_SPREAD', optionsChain, symbol)
     })

@@ -126,7 +126,7 @@ export const HedgeStrategyChart = ({ legs, symbol }: HedgeStrategyChartProps) =>
 
     const lineOptions = useMemo(() => ({
         color: lineColor,
-        lineWidth: 2,
+        lineWidth: 2 as const,
         priceLineVisible: false,
     }), [lineColor])
 
