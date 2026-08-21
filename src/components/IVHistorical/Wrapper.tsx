@@ -42,7 +42,7 @@ export const Wrapper = (props: { symbols: string[] }) => {
 const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void }) => {
     const { symbols, symbol, onSymbolChange } = props;
     const [mode, setMode] = useState('delta');
-    const [expiryMode, setExpiryMode] = useState<'fixed' | 'rolling'>('fixed');
+    const [expiryMode, setExpiryMode] = useState<'fixed' | 'rolling'>('rolling');
     const [lookbackPeriod, setLookbackPeriod] = useState(180);
     const [dte, setDte] = useState(30);
     const { expirations, expiration, setExpiration, strike, setStrike } = useExpirations(symbol);

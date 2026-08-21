@@ -1,92 +1,168 @@
-import React, { useEffect, useRef } from 'react';
+'use client';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
+import type { HTMLPerspectiveViewerElement } from '@perspective-dev/viewer';
 
-const importCache = new Map();
+export interface PerspectiveSettings {
+    plugin?: string;
+    columns?: string[];
+    group_by?: string[];
+    split_by?: string[];
+    filter?: unknown[];
+    sort?: unknown[];
+    aggregates?: Record<string, unknown>;
+    plugin_config?: Record<string, unknown>;
+    settings?: boolean;
+}
+
+interface PerspectiveWrapperProps {
+    data: any[];
+    isDarkMode?: boolean;
+    onSettingsChange?: (settings: PerspectiveSettings) => void;
+    initialSettings?: PerspectiveSettings | null;
+}
+
+const importCache = new Map<string, Promise<any>>();
 function safeImport(url: string) {
     if (!importCache.has(url)) {
-        // webpackIgnore prevents bundlers like Webpack or Vite from trying to compile the external CDN URL
         const promise = import(/* webpackIgnore: true */ url).catch((err) => {
-            importCache.delete(url); // Evict failed attempts so components can retry
+            importCache.delete(url);
             throw err;
         });
         importCache.set(url, promise);
     }
-    return importCache.get(url);
+    return importCache.get(url)!;
 }
 
-export const PerspectiveWrapper = ({
-    data
-}: {
-    data: any[];
-}) => {
-    const containerRef = useRef(null);
-    const perspectiveViewerRef = useRef<HTMLElement | null>(null);
+const CDN = {
+    viewer: "https://cdn.jsdelivr.net/npm/@perspective-dev/viewer@5.2.0/dist/cdn/perspective-viewer.js",
+    datagrid: "https://cdn.jsdelivr.net/npm/@perspective-dev/viewer-datagrid@5.2.0/dist/cdn/perspective-viewer-datagrid.js",
+    charts: "https://cdn.jsdelivr.net/npm/@perspective-dev/viewer-charts@5.2.0/dist/cdn/perspective-viewer-charts.js",
+    client: "https://cdn.jsdelivr.net/npm/@perspective-dev/client@5.2.0/dist/cdn/perspective.js",
+    serverWasm: "https://cdn.jsdelivr.net/npm/@perspective-dev/server@5.2.0/dist/wasm/perspective-server.wasm",
+    theme: "https://cdn.jsdelivr.net/npm/@perspective-dev/viewer@5.2.0/dist/css/themes.css",
+};
 
-    useEffect(() => {
-        // Inject theme CSS
+const SCRIPTS_READY = Promise.all([
+    safeImport(CDN.viewer),
+    safeImport(CDN.datagrid),
+    safeImport(CDN.charts),
+    safeImport(CDN.client),
+]).then(() => {
+    if (typeof document === 'undefined') return;
+    if (!document.querySelector(`link[href="${CDN.theme}"]`)) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.crossOrigin = 'anonymous';
-        link.href = 'https://cdn.jsdelivr.net/npm/@perspective-dev/viewer@4.5.1/dist/css/themes.css';
+        link.href = CDN.theme;
         document.head.appendChild(link);
+    }
+});
 
-        if(!perspectiveViewerRef.current) {
-            const viewerElement = document.createElement("perspective-viewer");
-            viewerElement.style.height = '100%';
-            perspectiveViewerRef.current = viewerElement;
-            const c = (containerRef.current as unknown as HTMLDivElement);
-            c?.appendChild(viewerElement);
-        }
-        
-        let worker: any = null;
-        let table: any = null;
+export const PerspectiveWrapper = ({ data, isDarkMode = false, onSettingsChange, initialSettings }: PerspectiveWrapperProps) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const viewerRef = useRef<HTMLPerspectiveViewerElement | null>(null);
+    const [ready, setReady] = useState(false);
+    const onSettingsChangeRef = useRef(onSettingsChange);
+    onSettingsChangeRef.current = onSettingsChange;
 
-        const loadPerspective = async () => {
-            try {
-                const urls = [
-                    "https://cdn.jsdelivr.net/npm/@perspective-dev/viewer@4.5.1/dist/cdn/perspective-viewer.js",
-                    "https://cdn.jsdelivr.net/npm/@perspective-dev/viewer-datagrid@4.5.1/dist/cdn/perspective-viewer-datagrid.js",
-                    "https://cdn.jsdelivr.net/npm/@perspective-dev/viewer-charts@4.5.1/dist/cdn/perspective-viewer-charts.js"
-                ];
-
-                await Promise.all(urls.map(safeImport));
-
-                // 2. Load and return the client core module (which has default/named exports)
-                const clientModule = await safeImport(
-                    "https://cdn.jsdelivr.net/npm/@perspective-dev/client@4.5.1/dist/cdn/perspective.js"
-                );
-
-                const perspective = clientModule.default;
-
-                worker = await perspective.worker();
-
-                // 2. Pass the static JSON array straight into the engine (No fetch or arrayBuffer needed)
-                table = await worker.table(data, { name: "options_data" });
-
-                
-                const viewerElement = perspectiveViewerRef.current as unknown as {load: (worker: any) => Promise<void>, restore: (config: any) => Promise<void>};
-                //const viewerElement = viewerRef.current as unknown as {load: (worker: any) => Promise<void>, restore: (config: any) => Promise<void>};
-                if (viewerElement) {
-                    await viewerElement.load(worker);
-                    await viewerElement.restore({
-                        table: "options_data",
-                        settings: true,
-                        plugin_config: {},
-                    });
-                }
-            } catch (error) {
-                console.error("Error initializing Perspective with static data:", error);
-            }
-        };
-
-        loadPerspective();
-
-        return () => {
-            document.head.removeChild(link);
-            if (table) table.delete();
-            if (worker) worker.terminate();
-        };
+    useEffect(() => {
+        SCRIPTS_READY.then(() => setReady(true));
     }, []);
 
-    return <Box ref={containerRef} style={{height: '100%'}} />;
+    useEffect(() => {
+        if (!ready || !containerRef.current || viewerRef.current) return;
+        const viewer = document.createElement('perspective-viewer');
+        viewer.style.height = '100%';
+        viewer.style.width = '100%';
+        containerRef.current.appendChild(viewer);
+        viewerRef.current = viewer;
+        return () => {
+            viewerRef.current?.remove();
+            viewerRef.current = null;
+        };
+    }, [ready]);
+
+    const tableRef = useRef<any>(null);
+    const [workerReady, setWorkerReady] = useState(false);
+
+    useEffect(() => {
+        if (!ready || !viewerRef.current || workerReady) return;
+        let cancelled = false;
+
+        const init = async () => {
+            const clientModule = await safeImport(CDN.client);
+            const perspective = clientModule.default;
+            await perspective.init_server({ wasm32: () => fetch(CDN.serverWasm) });
+            const worker = await perspective.worker();
+            if (cancelled) { worker.terminate(); return; }
+            tableRef.current = { worker, table: null };
+            setWorkerReady(true);
+        };
+        init();
+
+        return () => {
+            cancelled = true;
+            if (tableRef.current) {
+                viewerRef.current?.delete();
+                tableRef.current.table?.delete({ lazy: true });
+                tableRef.current = null;
+                viewerRef.current = null;
+                setWorkerReady(false);
+            }
+        };
+    }, [ready]);
+
+    useEffect(() => {
+        if (!workerReady || !viewerRef.current || data.length === 0) return;
+        const { worker } = tableRef.current;
+
+        const loadOrUpdate = async () => {
+            if (tableRef.current.table) {
+                tableRef.current.table.replace(data);
+            } else {
+                const table = await worker.table(data, { name: "options_data" });
+                tableRef.current.table = table;
+                await viewerRef.current!.load(worker);
+                const restoreConfig: Record<string, unknown> = {
+                    ...initialSettings,
+                    table: "options_data",
+                    settings: initialSettings?.settings ?? true,
+                    theme: isDarkMode ? "Pro Dark" : "Pro Light",
+                };
+                await viewerRef.current!.restore(restoreConfig);
+
+                viewerRef.current?.addEventListener('perspective-config-update', () => {
+                    console.log('perspective-config-update');
+                    viewerRef.current!.save().then((config) => {
+                        const { table: _table, ...userSettings } = config as Record<string, unknown>;
+                        onSettingsChangeRef.current?.(userSettings as PerspectiveSettings);
+                    }).catch(() => {});
+                });
+            }
+        };
+        loadOrUpdate();
+    }, [workerReady, data]);
+
+    useEffect(() => {
+        if (!viewerRef.current || !tableRef.current?.table) return;
+        viewerRef.current.restore({
+            theme: isDarkMode ? "Pro Dark" : "Pro Light",
+        }).catch(() => {});
+    }, [isDarkMode]);
+
+    const prevSettingsRef = useRef<PerspectiveSettings | null | undefined>(undefined);
+    useEffect(() => {
+        if (!viewerRef.current || !tableRef.current?.table) return;
+        if (prevSettingsRef.current === initialSettings) return;
+        prevSettingsRef.current = initialSettings;
+        if (!initialSettings) return;
+
+        viewerRef.current.restore({
+            ...initialSettings,
+            table: "options_data",
+        } as any).catch(() => {});
+    }, [initialSettings]);
+
+    return <Box ref={containerRef} sx={{ height: '100%' }} />
 };

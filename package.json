@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "prisma generate",
+    "prebuild": "mkdir -p ~/.config/prisma-nodejs && prisma generate",
     "pgen": "prisma generate",
     "pmigrate": "prisma migrate dev",
     "pdeploy": "prisma migrate deploy",
@@ -54,6 +54,7 @@
     "nuqs": "^2.4.3",
     "react": "^19.1.1",
     "react-dom": "^19.2.3",
+    "react-hotkeys-hook": "^5.3.3",
     "react-instantsearch": "^7.16.3",
     "react-intersection-observer": "^10.0.0",
     "react-photo-view": "^1.2.7",
@@ -68,6 +69,7 @@
     "yahoo-finance2": "^2.12.3"
   },
   "devDependencies": {
+    "@perspective-dev/viewer": "^5.2.0",
     "@types/autosuggest-highlight": "^3.2.3",
     "@types/core-js": "^2.5.8",
     "@types/he": "^1.2.3",

@@ -17,6 +17,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import StorageIcon from '@mui/icons-material/Storage';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import ShieldIcon from '@mui/icons-material/Shield';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -44,6 +45,12 @@ export const NAVIGATION: Navigation = [
         segment: 'portfolio',
         title: 'Portfolio',
         icon: <WorkOutlineIcon />,
+    },
+    {
+        segment: 'portfolio/hedge',
+        title: 'Hedge',
+        icon: <ShieldIcon />,
+        pattern: 'portfolio/hedge',
     },
     {
         kind: 'divider',
@@ -155,5 +162,10 @@ export const ADMIN_NAVIGATION: Navigation = NAVIGATION.concat([
         segment: 'admin/sql-playground',
         title: 'SQL Playground',
         icon: <StorageIcon />,
+    },
+    {
+        segment: 'admin/put-premium',
+        title: 'Put Premium',
+        icon: <AttachMoneyIcon />,
     }
 ]);

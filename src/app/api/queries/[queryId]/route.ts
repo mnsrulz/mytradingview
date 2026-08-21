@@ -13,12 +13,13 @@ export async function GET(request: Request, p: { params: Promise<{ queryId: stri
 
 interface UpdateQueryRequest {
     name: string,
-    query: string
+    query: string,
+    perspectiveSettings?: Record<string, unknown> | null
 }
 
 export async function PUT(request: Request, p: { params: Promise<{ queryId: string }> }) {
     const inputJson: UpdateQueryRequest = await request.json();
-    const { name, query } = inputJson;
+    const { name, query, perspectiveSettings } = inputJson;
     const existing = await prisma.savedQuery.findFirst({
         where: {
             id: (await p.params).queryId
@@ -38,6 +39,7 @@ export async function PUT(request: Request, p: { params: Promise<{ queryId: stri
         data: {
             name: name,
             query: query,
+            perspectiveSettings: (perspectiveSettings as any) ?? undefined,
             updatedAt: new Date()
         }
     });

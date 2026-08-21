@@ -92,9 +92,10 @@ model Portfolio {
 }
 
 model SavedQuery {
-  id        String   @id @default(cuid()) // This is the ID
-  name      String   @unique
-  query     String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String   @id @default(cuid()) // This is the ID
+  name                String   @unique
+  query               String   @db.Text
+  perspectiveSettings Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }

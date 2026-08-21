@@ -10,6 +10,8 @@ import theme from '@/theme';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Dashboard } from "./app";
 import { PageTracker } from "@/components/PageTracker";
+import { Suspense } from 'react';
+import LoadingBar from '@/components/LoadingBar';
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', adjustFontFallback: false });
 const gaId = process.env.GOOGLE_ANALYTICS_ID || '';
@@ -25,8 +27,8 @@ const AUTHENTICATION = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <SessionProvider session={session}>
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             <NextAppProvider
@@ -39,7 +41,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 title: 'mztrading'
               }}
             >
-              <Dashboard>{children}</Dashboard>
+              <Dashboard>
+                <Suspense fallback={<LoadingBar />}>
+                  {children}
+                </Suspense>
+              </Dashboard>
             </NextAppProvider>
           </AppRouterCacheProvider>
         </SessionProvider>

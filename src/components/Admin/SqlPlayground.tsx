@@ -37,8 +37,9 @@ import { nanoid } from 'nanoid';
 import { useNotifications } from '@toolpad/core';
 import { useSavedQueries } from '@/lib/useSavedQueries';
 import { SavedQuery } from '@/lib/db.types';
+import { PerspectiveSettings } from '@/components/Perspective/PerspectiveWrapper';
 
-const knownColumns = ["quote_date", "expiration_date", "expiration_dow", "quote_dow", "dte", "option_ticker", "option_type", "strike_price", "open_interest", "option_volume", "delta", "gamma", "vega", "theta", "rho", "theoretical_price", "implied_volatility", "option_open_price", "option_high_price", "bid_price", "ask_price", "mid_price", "liquidity_tier", "volume_oi_ratio", "underlying_symbol", "underlying_close_price", "moneyness", "moneyness_percent", "expiry_bucket"];
+const knownColumns = ["quote_date", "expiration_date", "expiration_dow", "quote_dow", "is_weekly_expiration", "is_monthly_expiration", "dte", "option_ticker", "option_type", "strike_price", "open_interest", "option_volume", "delta", "gamma", "vega", "theta", "rho", "theoretical_price", "implied_volatility", "option_open_price", "option_high_price", "bid_price", "ask_price", "mid_price", "liquidity_tier", "volume_oi_ratio", "underlying_symbol", "underlying_open_price", "underlying_high_price", "underlying_low_price", "underlying_close_price", "underlying_iv30", "underlying_volume", "underlying_iv30_percentile", "moneyness", "moneyness_percent", "expiry_bucket"];
 
 //add a button to execute the query and show the results in a table below the editor
 //with loading state and error handling
@@ -52,6 +53,7 @@ type PlaygroundTab = {
     isLoading?: boolean;
     error?: string;
     queryId?: string;
+    perspectiveSettings?: PerspectiveSettings | null;
     ac: AbortController;
 };
 const defaultQuery = `SELECT * FROM dataset`;
@@ -86,6 +88,11 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
 
     const { mode } = useColorScheme();
     const isDarkMode = mode === 'dark';
+
+    const handlePerspectiveSettingsChange = (settings: PerspectiveSettings) => {
+        console.log('handlePerspectiveSettingsChange', settings);
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, perspectiveSettings: settings } : t));
+    };
 
     const updateTab = (tab: PlaygroundTab) => {
         setTabs(prev => prev.map(t => t.id === tab.id ? tab : t));
@@ -164,6 +171,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             activeTab.queryId = dialogResult.id;
             activeTab.query = dialogResult.query;
             activeTab.title = dialogResult.name;
+            activeTab.perspectiveSettings = dialogResult.perspectiveSettings as PerspectiveSettings | null ?? null;
             updateTab(activeTab)
         }
     }
@@ -183,6 +191,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             await saveQuery({
                 name: queryName,
                 query: activeTab.query,
+                perspectiveSettings: (activeTab.perspectiveSettings as any) ?? null,
                 id: activeTab.queryId
             });
 
@@ -199,7 +208,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
 
 
     return (
-        <Stack spacing={1}>
+        <Stack spacing={1} sx={{ height: '100%' }}>
             {/* Tabs */}
             <Stack direction="row" alignItems="center">
                 <Tabs
@@ -353,7 +362,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             </Paper>
 
             {/* Editor + Results */}
-            <Group orientation="vertical" style={{ height: '75vh' }}>
+            <Group orientation="vertical" style={{ flex: 1, minHeight: 0 }}>
                 <Panel style={{ padding: 1 }}>
                     <Paper sx={{ height: '100%', display: 'flex' }}>
                         <Editor
@@ -398,7 +407,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                 <Separator />
 
                 <Panel>
-                    <Paper sx={{ pt: 1 }}>
+                    <Paper sx={{ pt: 1, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                         {activeTab.error ? (
                             <Typography color="error" p={2}>
                                 {activeTab.error}
@@ -406,43 +415,45 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                         ) : activeTab.isLoading ? (
                             <Box display="flex" justifyContent="center" p={3}>
                                 <CircularProgress size={24} />
-                            </Box>
+                </Box>
                         ) : rows.length ? (resultView === 'grid' ?
-                            <DataGrid
-                                columns={columns}
-                                rows={rows}
-                                autoHeight
-                                density="compact"
-                                rowHeight={40}
-                                disableColumnMenu
-                                disableColumnSorting
-                                disableColumnSelector
-                                pagination
-                                initialState={{
-                                    pagination: { paginationModel: { pageSize: 10 } }
-                                }}
-                                pageSizeOptions={[5, 10, 25]}
-                                sx={{
-                                    // height: '15vh',
-                                    fontFamily: "Roboto Mono, monospace",
-                                    fontSize: 12,
-                                    //display: 'grid',
-                                    //'& .MuiDataGrid-columnSeparator': { display: 'none' },
-                                    '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
-                                        outline: 'none'
-                                    }
-                                }}
+                <DataGrid
+                    columns={columns}
+                    rows={rows}
+                    density="compact"
+                    rowHeight={40}
+                    disableColumnMenu
+                    disableColumnSorting
+                    disableColumnSelector
+                    pagination
+                    initialState={{
+                        pagination: { paginationModel: { pageSize: 10 } }
+                    }}
+                    pageSizeOptions={[5, 10, 25]}
+                    sx={{
+                        flex: 1,
+                        minHeight: 0,
+                        fontFamily: "Roboto Mono, monospace",
+                        fontSize: 12,
+                        '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+                            outline: 'none'
+                        }
+                    }}
 
                             /> : <Box
-                                sx={{
-                                    height: '65vh',
+                sx={{
+                                    flex: 1,
+                                    minHeight: 0,
                                     width: '100%'
-                                }}
-                            >
-                                <PerspectiveWrapper
+                }}
+            >
+                <PerspectiveWrapper
                                     data={activeTab.result}
-                                />
-                            </Box>
+                    isDarkMode={isDarkMode}
+                                    onSettingsChange={handlePerspectiveSettingsChange}
+                                    initialSettings={activeTab.perspectiveSettings}
+                />
+            </Box>
                         ) : (
                             <Typography p={2} color="text.secondary">
                                 No results to display

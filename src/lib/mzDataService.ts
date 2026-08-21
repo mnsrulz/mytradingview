@@ -93,6 +93,14 @@ export const getOptionsPricing = async (symbol: string) => {
     return await client(`api/options/${symbol}/pricing`).json<OptionsPricingDataResponse>();
 }
 
+export type OptionOhlcRow = { dt: string, open: number, high: number, low: number, close: number, volume: number }
+
+export const getOptionHistoricalOhlc = async (contractId: string, n = 1000) => {
+    return await client(`api/options/contracts/${contractId}/ohlc`, {
+        searchParams: { n }
+    }).json<OptionOhlcRow[]>();
+}
+
 export const getHistoricalGreeksSummaryBySymbol = async (symbol: string) => {
     return await client(`api/options/${symbol}/report/greeks`).json<OptionGreeksSummaryBySymbolResponse[]>();
 }

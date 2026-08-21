@@ -246,6 +246,7 @@ export const Watchlist = () => {
             outline: 'none'
           }
         }}
+        autoHeight
         // columnHeaderHeight={0}
         // slots={{
         //   columnHeaders: () => <div></div>,

@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { Grid, Slider, Stack } from '@mui/material';
-import { IStrikePriceSliderPorps } from './StockOptionsView';
+import { Box, Slider, Stack, Typography } from '@mui/material';
+import { IStrikePriceSliderPorps } from '@/lib/types';
 
 export const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
     const { allStrikePricesValues, onChange, strikePriceRange } = props;
-    const t = [strikePriceRange.start, strikePriceRange.end];
-    const [minStrikePrice, maxStrikePrice] = [Math.min.apply(null, allStrikePricesValues), Math.max.apply(null, allStrikePricesValues)];
-    // const [minStrikePrice, maxStrikePrice] = [currentPrice - thresholdValue, currentPrice + thresholdValue];
+    const range = [strikePriceRange.start, strikePriceRange.end];
+    const [minStrikePrice, maxStrikePrice] = [Math.min(...allStrikePricesValues), Math.max(...allStrikePricesValues)];
     const strikePriceMarks = allStrikePricesValues.map(m => ({ value: m }));
     const handleChange = (e: Event, v: number | number[]) => {
         const value = v as number[];
@@ -16,18 +15,19 @@ export const StrikePriceSlider = (props: IStrikePriceSliderPorps) => {
         });
     };
 
-    return <div>
-        <div>Strike Price Range: {t[0]} - {t[1]}</div>
-        <Stack direction="row" sx={{ m: 1 }} alignItems="center">
-            <Slider
-                getAriaLabel={() => 'Strike price'}
-                value={t}
-                onChange={handleChange}
-                valueLabelDisplay="auto"
-                min={minStrikePrice}
-                max={maxStrikePrice}
-                marks={strikePriceMarks}
-                step={null} />
+    return <Box sx={{ px: 2, py: 1.5 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography variant="caption" color="text.secondary">Strike Price Range</Typography>
+            <Typography variant="body2">${range[0]} — ${range[1]}</Typography>
         </Stack>
-    </div>;
+        <Slider
+            getAriaLabel={() => 'Strike price'}
+            value={range}
+            onChange={handleChange}
+            valueLabelDisplay="auto"
+            min={minStrikePrice}
+            max={maxStrikePrice}
+            marks={strikePriceMarks}
+            step={null} />
+    </Box>;
 };
