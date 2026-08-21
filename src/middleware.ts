@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger'
 
 // Separate regex for API and page routes
 // const secureApiRoutesRegex = /^\/api\/(trades|portfolio|symbols\/[^/]+\/options\/analyze\/tradier)$/;
-const securePageRoutesRegex = /^\/(trades|portfolio|admin(\/.*)?)$/;
+const securePageRoutesRegex = /^\/(trades|portfolio(\/.*)?|admin(\/.*)?)$/;
 
 const isSecureApi = (path: string) => {
        return path.startsWith('/api/trades') ||
