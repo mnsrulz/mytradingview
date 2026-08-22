@@ -48,7 +48,7 @@ const calculateNetValue = (legData: LegOhlcData[], legs: HedgeLeg[]): { time: st
         const leg = legs[ld.legIndex]
         if (!leg) continue
 
-        const multiplier = leg.mode === 'BUY' ? -1 : 1
+        const multiplier = leg.mode === 'BUY' ? 1 : -1
 
         for (const row of ld.data) {
             if (!commonTimes.has(row.dt)) continue
