@@ -422,6 +422,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
                     rows={rows}
                     density="compact"
                     rowHeight={40}
+                    autoHeight
                     disableColumnMenu
                     disableColumnSorting
                     disableColumnSelector

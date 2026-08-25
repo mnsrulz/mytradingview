@@ -104,6 +104,7 @@ export const GreeksReport = (props: { cachedDates: string[] }) => {
         <DataGrid
             rows={filteredData}
             columns={columns}
+            autoHeight
             columnGroupingModel={columnGroupingModel}
             initialState={{
                 pagination: {
