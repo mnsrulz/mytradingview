@@ -61,6 +61,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
             mb: 2,
             overflowX: 'auto',          // enable horizontal scroll
             WebkitOverflowScrolling: 'touch', // smooth scroll on iOS
+            flexShrink: 0,
         }}>
             <Stack direction="row" gap={1} p={1} alignItems="center">
                 <FormControl sx={{ minWidth: 125 }} size="small">
