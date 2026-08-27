@@ -50,6 +50,8 @@ export type VolatilityResponse = {
     pv: number[];
     cp: number[];
     pp: number[];
+    cs: number[];
+    ps: number[];
     iv30: number[];
     iv_percentile: number[];
     close: number[];
@@ -77,7 +79,7 @@ export type OptionsStatsResponse = {
 //     cv: [0.2, 0.25, 0.22, 0.1, 0.91],
 //     pv: [0.18, 0.23, 0.21, 0.15, 0.89]
 // }
-const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], iv30: [], close: [], straddle: [], iv_percentile: [] };
+const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], cs: [], ps: [], iv30: [], close: [], straddle: [], iv_percentile: [] };
 const defaultOptionsStats = { dt: [], cd: [], pd: [], cp: [], pp: [], co: [], po: [], close: [], options_count: [] };
 export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike', dte: number, expiryMode: 'fixed' | 'rolling') => {
     const { data, isLoading, hasError, error } = useSubmitRequest('volatility-query', defaultVoltility, {
