@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 const MZQUOTES_URL = process.env.MZINGEST_URL || 'https://mztradingquotes.netlify.app/api';
 
 export const useStockPrice = (input: string | string[]) => {
-    // 1. Create a state object to hold just the incoming stream data
     const [quotes, setQuotes] = useState<Record<string, { price: number; change: number; changePercent: number }>>({});
+    const [loading, setLoading] = useState(true);
 
     const symbols = useMemo(() => {
         return (Array.isArray(input) ? input : [input])
@@ -18,11 +18,11 @@ export const useStockPrice = (input: string | string[]) => {
         const es = new EventSource(`${MZQUOTES_URL}/live-quotes?s=${encodeURIComponent(symbols.join(','))}`);
         es.addEventListener('quote', (e) => {
             const { symbol, price, change, changePercent } = JSON.parse(e.data);
-            // Batch updates cleanly by changing only the targeted reference
             setQuotes((prev) => ({
                 ...prev,
                 [symbol]: { price, change, changePercent }
             }));
+            setLoading(false);
         });
 
         es.onopen = () => {
@@ -38,5 +38,5 @@ export const useStockPrice = (input: string | string[]) => {
         }
     }, [symbols]); // stable dependency
 
-    return { quotes };
+    return { quotes, loading };
 }

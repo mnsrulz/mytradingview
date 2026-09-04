@@ -1,8 +1,5 @@
-import { getWatchlist } from "@/lib/dataService";
-import { Wrapper } from "@/components/IVHistorical/Wrapper";
+import { redirect } from 'next/navigation';
 
-export default async function Page() {
-    const watchList = await getWatchlist();
-    const symbols = watchList.map(k=> k.symbol).sort();
-    return <Wrapper symbols={symbols} />
+export default function Page() {
+    redirect('/options/iv/NVDA');
 }

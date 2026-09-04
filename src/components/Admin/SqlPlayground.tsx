@@ -28,6 +28,7 @@ import { DialogProps, useDialogs } from '@toolpad/core/useDialogs';
 import { DataGrid } from '@mui/x-data-grid';
 import { useEffect, useRef, useState } from 'react';
 import { SymbolsSelector } from '../IVHistorical/SymbolsSelector';
+import { useModifierKey } from '@/lib/useModifierKey';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import CloseIcon from '@mui/icons-material/Close';
@@ -160,9 +161,7 @@ export const SqlPlayground = ({ symbols }: { symbols: string[] }) => {
             ...row,
         })) || [];
 
-    const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-    const cmdKey = isMac ? '⌘' : 'Ctrl';
-    const enterKey = isMac ? '↵' : 'Enter';
+    const { modifierKey: cmdKey, enterKey } = useModifierKey();
     const dialogs = useDialogs();
 
     const handleLoad = async () => {
