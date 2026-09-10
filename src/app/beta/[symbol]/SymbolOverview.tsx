@@ -7,6 +7,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ElectricBoltIcon from "@mui/icons-material/ElectricBolt";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import Link from "next/link";
+import { WidgetGrid } from "@/components/widgets/WidgetGrid";
 
 const FEATURES = [
     { label: 'DEX/GEX Exposure', description: 'Options depth and gamma exposure', href: 'options/analyze', icon: <InsightsIcon /> },
@@ -76,6 +77,14 @@ export const SymbolOverview = ({ symbol }: { symbol: string }) => {
                     </Grid>
                 ))}
             </Grid>
+
+            <Divider />
+
+            <Typography variant="h6" fontWeight="medium">
+                Metrics
+            </Typography>
+
+            <WidgetGrid symbol={symbol} currentPrice={quote?.price} />
         </Stack>
     );
 }

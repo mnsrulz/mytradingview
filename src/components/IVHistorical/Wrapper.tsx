@@ -67,7 +67,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
 
 
     const availableStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
-    const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike', dte, expiryMode);
+    const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike' | 'atm', dte, expiryMode);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
