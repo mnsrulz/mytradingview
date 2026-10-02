@@ -42,6 +42,7 @@ export const LiveTrackPages = () => {
             rows={views}
             columns={columns}
             //            density="compact"
+            autoHeight
             hideFooter
             onRowClick={(p) => dialogs.open(LivePageDetailsDialog, p.row)}
             initialState={

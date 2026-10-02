@@ -1,13 +1,14 @@
 'use client';
 import { useOptionHistoricalVolatility } from "@/lib/socket";
 import { Box, Checkbox, Divider, FormControl, FormControlLabel, InputLabel, MenuItem, Paper, Select, Skeleton, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { useState } from "react";
 import { SymbolsSelector } from "./SymbolsSelector";
 import { useExpirations } from "./hooks";
 import { getDayOfYear } from 'date-fns';
 import Alert from '@mui/material/Alert';
 import { BasicChart } from "./BasicChart";
 import { TVChart } from "./TVChart";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 const deltaOptions = [10,
     25,
@@ -33,14 +34,28 @@ const dteOptions = [0,
     480,
     1000];
 
-export const Wrapper = (props: { symbols: string[] }) => {
-    const { symbols } = props;
-    const [symbol, setSymbol] = useState(symbols[0]);
-    return <IVComponent symbols={symbols} symbol={symbol} onSymbolChange={setSymbol} />
+export const Wrapper = (props: { symbols: string[], symbol: string, hideSymbolSelector?: boolean }) => {
+    const { symbols, symbol, hideSymbolSelector } = props;
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    const goToSymbol = (newSymbol: string) => {
+        const segments = pathname.split('/');
+        // /beta/AAL/options/iv -> symbol is at index 2
+        // /options/iv/AAL -> symbol is at index 3
+        const symbolIndex = segments[1] === 'beta' ? 2 : 3;
+        segments[symbolIndex] = newSymbol;
+        const newPath = segments.join('/');
+        const fullPath = searchParams.toString() ? `${newPath}?${searchParams.toString()}` : newPath;
+        router.push(fullPath);
+    };
+
+    return <IVComponent symbols={symbols} symbol={symbol} onSymbolChange={goToSymbol} hideSymbolSelector={hideSymbolSelector} />
 }
 
-const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void }) => {
-    const { symbols, symbol, onSymbolChange } = props;
+const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange: (value: string) => void, hideSymbolSelector?: boolean }) => {
+    const { symbols, symbol, onSymbolChange, hideSymbolSelector } = props;
     const [mode, setMode] = useState('delta');
     const [expiryMode, setExpiryMode] = useState<'fixed' | 'rolling'>('rolling');
     const [lookbackPeriod, setLookbackPeriod] = useState(180);
@@ -52,7 +67,7 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
 
 
     const availableStrikes = expirations.find(k => k.expiration == expiration)?.strikes || [];
-    const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike', dte, expiryMode);
+    const { volatility, isLoading, hasError, error } = useOptionHistoricalVolatility(symbol, lookbackPeriod, delta, strike, expiration, mode as 'delta' | 'strike' | 'atm', dte, expiryMode);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -61,11 +76,14 @@ const IVComponent = (props: { symbols: string[], symbol: string, onSymbolChange:
             mb: 2,
             overflowX: 'auto',          // enable horizontal scroll
             WebkitOverflowScrolling: 'touch', // smooth scroll on iOS
+            flexShrink: 0,
         }}>
             <Stack direction="row" gap={1} p={1} alignItems="center">
-                <FormControl sx={{ minWidth: 125 }} size="small">
-                    <SymbolsSelector symbols={symbols} symbol={symbol} handleSymbolChange={onSymbolChange} />
-                </FormControl>
+                {!hideSymbolSelector && (
+                    <FormControl sx={{ minWidth: 125 }} size="small">
+                        <SymbolsSelector symbols={symbols} symbol={symbol} handleSymbolChange={onSymbolChange} />
+                    </FormControl>
+                )}
                 <FormControl sx={{ flexShrink: 0 }} size="small">
                     <Tooltip title={
                         <>

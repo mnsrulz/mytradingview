@@ -1,6 +1,6 @@
 import ky from "ky";
 import { useEffect, useState } from "react";
-const MZINGEST_URL = process.env.MZINGEST_URL || 'https://mzingest.netlify.app/api';
+const MZINGEST_URL = process.env.NEXT_PUBLIC_MZINGEST_URL || 'https://mzingest.netlify.app/api';
 const client = ky.create({
     prefixUrl: MZINGEST_URL,
     headers: {

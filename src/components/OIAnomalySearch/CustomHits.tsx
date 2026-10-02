@@ -129,6 +129,7 @@ export const CustomHits = (props: UseHitsProps<OIAnomalyReportDataResponse>) => 
     return <div style={{ display: 'flex', flexDirection: 'column' }}><DataGrid
         rows={items}
         columns={columns}
+        autoHeight
         // columnGroupingModel={columnGroupingModel}
         initialState={{
             pagination: {

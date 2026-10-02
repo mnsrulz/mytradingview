@@ -31,6 +31,7 @@ export const ContactMessages = (props: {data: ContactMessage[]})=> {
             disableRowSelectionOnClick
             disableColumnMenu={true}
             density="compact"
+            autoHeight
             showToolbar
         />
     );

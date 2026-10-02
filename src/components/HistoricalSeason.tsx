@@ -105,6 +105,7 @@ export const EarningsSeasonComponent = (props: { data: EarningsSeason[], symbol:
         getRowId={(r: EarningsSeason) => r.date}
         rows={data}
         columns={columns}
+        autoHeight
         disableRowSelectionOnClick
     /> : <span>There is no earnings data for this symbol.</span>;
 }

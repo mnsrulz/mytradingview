@@ -37,6 +37,7 @@ export function LivePageDetailsDialog({
                         rows={rows}
                         columns={columns}
                         density="compact"
+                        autoHeight
                         hideFooter
                         disableColumnMenu
                         disableColumnSelector

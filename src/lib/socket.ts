@@ -50,6 +50,8 @@ export type VolatilityResponse = {
     pv: number[];
     cp: number[];
     pp: number[];
+    cs: number[];
+    ps: number[];
     iv30: number[];
     iv_percentile: number[];
     close: number[];
@@ -77,9 +79,9 @@ export type OptionsStatsResponse = {
 //     cv: [0.2, 0.25, 0.22, 0.1, 0.91],
 //     pv: [0.18, 0.23, 0.21, 0.15, 0.89]
 // }
-const defaultVoltility = { dt: [], cv: [], pv: [], cp: [], pp: [], iv30: [], close: [], straddle: [], iv_percentile: [] };
-const defaultOptionsStats = { dt: [], cd: [], pd: [], cp: [], pp: [], co: [], po: [], close: [], options_count: [] };
-export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike', dte: number, expiryMode: 'fixed' | 'rolling') => {
+const defaultVoltility: VolatilityResponse = { dt: [], cv: [], pv: [], cp: [], pp: [], cs: [], ps: [], iv30: [], close: [], iv_percentile: [] };
+const defaultOptionsStats: OptionsStatsResponse = { dt: [], cd: [], pd: [], cp: [], pp: [], co: [], po: [], close: [], options_count: [] };
+export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: number, delta: number, strike: number, expiration: string, mode: 'delta' | 'strike' | 'atm', dte: number, expiryMode: 'fixed' | 'rolling') => {
     const { data, isLoading, hasError, error } = useSubmitRequest('volatility-query', defaultVoltility, {
         symbol,
         lookbackDays,
@@ -91,7 +93,7 @@ export const useOptionHistoricalVolatility = (symbol: string, lookbackDays: numb
         strike: mode == 'strike' ? strike : null,
     })
     const mappedData = useMemo(() => {
-        const straddle = data.cp.map((v, x) => data.pp[x] + v);
+        const straddle = (data.cp || []).map((v, x) => (data.pp?.[x] ?? 0) + v);
         return { ...data, straddle };
     }, [data]);
 
@@ -106,9 +108,9 @@ export const useExpectedMove = (symbol: string, lookbackDays: number, expiryMode
     })
     const mappedData = useMemo(() => data.dt.map((d, ix) => ({
         dt: d,
-        last_close: data.last_close[ix],
-        straddle_price: data.straddle_price[ix],
-        expiry: data.expiry[ix]
+        last_close: data.last_close?.[ix] ?? 0,
+        straddle_price: data.straddle_price?.[ix] ?? 0,
+        expiry: data.expiry?.[ix] ?? ''
     })), [data]);
     return { data: mappedData, isLoading, hasError, error };
 }
@@ -119,11 +121,11 @@ export const useOhlc = (symbol: string, lookbackDays: number) => {
     })
     const mappedData = useMemo(() => data.dt.map((d, ix) => ({
         dt: d,
-        open: data.open[ix],
-        high: data.high[ix],
-        low: data.low[ix],
-        close: data.close[ix],
-        iv30: data.iv30[ix]
+        open: data.open?.[ix] ?? 0,
+        high: data.high?.[ix] ?? 0,
+        low: data.low?.[ix] ?? 0,
+        close: data.close?.[ix] ?? 0,
+        iv30: data.iv30?.[ix] ?? 0
     })), [data]);
     return { data: mappedData, isLoading, hasError, error };
 }

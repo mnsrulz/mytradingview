@@ -118,6 +118,7 @@ export const OIAnomalyReport = (props: { cachedDates: string[], symbols: string[
         <DataGrid
             rows={rows}
             columns={columns}
+            autoHeight
             // columnGroupingModel={columnGroupingModel}
             initialState={{
                 pagination: {

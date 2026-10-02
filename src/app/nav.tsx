@@ -18,6 +18,8 @@ import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import StorageIcon from '@mui/icons-material/Storage';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import ShieldIcon from '@mui/icons-material/Shield';
+import ScienceIcon from '@mui/icons-material/Science';
+import ExploreIcon from '@mui/icons-material/Explore';
 
 const pages = [
     { title: 'Home', href: '/' },
@@ -132,6 +134,19 @@ export const NAVIGATION: Navigation = [
         segment: 'calculator',
         title: 'Calculator',
         icon: <CalculateIcon />,
+    },
+    {
+        kind: 'divider',
+    },
+    {
+        kind: 'header',
+        title: 'Beta',
+    },
+    {
+        segment: 'beta',
+        title: 'Symbol Explorer',
+        icon: <ExploreIcon />,
+        pattern: 'beta{/:symbol}*',
     },
 ];
 
