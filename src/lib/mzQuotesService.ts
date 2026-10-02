@@ -1,6 +1,6 @@
 import ky from "ky";
 import { useEffect, useMemo, useState } from "react";
-const MZQUOTES_URL = process.env.NEXT_PUBLIC_MZINGEST_URL || 'https://mztradingquotes.netlify.app/api';
+const MZQUOTES_URL = process.env.NEXT_PUBLIC_MZQUOTES_URL || 'https://mztradingquotes.netlify.app/api';
 
 export const useStockPrice = (input: string | string[]) => {
     const [quotes, setQuotes] = useState<Record<string, { price: number; change: number; changePercent: number }>>({});
