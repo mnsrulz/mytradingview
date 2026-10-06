@@ -7,6 +7,7 @@ import { ExpectedMoveWidget } from './ExpectedMoveWidget';
 import { DeltaIVWidget } from './DeltaIVWidget';
 import { ATMDeltaWidget } from './ATMDeltaWidget';
 import { IVRankWidget } from './IVRankWidget';
+import { BullRunSignalWidget } from './BullRunSignalWidget';
 
 interface WidgetGridProps {
     symbol: string;
@@ -42,6 +43,9 @@ export const WidgetGrid = ({ symbol, currentPrice }: WidgetGridProps) => {
                 </Box>
                 <Box>
                     <IVRankWidget symbol={symbol} lookbackDays={lookbackDays} />
+                </Box>
+                <Box>
+                    <BullRunSignalWidget symbol={symbol} />
                 </Box>
             </Box>
         </Box>

@@ -8,8 +8,11 @@ import ElectricBoltIcon from "@mui/icons-material/ElectricBolt";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import Link from "next/link";
 import { WidgetGrid } from "@/components/widgets/WidgetGrid";
+import { BullRunSignalChip } from "./BullRunSignalChip";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 
 const FEATURES = [
+    { label: 'Bull-Run Signal', description: 'Cheap-vol entry checklist with trend gate', href: 'signal', icon: <RocketLaunchIcon /> },
     { label: 'DEX/GEX Exposure', description: 'Options depth and gamma exposure', href: 'options/analyze', icon: <InsightsIcon /> },
     { label: 'Option Pricing', description: 'Pricing models and chain analysis', href: 'options/pricing', icon: <AttachMoneyIcon /> },
     { label: 'Implied Volatility', description: 'IV history and term structure', href: 'options/iv', icon: <ElectricBoltIcon /> },
@@ -42,6 +45,7 @@ export const SymbolOverview = ({ symbol }: { symbol: string }) => {
                 ) : (
                     <Skeleton variant="text" width={200} height={40} />
                 )}
+                <BullRunSignalChip symbol={symbol} />
             </Stack>
 
             <Divider />

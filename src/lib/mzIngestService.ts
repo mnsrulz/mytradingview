@@ -14,7 +14,7 @@ const client = ky.create({
     }
 });
 
-type SocketRequestType = 'expected-move-query' | 'ohlc-query' | 'volatility-query' | 'options-stat-query' | 'dynamic-sql-query';
+type SocketRequestType = 'expected-move-query' | 'ohlc-query' | 'volatility-query' | 'options-stat-query' | 'dynamic-sql-query' | 'bull-run-signal-query';
 export const submitQuery = <T>(requestType: SocketRequestType, params: object, signal?: AbortSignal) => {
     const requestId = crypto.randomUUID();
     return client.post(`requests`, {

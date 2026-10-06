@@ -171,3 +171,15 @@ export const runDynamicQuery = async (symbol: string, sql: string, signal?: Abor
     }
     return toRowObjects(data.value);
 }
+
+export const runBullRunSignalQuery = async (symbol: string, lookbackDays: number, signal?: AbortSignal) => {
+    const data = await submitQuery<DDType>('bull-run-signal-query', {
+        symbol,
+        lookbackDays
+    }, signal);
+
+    if (data.hasError || data.value === undefined || data.value === null) {
+        throw new Error(`Error executing query for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
+    }
+    return toRowObjects(data.value);
+}
