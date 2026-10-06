@@ -138,12 +138,22 @@ export const useOptionsStats = (symbol: string, lookbackDays: number) => {
     return { stats: data, isLoading, hasError, error };
 }
 
-type DDType = {
-    rows: [][],
-    columns: {
-        columnNames: string[]
-    }
+type DDType = Record<string, any[]>
+
+const toRowObjects = (value: DDType): Record<string, any>[] => {
+    const cols = Object.keys(value);
+    if (!cols.length) return [];
+
+    const rowCount = value[cols[0]].length;
+    return Array.from({ length: rowCount }, (_, i) => {
+        const rowObj: Record<string, any> = {};
+        cols.forEach(col => {
+            rowObj[col] = value[col][i];
+        });
+        return rowObj;
+    });
 }
+
 export const runDynamicQuery = async (symbol: string, sql: string, signal?: AbortSignal) => {
     console.log(`$${symbol} | Running dynamic query for 
     -----------BEGIN------
@@ -156,13 +166,8 @@ export const runDynamicQuery = async (symbol: string, sql: string, signal?: Abor
         sql
     }, signal);
 
-    if (data.hasError) throw new Error(`Error executing query for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
-    const final = data.value.rows.map((k) => {
-        const rowObj: Record<string, any> = {};
-        data.value.columns.columnNames.forEach((col, colIx) => {
-            rowObj[col] = k[colIx];
-        });
-        return rowObj;
-    })
-    return final;
+    if (data.hasError || data.value === undefined || data.value === null) {
+        throw new Error(`Error executing query for ${symbol}. Please try again later or choose a different symbol. If problem persist, report via contact us page.`);
+    }
+    return toRowObjects(data.value);
 }
