@@ -14,12 +14,12 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { getDayOfYear } from "date-fns";
 
 const modes = ['weekly', 'monthly'] as const;
-export const Wrapper = (props: { symbols: string[], symbol: string }) => {
+export const Wrapper = (props: { symbols: string[], symbol: string, hideSymbolSelector?: boolean }) => {
     const [mode, setMode] = useQueryState('mode', parseAsStringLiteral(modes).withDefault('weekly'));
     const [lookback, setLookback] = useQueryState('lookback', parseAsInteger.withDefault(180));
     const [magnetMode, setMagnetMode] = useQueryState('magnetMode', parseAsBoolean.withDefault(false));
     const [expectedMoveDisplayOption, setExpectedMoveDisplayOption] = useState<ExpecteMoveDisplayOptions>('value');
-    const { symbols, symbol } = props;
+    const { symbols, symbol, hideSymbolSelector } = props;
     const router = useRouter();
     const pathname = usePathname(); // e.g., "/chart/TSLA"
     const searchParams = useSearchParams();
@@ -37,9 +37,11 @@ export const Wrapper = (props: { symbols: string[], symbol: string }) => {
     return <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <Paper sx={{ WebkitOverflowScrolling: 'touch', overflowX: 'auto' }}>
             <Stack direction="row" gap={1} p={1} alignItems="center">
-                <FormControl sx={{ minWidth: 125 }} size="small">
-                    <SymbolsSelector symbols={symbols} symbol={symbol} handleSymbolChange={goToSymbol} />
-                </FormControl>
+                {!hideSymbolSelector && (
+                    <FormControl sx={{ minWidth: 125 }} size="small">
+                        <SymbolsSelector symbols={symbols} symbol={symbol} handleSymbolChange={goToSymbol} />
+                    </FormControl>
+                )}
                 <FormControl sx={{ flexShrink: 0 }} size="small">
                     <InputLabel>Mode</InputLabel>
                     <Select id="expiry-mode" value={mode} label="Mode" onChange={(e) => setMode(e.target.value)}>

@@ -62,6 +62,7 @@ export const GreeksWallReport = (props: { cachedDates: string[] }) => {
         <DataGrid
             rows={rows}
             columns={columns}
+            autoHeight
             initialState={{
                 pagination: {
                     paginationModel: {

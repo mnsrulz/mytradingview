@@ -182,6 +182,7 @@ export const TradeList = () => {
             disableColumnMenu={true}
             disableColumnFilter={true}
             disableColumnSorting={true}
+            autoHeight
             columns={columns}
             density="compact"
             disableRowSelectionOnClick

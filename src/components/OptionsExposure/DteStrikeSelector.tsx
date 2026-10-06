@@ -42,9 +42,10 @@ export const DteStrikeSelector = (props: {
     showZeroAndNextDte?: boolean,
     setExpiryValue: (v: ExpiryValue) => void,
     setStrikesCount: (value: StrikeValueType) => void,
-    hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void
+    hasHistoricalData: boolean, dataMode: DataModeType, setDataMode: (v: DataModeType) => void,
+    hideSymbolSelector?: boolean
 }) => {
-    const { symbol, setStrikesCount, strikeCounts, expiryValue, dataMode, showZeroAndNextDte, setDataMode, hasHistoricalData, availableDates, timestamp, onRefresh, setExpiryValue } = props;
+    const { symbol, setStrikesCount, strikeCounts, expiryValue, dataMode, showZeroAndNextDte, setDataMode, hasHistoricalData, availableDates, timestamp, onRefresh, setExpiryValue, hideSymbolSelector } = props;
 
     const dataModes = hasHistoricalData ? ['CBOE', 'TRADIER', 'HISTORICAL'] : ['CBOE', 'TRADIER'];
     const theme = useTheme();
@@ -57,9 +58,11 @@ export const DteStrikeSelector = (props: {
         }}
     >
         <Stack direction="row" gap={1} p={1} justifyContent="space-between" alignItems={"center"}>
-            <FormControl size="small" sx={{ flexShrink: 0 }}>
-                <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
-            </FormControl>
+            {!hideSymbolSelector && (
+                <FormControl size="small" sx={{ flexShrink: 0 }}>
+                    <TickerSearchDialog symbol={symbol} basePath='' clearQuery={true} />
+                </FormControl>
+            )}
             <Stack direction="row" gap={isMobile ? 0.5 : 1} >
                 {timestamp && <RefreshCboeData dataMode={dataMode} timestamp={timestamp} symbol={symbol} onRefresh={onRefresh} />}
                 <FormControl size="small" sx={{ flexShrink: 0 }}>

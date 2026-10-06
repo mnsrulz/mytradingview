@@ -10,6 +10,7 @@ import theme from '@/theme';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Dashboard } from "./app";
 import { PageTracker } from "@/components/PageTracker";
+import { CommandBarProvider } from "@/components/CommandBarProvider";
 import { Suspense } from 'react';
 import LoadingBar from '@/components/LoadingBar';
 
@@ -30,6 +31,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <SessionProvider session={session}>
+          <CommandBarProvider />
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             <NextAppProvider
               theme={theme}

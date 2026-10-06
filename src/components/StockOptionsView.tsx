@@ -14,6 +14,7 @@ import { useQueryState, parseAsStringEnum } from 'nuqs';
 
 interface ITickerProps {
     symbol: string
+    hideSymbolSelector?: boolean
 }
 
 export const StockOptionsView = (props: ITickerProps) => {
@@ -54,6 +55,7 @@ export const StockOptionsView = (props: ITickerProps) => {
 
     return <Paper>
         <OptionsPricingHeader symbol={props.symbol} spotPrice={data.spotPrice} timestamp={data.timestamp} onRefresh={() => setRefreshToken(Date.now().toString())}
+            hideSymbolSelector={props.hideSymbolSelector}
             mobileActions={
                 <IconButton size="small" title="Options controls" aria-label="Options controls"
                     onClick={(e) => setControlsAnchorEl(e.currentTarget)}>

@@ -26,8 +26,8 @@ const defaultExpiryValueForIndex = {
     value: 7,
 } as ExpiryValue;
 
-export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }) => {
-    const { symbol, cachedDates } = props;
+export const OptionsExposure = (props: { symbol: string, cachedDates: string[], hideSymbolSelector?: boolean }) => {
+    const { symbol, cachedDates, hideSymbolSelector } = props;
     const [printMode] = useQueryState('print', parseAsBoolean.withDefault(false));
     const [historicalDate, setHistoricalDate] = useQueryState('historical', parseAsString.withDefault(cachedDates.at(-1) || ''));
     const showZeroAndNextDte = symbolsWithDailyOptions.includes(symbol);
@@ -85,7 +85,7 @@ export const OptionsExposure = (props: { symbol: string, cachedDates: string[] }
             onRefresh={() => setRefreshToken(new Date().toISOString())}
             showZeroAndNextDte={showZeroAndNextDte}
             setStrikesCount={setStrikesCount} symbol={symbol} dataMode={dataMode} 
-            setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} />
+            setDataMode={setDataMode} hasHistoricalData={cachedDates.length > 0} hideSymbolSelector={hideSymbolSelector} />
         <Paper sx={{ mt: 1 }}>
             <ChartTypeSelectorTab tab={exposureTab} onChange={setexposureTab} />
             {exposureChartContent}

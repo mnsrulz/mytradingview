@@ -12,14 +12,15 @@ interface OptionsPricingHeaderProps {
     onRefresh: () => void;
     mobileActions?: ReactNode;
     children?: ReactNode;
+    hideSymbolSelector?: boolean;
 }
 
 export const OptionsPricingHeader = (props: OptionsPricingHeaderProps) => {
-    const { symbol, spotPrice, timestamp, onRefresh, mobileActions, children } = props;
+    const { symbol, spotPrice, timestamp, onRefresh, mobileActions, children, hideSymbolSelector } = props;
     return <Stack direction="row" spacing={2} alignItems="flex-end" justifyContent="space-between" sx={{ p: 1.5, pb: 1, flexWrap: 'wrap' }}>
         <Stack direction="row" spacing={2} alignItems="flex-end" sx={{ flexWrap: 'wrap' }}>
             <Stack direction="row" spacing={2} alignItems="center">
-                <TickerSearchDialog symbol={symbol} basePath='' />
+                {!hideSymbolSelector && <TickerSearchDialog symbol={symbol} basePath='' />}
                 <Divider orientation="vertical" flexItem />
                 <Box>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>Spot Price</Typography>
