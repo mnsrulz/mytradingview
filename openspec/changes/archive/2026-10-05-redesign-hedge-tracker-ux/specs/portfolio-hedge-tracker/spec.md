@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Position card shows only saved strategies
 The system SHALL display only saved/favorited strategies on each position card by default. Auto-suggested strategies are NOT shown inline.
