@@ -112,9 +112,9 @@ const SymbolRow = ({ symbol, name, price, change, changePercent, onClick }: {
                 <Typography variant="body2" fontWeight="medium">
                     {price < 1 ? `$${price.toFixed(4)}` : price >= 1000 ? `$${price.toFixed(0)}` : `$${price.toFixed(2)}`}
                 </Typography>
-                {change !== undefined && (
-                    <Typography variant="caption" fontWeight="medium" sx={{ color: (change ?? 0) >= 0 ? green[600] : red[600] }}>
-                        {(change ?? 0) >= 0 ? '+' : ''}{change?.toFixed(2)}%
+                {changePercent !== undefined && (
+                    <Typography variant="caption" fontWeight="medium" sx={{ color: changePercent >= 0 ? green[600] : red[600] }}>
+                        {changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
                     </Typography>
                 )}
             </Stack>
